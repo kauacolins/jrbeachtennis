@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: "Arena JR | Reserve sua quadra de beach tennis",
     description:
       "Reserve quadras de beach tennis, futebol e vôlei na Arena JR.",
-    images: ["/images/hero-quadra.jpg"],
+    images: ["/images/hero-quadra-2.png"],
   },
 };
 

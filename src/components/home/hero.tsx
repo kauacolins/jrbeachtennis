@@ -15,7 +15,7 @@ export async function Hero() {
   return (
     <section className="relative isolate overflow-hidden bg-brand-black text-brand-black-foreground">
       <Image
-        src="/images/hero-quadra.jpg"
+        src="/images/hero-quadra-2.png"
         alt="Quadra de areia iluminada da Arena JR à noite"
         fill
         priority

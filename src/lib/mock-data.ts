@@ -79,10 +79,10 @@ export interface ModalidadeFotoMock {
 // public/images/. Troque por fotoUrl assim que o admin puder enviar fotos
 // por modalidade.
 export const FOTO_POR_MODALIDADE: Record<string, string> = {
-  "beach tennis": "/images/beach-tennis.jpg",
+  "beach tennis": "/images/beach-tennis.png",
   "futevôlei": "/images/futevolei.jpg",
   futevolei: "/images/futevolei.jpg",
-  "vôlei": "/images/volei.jpg",
-  volei: "/images/volei.jpg",
-  queimada: "/images/queimada.jpg",
+  "vôlei": "/images/volei.jpeg",
+  volei: "/images/volei.jpeg",
+  queimada: "/images/queimada.jpeg",
 };

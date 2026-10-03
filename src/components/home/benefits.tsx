@@ -30,7 +30,7 @@ export function Benefits() {
       <div className="grid gap-8 sm:grid-cols-2 sm:items-center sm:gap-12">
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-muted">
           <Image
-            src="/images/jogadores.jpg"
+            src="/images/jogadores.jpeg"
             alt="Jogadores comemorando um ponto na quadra da Arena JR"
             fill
             sizes="(min-width: 640px) 50vw, 100vw"
