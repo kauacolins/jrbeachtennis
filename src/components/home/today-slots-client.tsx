@@ -103,6 +103,7 @@ export function TodaySlotsClient({
             render={
               <Link href={`/reservar/${modalidadeId}?data=${amanhaISO}`} />
             }
+            nativeButton={false}
           >
             Ver amanhã
           </Button>

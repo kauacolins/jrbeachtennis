@@ -10,7 +10,11 @@ export default function ModalidadeNaoEncontrada() {
       <p className="text-sm text-muted-foreground">
         Ela pode ter sido desativada ou o link está incorreto.
       </p>
-      <Button render={<Link href="/#modalidades" />} className="h-11">
+      <Button
+        render={<Link href="/#modalidades" />}
+        nativeButton={false}
+        className="h-11"
+      >
         Ver modalidades
       </Button>
     </div>

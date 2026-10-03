@@ -76,7 +76,11 @@ export function SiteHeader() {
           >
             Entrar
           </Button>
-          <Button className="h-11 px-5" render={<a href="#modalidades" />}>
+          <Button
+            className="h-11 px-5"
+            render={<a href="#modalidades" />}
+            nativeButton={false}
+          >
             Reservar horário
           </Button>
 
@@ -110,6 +114,7 @@ export function SiteHeader() {
                         className="flex h-11 items-center rounded-lg px-2 text-base font-medium hover:bg-muted"
                       />
                     }
+                    nativeButton={false}
                   >
                     {link.label}
                   </SheetClose>

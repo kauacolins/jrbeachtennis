@@ -14,6 +14,7 @@ export function FinalCta() {
           size="lg"
           className="h-11 bg-foreground px-6 text-background hover:bg-foreground/90"
           render={<a href="#modalidades" />}
+          nativeButton={false}
         >
           Reservar horário
         </Button>

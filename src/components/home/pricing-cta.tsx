@@ -17,6 +17,7 @@ export function PricingCta({
         className="h-11 w-full"
         variant={destaque ? "default" : "outline"}
         render={<a href="#modalidades" />}
+        nativeButton={false}
       >
         Reservar horário
       </Button>
