@@ -11,3 +11,98 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  CLIENT
+  OPERATOR
+  INTRUCTOR
+  ADMIN
+}
+
+enum StatusReserva {
+  CONFIRMADA
+  CANCELADA
+  CONCLUIDA
+  NAO_COMPARECEU
+}
+
+model Modalidade {
+  id       String    @id @default(cuid())
+  nome     String    @unique // Beach tennis, Futebol, Vôlei...
+  quadras  Quadra[]  // muitos-para-muitos
+  reservas Reserva[]
+}
+
+model Quadra {
+  id                String                 @id @default(cuid())
+  nome              String
+  descricao         String?
+  fotoUrl           String?
+  precoHoraCentavos Int
+  ativa             Boolean                @default(true)
+  modalidades       Modalidade[]           // muitos-para-muitos
+  horarios          HorarioFuncionamento[]
+  reservas          Reserva[]
+}
+
+model HorarioFuncionamento {
+  id        String @id @default(cuid())
+  quadraId  String
+  quadra    Quadra @relation(fields: [quadraId], references: [id])
+  diaSemana Int // 0 = domingo ... 6 = sábado
+  abreMin   Int // minutos desde 00:00, ex.: 480 = 08:00
+  fechaMin  Int // ex.: 1380 = 23:00
+
+  @@unique([quadraId, diaSemana])
+}
+
+model Reserva {
+  id              String        @id @default(cuid())
+  quadraId        String
+  quadra          Quadra        @relation(fields: [quadraId], references: [id])
+  modalidadeId    String        // precisa ser uma das modalidades da quadra
+  modalidade      Modalidade    @relation(fields: [modalidadeId], references: [id])
+  userId          String?       // nulo em reserva manual sem conta
+  user            User?         @relation(fields: [userId], references: [id])
+  nomeContato     String?       // reserva manual
+  telefoneContato String?
+  inicio          DateTime      // UTC
+  fim             DateTime      // UTC
+  valorCentavos   Int           // preço congelado
+  status          StatusReserva @default(CONFIRMADA)
+  pago            Boolean       @default(false)
+  canceladaEm     DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@index([quadraId, inicio])
+  @@index([userId])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  nome          String
+  email         String    @unique
+  emailVerified DateTime?
+  senhaHash     String? // nulo para quem só entra com Google
+  telefone      String? // contato; pedido no primeiro acesso via Google
+  imagem        String? // foto do Google
+  role          Role      @default(CLIENT)
+  contas        Account[]
+  reservas      Reserva[]
+  createdAt     DateTime  @default(now())
+}
+
+// Login social (Google). Formato padrão de conta social do Better Auth / Auth.js
+model Account {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String // "google"
+  providerAccountId String
+  accessToken       String?
+  refreshToken      String?
+  idToken           String?
+  expiresAt         DateTime?
+
+  @@unique([provider, providerAccountId])
+}
