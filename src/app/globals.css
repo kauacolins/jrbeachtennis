@@ -1,26 +1,173 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-brand-text: var(--brand-text);
+  --color-brand-black: var(--brand-black);
+  --color-brand-black-foreground: var(--brand-black-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+
+  --background: oklch(1 0 0);                    /* #FFFFFF */
+  --foreground: oklch(0.172 0.010 255.7);        /* #0D1014  19.1:1 */
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.172 0.010 255.7);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.172 0.010 255.7);
+
+  /* Limão da marca. Sempre com texto escuro: 10.1:1. Nunca use limão como texto sobre branco (1.9:1). */
+  --primary: oklch(0.778 0.202 135.4);           /* #78D23A */
+  --primary-foreground: oklch(0.172 0.010 255.7);/* #0D1014 */
+
+  --secondary: oklch(0.965 0.013 126.4);         /* #F1F5EC */
+  --secondary-foreground: oklch(0.280 0.048 133.9); /* #1F2E15  13.0:1 */
+
+  --muted: oklch(0.969 0.003 128.5);             /* #F4F5F3 */
+  --muted-foreground: oklch(0.482 0.019 139.4);  /* #596157  5.9:1 */
+
+  /* Fundo de horário livre / item selecionado */
+  --accent: oklch(0.953 0.050 130.7);            /* #E4F7D4 */
+  --accent-foreground: oklch(0.419 0.101 137.6); /* #2F591D  7.2:1 */
+
+  --destructive: oklch(0.577 0.215 27.3);        /* #DC2626  4.8:1 com branco */
+
+  --border: oklch(0.921 0.009 128.6);            /* #E3E6E0 */
+  --input: oklch(0.921 0.009 128.6);
+  --ring: oklch(0.594 0.161 137.1);              /* #4A9323  3.8:1 (foco, mínimo 3:1) */
+
+  /* Extras para o sistema de reservas */
+  --brand-text: oklch(0.528 0.141 137.2);        /* #3F7D1F  links/ícones verdes, 5.0:1 */
+  --brand-black: oklch(0.172 0.010 255.7);       /* #0D1014 fixo — hero e footer, igual nos dois modos */
+  --brand-black-foreground: oklch(0.969 0.009 128.6); /* #F3F6F0 fixo */
+  --warning: oklch(0.769 0.165 70.1);            /* #F59E0B  reserva pendente (texto escuro por cima) */
+  --warning-foreground: oklch(0.172 0.010 255.7);
+
+  --chart-1: oklch(0.778 0.202 135.4);           /* #78D23A limão */
+  --chart-2: oklch(0.419 0.101 137.6);           /* #2F591D verde escuro */
+  --chart-3: oklch(0.685 0.148 237.3);           /* #0EA5E9 céu */
+  --chart-4: oklch(0.769 0.165 70.1);            /* #F59E0B areia */
+  --chart-5: oklch(0.482 0.019 139.4);           /* #596157 cinza */
+
+  --sidebar: oklch(0.982 0.006 128.5);           /* #F8FAF6 */
+  --sidebar-foreground: oklch(0.172 0.010 255.7);
+  --sidebar-primary: oklch(0.172 0.010 255.7);   /* item ativo preto, como o logo */
+  --sidebar-primary-foreground: oklch(0.778 0.202 135.4);
+  --sidebar-accent: oklch(0.953 0.050 130.7);
+  --sidebar-accent-foreground: oklch(0.419 0.101 137.6);
+  --sidebar-border: oklch(0.921 0.009 128.6);
+  --sidebar-ring: oklch(0.594 0.161 137.1);
+}
+
+.dark {
+  --background: oklch(0.172 0.010 255.7);        /* #0D1014 */
+  --foreground: oklch(0.969 0.009 128.6);        /* #F3F6F0  17.5:1 */
+
+  --card: oklch(0.215 0.012 248.4);              /* #151A1F  16.1:1 */
+  --card-foreground: oklch(0.969 0.009 128.6);
+  --popover: oklch(0.215 0.012 248.4);
+  --popover-foreground: oklch(0.969 0.009 128.6);
+
+  --primary: oklch(0.812 0.191 134.1);           /* #8BDB4E  11.2:1 com preto */
+  --primary-foreground: oklch(0.172 0.010 255.7);
+
+  --secondary: oklch(0.260 0.015 244.3);         /* #1E252B */
+  --secondary-foreground: oklch(0.969 0.009 128.6); /* 14.2:1 */
+
+  --muted: oklch(0.260 0.015 244.3);
+  --muted-foreground: oklch(0.711 0.019 142.8);  /* #9BA59A  6.1:1 */
+
+  --accent: oklch(0.277 0.053 135.5);            /* #1C2E12 */
+  --accent-foreground: oklch(0.908 0.101 131.1); /* #C9EFA8  11.3:1 */
+
+  --destructive: oklch(0.689 0.166 20.7);        /* #F06A6E  6.4:1 sobre o fundo */
+
+  --border: oklch(0.297 0.017 244.8);            /* #262E35 */
+  --input: oklch(0.324 0.019 245.2);             /* #2C353D */
+  --ring: oklch(0.812 0.191 134.1);              /* #8BDB4E */
+
+  --brand-text: oklch(0.812 0.191 134.1);
+  --brand-black: oklch(0.172 0.010 255.7);       /* #0D1014 fixo — igual ao modo claro */
+  --brand-black-foreground: oklch(0.969 0.009 128.6); /* #F3F6F0 fixo */
+  --warning: oklch(0.837 0.164 84.4);            /* #FBBF24 */
+  --warning-foreground: oklch(0.172 0.010 255.7);
+
+  --chart-1: oklch(0.812 0.191 134.1);
+  --chart-2: oklch(0.908 0.101 131.1);
+  --chart-3: oklch(0.754 0.139 232.7);
+  --chart-4: oklch(0.837 0.164 84.4);
+  --chart-5: oklch(0.711 0.019 142.8);
+
+  --sidebar: oklch(0.157 0.008 248.4);           /* #0A0D10 */
+  --sidebar-foreground: oklch(0.969 0.009 128.6);
+  --sidebar-primary: oklch(0.812 0.191 134.1);
+  --sidebar-primary-foreground: oklch(0.172 0.010 255.7);
+  --sidebar-accent: oklch(0.277 0.053 135.5);
+  --sidebar-accent-foreground: oklch(0.908 0.101 131.1);
+  --sidebar-border: oklch(0.297 0.017 244.8);
+  --sidebar-ring: oklch(0.812 0.191 134.1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Archivo é variável — a largura expandida (wdth) do DESIGN_SYSTEM.md
+     não tem utilitário Tailwind pronto, então fica aqui. */
+  .font-heading {
+    font-stretch: 120%;
+  }
 }
