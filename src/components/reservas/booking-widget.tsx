@@ -81,10 +81,12 @@ export function BookingWidget({
   if (reserva) {
     return (
       <ReservaSucesso
+        reservaId={reserva.reservaId}
         modalidadeNome={modalidade.nome}
         inicioISO={reserva.inicio}
         fimISO={reserva.fim}
         valorCentavos={reserva.valorCentavos}
+        logado={reserva.logado}
         onReservarOutra={() => {
           setReserva(null);
           buscarSlots(dataSelecionada);

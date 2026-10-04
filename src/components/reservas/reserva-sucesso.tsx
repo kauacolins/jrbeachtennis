@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { CalendarPlus, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatarDataLonga, formatarHora, formatarPreco } from "@/lib/format";
@@ -23,16 +24,20 @@ function gerarIcs(modalidadeNome: string, inicioISO: string, fimISO: string) {
 }
 
 export function ReservaSucesso({
+  reservaId,
   modalidadeNome,
   inicioISO,
   fimISO,
   valorCentavos,
+  logado,
   onReservarOutra,
 }: {
+  reservaId: string;
   modalidadeNome: string;
   inicioISO: string;
   fimISO: string;
   valorCentavos: number;
+  logado: boolean;
   onReservarOutra: () => void;
 }) {
   function adicionarAoCalendario() {
@@ -72,6 +77,36 @@ export function ReservaSucesso({
           Reservar outro horário
         </Button>
       </div>
+
+      {logado && (
+        <Button
+          variant="ghost"
+          className="h-11"
+          render={<Link href="/minhas-reservas" />}
+          nativeButton={false}
+        >
+          Ver minhas reservas
+        </Button>
+      )}
+
+      {!logado && (
+        <div className="mt-2 flex w-full flex-col gap-2 rounded-lg bg-accent px-4 py-3 text-accent-foreground">
+          <p className="text-sm font-medium">
+            Quer acompanhar essa reserva?
+          </p>
+          <p className="text-sm">
+            Entre ou crie uma conta e a gente liga essa reserva a ela.
+          </p>
+          <Button
+            variant="outline"
+            className="h-11 self-center bg-background"
+            render={<Link href={`/entrar?reserva=${reservaId}`} />}
+            nativeButton={false}
+          >
+            Entrar ou criar conta
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

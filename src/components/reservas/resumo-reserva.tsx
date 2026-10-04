@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatarDataLonga, formatarHora, formatarPreco } from "@/lib/format";
 import { criarReservaPorModalidade } from "@/features/reservas/actions/criar-reserva-modalidade";
+import { useSession } from "@/lib/auth-client";
 
 const CONTATO_STORAGE_KEY = "arena-jr:contato-reserva";
 
@@ -46,6 +47,7 @@ export interface ReservaConfirmada {
   inicio: string;
   fim: string;
   valorCentavos: number;
+  logado: boolean;
 }
 
 export function ResumoReserva({
@@ -71,6 +73,8 @@ export function ResumoReserva({
   onConfirmado: (reserva: ReservaConfirmada) => void;
   onConflito: () => void;
 }) {
+  const session = useSession();
+  const logado = Boolean(session.data?.user);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -78,13 +82,27 @@ export function ResumoReserva({
 
   useEffect(() => {
     if (!aberto) return;
-    const salvo = lerContatoSalvo();
-    if (salvo) {
-      setNome(salvo.nome);
-      setTelefone(salvo.telefone);
+    const usuario = session.data?.user as
+      | { name?: string; telefone?: string | null }
+      | undefined;
+    if (usuario?.name) {
+      setNome(usuario.name);
+      setTelefone(usuario.telefone ?? "");
+    } else {
+      const salvo = lerContatoSalvo();
+      if (salvo) {
+        setNome(salvo.nome);
+        setTelefone(salvo.telefone);
+      }
     }
     setErro(null);
-  }, [aberto]);
+  }, [aberto, session.data]);
+
+  // Logado e com telefone na conta: a gente já tem tudo, não precisa
+  // perguntar de novo — só confirma. Logado sem telefone (ex.: entrou só
+  // com Google): pede só o telefone. Convidado: pede os dois, como antes.
+  const precisaFormulario = !logado || !telefone;
+  const precisaNome = !logado;
 
   function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -132,44 +150,51 @@ export function ResumoReserva({
             </p>
           </div>
 
-          <Separator />
+          {precisaFormulario && (
+            <>
+              <Separator />
+              <div className="flex flex-col gap-3 px-4">
+                {precisaNome && (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="nomeContato">Nome</Label>
+                    <Input
+                      id="nomeContato"
+                      name="nomeContato"
+                      autoComplete="name"
+                      required
+                      minLength={2}
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      className="h-11"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="telefoneContato">Telefone</Label>
+                  <Input
+                    id="telefoneContato"
+                    name="telefoneContato"
+                    type="tel"
+                    autoComplete="tel"
+                    required
+                    minLength={8}
+                    value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
-          <div className="flex flex-col gap-3 px-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="nomeContato">Nome</Label>
-              <Input
-                id="nomeContato"
-                name="nomeContato"
-                autoComplete="name"
-                required
-                minLength={2}
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="h-11"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="telefoneContato">Telefone</Label>
-              <Input
-                id="telefoneContato"
-                name="telefoneContato"
-                type="tel"
-                autoComplete="tel"
-                required
-                minLength={8}
-                value={telefone}
-                onChange={(e) => setTelefone(e.target.value)}
-                className="h-11"
-              />
-            </div>
-
-            {erro && (
+          {erro && (
+            <div className="px-4">
               <Alert variant="destructive">
                 <AlertCircle aria-hidden />
                 <AlertDescription aria-live="polite">{erro}</AlertDescription>
               </Alert>
-            )}
-          </div>
+            </div>
+          )}
 
           <SheetFooter>
             <Button type="submit" disabled={enviando} className="h-11">

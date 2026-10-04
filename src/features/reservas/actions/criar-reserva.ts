@@ -5,6 +5,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { prisma } from "@/lib/prisma";
 import { JANELA_MAXIMA_DIAS, TIME_ZONE } from "@/lib/constants";
 import { diaSemanaDaData } from "@/lib/datas";
+import { getSessaoAtual } from "@/lib/get-session";
 import { criarReservaSchema, type CriarReservaInput } from "../schema";
 
 export type CriarReservaResultado =
@@ -14,6 +15,8 @@ export type CriarReservaResultado =
       inicio: string;
       fim: string;
       valorCentavos: number;
+      // se quem reservou já estava logado, não precisa oferecer login depois.
+      logado: boolean;
     }
   | { ok: false; erro: string };
 
@@ -70,6 +73,9 @@ export async function criarReserva(
   const horaInicioMin = minutosDoDia(horaLocal);
   const horaFimMin = horaInicioMin + duracaoHoras * 60;
 
+  const sessao = await getSessaoAtual();
+  const userId = sessao?.user?.id;
+
   const resultado = await prisma.$transaction(async (tx): Promise<CriarReservaResultado> => {
     const quadra = await tx.quadra.findFirst({
       where: { id: quadraId, ativa: true },
@@ -117,6 +123,7 @@ export async function criarReserva(
       data: {
         quadraId,
         modalidadeId,
+        userId,
         nomeContato,
         telefoneContato,
         inicio,
@@ -131,6 +138,7 @@ export async function criarReserva(
       inicio: reserva.inicio.toISOString(),
       fim: reserva.fim.toISOString(),
       valorCentavos: reserva.valorCentavos,
+      logado: Boolean(userId),
     };
   });
 
