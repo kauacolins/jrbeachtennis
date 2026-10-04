@@ -283,10 +283,10 @@ ALTER TABLE "Reserva" ADD CONSTRAINT sem_sobreposicao
 - Uma quadra pode ter mais de uma modalidade.
 - Login com e-mail e senha + Google. Celular só como contato, sem verificação.
 - Diária = R$ 60 por hora de quadra. Day use = R$ 15, entrada livre o dia todo. Mensal = R$ 120 por 30 dias.
+- O mensal dá day use livre: com a assinatura ativa, o passe do dia sai por R$ 0 (modelo `Produto`/`Assinatura`/`PasseDayUse` da seção 7).
 
 **Em aberto**
 
-- [ ] O mensal dá day use livre (como está aqui) ou é outra coisa?
 - [ ] Um espaço só ou vender para vários espaços desde o início?
 - [ ] Blocos de 60 min servem para todas as modalidades?
 - [ ] Prazo de cancelamento de 24 h está bom?
