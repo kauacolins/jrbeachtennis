@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-const ROTAS_PROTEGIDAS = ["/minhas-reservas", "/perfil"];
+const ROTAS_PROTEGIDAS = ["/minhas-reservas", "/perfil", "/gerenciamento"];
 
 // Guarda de rede pras rotas logadas: roda antes de qualquer Server
 // Component, em toda navegação (link, refresh, voltar/avançar, URL direta).
@@ -25,5 +25,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/minhas-reservas/:path*", "/perfil/:path*"],
+  matcher: ["/minhas-reservas/:path*", "/perfil/:path*", "/gerenciamento/:path*"],
 };
