@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -14,17 +13,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthStatus } from "@/components/auth/auth-status";
 
+// Header da landing page: só âncoras pras seções da própria página. Links
+// de conta (Minhas reservas, Meu perfil) e as versões "página" de Como
+// funciona/Contato ficam no SiteHeaderApp (usado fora da home).
 const LINKS = [
   { href: "#modalidades", label: "Modalidades" },
   { href: "#precos", label: "Preços" },
   { href: "#como-funciona", label: "Como funciona" },
   { href: "#contato", label: "Contato" },
 ];
-
-function avisarLoginEmBreve() {
-  toast("Login chega em breve por aqui.");
-}
 
 export function SiteHeader() {
   const [comSombra, setComSombra] = useState(false);
@@ -57,25 +56,21 @@ export function SiteHeader() {
           className="hidden items-center gap-6 md:flex"
         >
           {LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            className="hidden h-11 md:inline-flex"
-            onClick={avisarLoginEmBreve}
-          >
-            Entrar
-          </Button>
+          <div className="hidden items-center gap-2 md:flex">
+            <AuthStatus />
+          </div>
           <Button
             className="h-11 px-5"
             render={<a href="#modalidades" />}
@@ -109,7 +104,7 @@ export function SiteHeader() {
                   <SheetClose
                     key={link.href}
                     render={
-                      <a
+                      <Link
                         href={link.href}
                         className="flex h-11 items-center rounded-lg px-2 text-base font-medium hover:bg-muted"
                       />
@@ -119,18 +114,10 @@ export function SiteHeader() {
                     {link.label}
                   </SheetClose>
                 ))}
-                <SheetClose
-                  render={
-                    <button
-                      type="button"
-                      onClick={avisarLoginEmBreve}
-                      className="flex h-11 items-center rounded-lg px-2 text-left text-base font-medium hover:bg-muted"
-                    />
-                  }
-                >
-                  Entrar
-                </SheetClose>
               </nav>
+              <div className="border-t px-4 pt-4">
+                <AuthStatus />
+              </div>
             </SheetContent>
           </Sheet>
         </div>

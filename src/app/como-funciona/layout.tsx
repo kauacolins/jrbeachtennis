@@ -1,6 +1,6 @@
 import { SiteHeaderApp } from "@/components/site-header-app";
 
-export default function ReservarLayout({
+export default function ComoFuncionaLayout({
   children,
 }: {
   children: React.ReactNode;

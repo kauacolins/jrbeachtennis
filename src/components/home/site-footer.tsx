@@ -1,28 +1,12 @@
 import Link from "next/link";
 import { Camera, MessageCircle } from "lucide-react";
-import { prisma } from "@/lib/prisma";
-
-async function funcionamentoResumo() {
-  const horarios = await prisma.horarioFuncionamento.findMany({
-    select: { abreMin: true, fechaMin: true },
-  });
-  if (horarios.length === 0) return null;
-
-  const abreMin = Math.min(...horarios.map((h) => h.abreMin));
-  const fechaMin = Math.max(...horarios.map((h) => h.fechaMin));
-  const paraHora = (min: number) => String(Math.floor(min / 60)).padStart(2, "0");
-
-  return `Todos os dias, ${paraHora(abreMin)}h às ${paraHora(fechaMin)}h`;
-}
+import { obterHorarioGeral } from "@/features/quadras/actions/obter-horario-geral";
 
 export async function SiteFooter() {
-  const horario = await funcionamentoResumo();
+  const horario = await obterHorarioGeral();
 
   return (
-    <footer
-      id="contato"
-      className="bg-brand-black text-brand-black-foreground"
-    >
+    <footer id="contato" className="bg-brand-black text-brand-black-foreground">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-3">
         <div className="flex flex-col gap-2">
           <span className="font-heading text-xl font-bold tracking-tight">
