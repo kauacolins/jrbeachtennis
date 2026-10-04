@@ -42,6 +42,7 @@ model Quadra {
   ativa             Boolean                @default(true)
   modalidades       Modalidade[]           // muitos-para-muitos
   horarios          HorarioFuncionamento[]
+  bloqueios         Bloqueio[]
   reservas          Reserva[]
 }
 
@@ -54,6 +55,20 @@ model HorarioFuncionamento {
   fechaMin  Int // ex.: 1380 = 23:00
 
   @@unique([quadraId, diaSemana])
+}
+
+// RF12: bloqueio pontual de horário (manutenção, evento, feriado, day use).
+// Ocupa a agenda do admin do mesmo jeito que uma reserva, mas sem cliente.
+model Bloqueio {
+  id        String   @id @default(cuid())
+  quadraId  String
+  quadra    Quadra   @relation(fields: [quadraId], references: [id])
+  inicio    DateTime // UTC
+  fim       DateTime // UTC
+  motivo    String?
+  createdAt DateTime @default(now())
+
+  @@index([quadraId, inicio])
 }
 
 model Reserva {
