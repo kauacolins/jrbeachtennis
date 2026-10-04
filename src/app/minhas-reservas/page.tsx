@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { CalendarX2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReservaCard } from "@/components/reservas/reserva-card";
-import { QuickSearch } from "@/components/reservas/quick-search";
+import { QuickSearchCards } from "@/components/reservas/quick-search-cards";
 import { getSessaoAtual } from "@/lib/get-session";
 import { listarReservasUsuario } from "@/features/reservas/actions/listar-reservas-usuario";
 import { listarModalidades } from "@/features/modalidades/actions/listar-modalidades";
@@ -42,7 +42,7 @@ export default async function MinhasReservasPage() {
         <p className="text-sm font-medium text-muted-foreground">
           Nova reserva
         </p>
-        <QuickSearch modalidades={modalidades} />
+        <QuickSearchCards modalidades={modalidades} />
       </div>
 
       <Tabs defaultValue="proximas">

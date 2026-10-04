@@ -86,3 +86,16 @@ export const FOTO_POR_MODALIDADE: Record<string, string> = {
   volei: "/images/volei.jpeg",
   queimada: "/images/queimada.jpeg",
 };
+
+// Ícone (lucide-react) equivalente a cada modalidade, usado em listas
+// compactas (ex.: opções de select) onde uma foto não cabe.
+export type IconeModalidadeNome = "Waves" | "Goal" | "Volleyball" | "CircleDot";
+
+export const ICONE_POR_MODALIDADE: Record<string, IconeModalidadeNome> = {
+  "beach tennis": "Waves",
+  "futevôlei": "Goal",
+  futevolei: "Goal",
+  "vôlei": "Volleyball",
+  volei: "Volleyball",
+  queimada: "CircleDot",
+};

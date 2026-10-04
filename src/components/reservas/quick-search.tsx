@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarIcon, Search } from "lucide-react";
+import { CalendarIcon, CircleDot, Goal, Search, Volleyball, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -19,6 +19,9 @@ import {
 } from "@/components/ui/select";
 import { JANELA_MAXIMA_DIAS } from "@/lib/constants";
 import { dataParaISO, formatarDataCurta } from "@/lib/format";
+import { ICONE_POR_MODALIDADE } from "@/lib/mock-data";
+
+const ICONES = { Waves, Goal, Volleyball, CircleDot } as const;
 
 const hoje = new Date();
 const limiteFuturo = new Date(
@@ -60,11 +63,19 @@ export function QuickSearch({
             <SelectValue placeholder="Modalidade" />
           </SelectTrigger>
           <SelectContent>
-            {modalidades.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
-                {m.nome}
-              </SelectItem>
-            ))}
+            {modalidades.map((m) => {
+              const IconeModalidade =
+                ICONES[ICONE_POR_MODALIDADE[m.nome.toLowerCase()] ?? "CircleDot"];
+              return (
+                <SelectItem key={m.id} value={m.id}>
+                  <IconeModalidade
+                    className="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                  {m.nome}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
 

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { formatarHora, formatarPreco } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SeletorDia, type DiaDisponivel } from "@/components/reservas/seletor-dia";
 import { GradeHorarios } from "@/components/reservas/grade-horarios";
 import { SeletorDuracao } from "@/components/reservas/seletor-duracao";
@@ -78,21 +79,9 @@ export function BookingWidget({
     setDuracao(1);
   }
 
-  if (reserva) {
-    return (
-      <ReservaSucesso
-        reservaId={reserva.reservaId}
-        modalidadeNome={modalidade.nome}
-        inicioISO={reserva.inicio}
-        fimISO={reserva.fim}
-        valorCentavos={reserva.valorCentavos}
-        logado={reserva.logado}
-        onReservarOutra={() => {
-          setReserva(null);
-          buscarSlots(dataSelecionada);
-        }}
-      />
-    );
+  function fecharSucesso() {
+    setReserva(null);
+    buscarSlots(dataSelecionada);
   }
 
   const fimPrevistoISO = slotSelecionado
@@ -102,89 +91,109 @@ export function BookingWidget({
     : "";
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <p className="mb-1.5 text-xs font-medium text-muted-foreground">
-          Dia
-        </p>
-        <SeletorDia
-          dias={dias}
-          hojeISO={hojeISO}
-          selecionado={dataSelecionada}
-          onSelecionar={selecionarDia}
-        />
-      </div>
-
-      <div>
-        <p className="mb-1.5 text-xs font-medium text-muted-foreground">
-          Horário
-        </p>
-        {carregando ? (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-11 w-full" />
-            ))}
-          </div>
-        ) : (
-          <GradeHorarios
-            slots={slots}
-            precoHoraCentavos={modalidade.precoHoraCentavos}
-            inicioSelecionado={slotSelecionado?.inicio ?? null}
-            onSelecionar={selecionarSlot}
+    <>
+      <div className="flex flex-col gap-4">
+        <div>
+          <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+            Dia
+          </p>
+          <SeletorDia
+            dias={dias}
+            hojeISO={hojeISO}
+            selecionado={dataSelecionada}
+            onSelecionar={selecionarDia}
           />
+        </div>
+
+        <div>
+          <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+            Horário
+          </p>
+          {carregando ? (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-11 w-full" />
+              ))}
+            </div>
+          ) : (
+            <GradeHorarios
+              slots={slots}
+              precoHoraCentavos={modalidade.precoHoraCentavos}
+              inicioSelecionado={slotSelecionado?.inicio ?? null}
+              onSelecionar={selecionarSlot}
+            />
+          )}
+        </div>
+
+        {slotSelecionado && slotSelecionado.duracaoMaximaHoras > 1 && (
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+              Duração
+            </p>
+            <SeletorDuracao
+              duracaoMaxima={slotSelecionado.duracaoMaximaHoras}
+              valor={duracao}
+              onChange={setDuracao}
+            />
+          </div>
+        )}
+
+        {slotSelecionado && (
+          <>
+            <div className="sticky bottom-0 -mx-4 mt-2 flex items-center justify-between gap-3 border-t bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0">
+              <div className="text-sm">
+                <p className="font-medium">
+                  {formatarHora(slotSelecionado.inicio)}–
+                  {formatarHora(fimPrevistoISO)}
+                </p>
+                <p className="text-muted-foreground">
+                  {formatarPreco(modalidade.precoHoraCentavos * duracao)}
+                </p>
+              </div>
+              <Button className="h-11 px-6" onClick={() => setSheetAberto(true)}>
+                Reservar
+              </Button>
+            </div>
+
+            <ResumoReserva
+              aberto={sheetAberto}
+              onAbertoChange={setSheetAberto}
+              modalidadeId={modalidade.id}
+              modalidadeNome={modalidade.nome}
+              inicioISO={slotSelecionado.inicio}
+              fimISO={fimPrevistoISO}
+              valorCentavos={modalidade.precoHoraCentavos * duracao}
+              duracaoHoras={duracao}
+              onConfirmado={(resultado) => {
+                setReserva(resultado);
+                setSheetAberto(false);
+              }}
+              onConflito={() => buscarSlots(dataSelecionada)}
+            />
+          </>
         )}
       </div>
 
-      {slotSelecionado && slotSelecionado.duracaoMaximaHoras > 1 && (
-        <div>
-          <p className="mb-1.5 text-xs font-medium text-muted-foreground">
-            Duração
-          </p>
-          <SeletorDuracao
-            duracaoMaxima={slotSelecionado.duracaoMaximaHoras}
-            valor={duracao}
-            onChange={setDuracao}
-          />
-        </div>
-      )}
-
-      {slotSelecionado && (
-        <>
-          <div className="sticky bottom-0 -mx-4 mt-2 flex items-center justify-between gap-3 border-t bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0">
-            <div className="text-sm">
-              <p className="font-medium">
-                {formatarHora(slotSelecionado.inicio)}–
-                {formatarHora(fimPrevistoISO)}
-              </p>
-              <p className="text-muted-foreground">
-                {formatarPreco(modalidade.precoHoraCentavos * duracao)}
-              </p>
-            </div>
-            <Button
-              className="h-11 px-6"
-              onClick={() => setSheetAberto(true)}
-            >
-              Reservar
-            </Button>
-          </div>
-
-          <ResumoReserva
-            aberto={sheetAberto}
-            onAbertoChange={setSheetAberto}
-            modalidadeId={modalidade.id}
-            modalidadeNome={modalidade.nome}
-            inicioISO={slotSelecionado.inicio}
-            fimISO={fimPrevistoISO}
-            valorCentavos={modalidade.precoHoraCentavos * duracao}
-            duracaoHoras={duracao}
-            onConfirmado={(resultado) => {
-              setReserva(resultado);
-              setSheetAberto(false);
-            }}
-            onConflito={() => buscarSlots(dataSelecionada)}
-          />
-        </>
-      )}
-    </div>
+      <Dialog
+        open={Boolean(reserva)}
+        onOpenChange={(open) => {
+          if (!open) fecharSucesso();
+        }}
+      >
+        <DialogContent>
+          {reserva && (
+            <ReservaSucesso
+              reservaId={reserva.reservaId}
+              modalidadeNome={modalidade.nome}
+              inicioISO={reserva.inicio}
+              fimISO={reserva.fim}
+              valorCentavos={reserva.valorCentavos}
+              logado={reserva.logado}
+              onReservarOutra={fecharSucesso}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

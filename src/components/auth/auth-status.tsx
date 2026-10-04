@@ -17,14 +17,18 @@ export function AuthStatus() {
     const primeiroNome = session.data.user.name.split(" ")[0];
     return (
       <div className="flex items-center gap-1">
-        <span className="hidden text-sm font-medium sm:inline">
+        <Link
+          href="/minhas-reservas"
+          className="text-sm font-medium transition-colors hover:text-brand-text"
+        >
           Olá, {primeiroNome}
-        </span>
+        </Link>
         <Button
           variant="ghost"
           className="h-11"
           onClick={async () => {
             await signOut();
+            router.push("/");
             router.refresh();
           }}
         >

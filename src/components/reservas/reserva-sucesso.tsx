@@ -52,7 +52,7 @@ export function ReservaSucesso({
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-xl border bg-card px-4 py-8 text-center">
+    <div className="flex flex-col items-center gap-4 pt-2 text-center">
       <CheckCircle2 className="size-10 text-primary" aria-hidden />
       <div>
         <h3 className="text-lg font-semibold">Reserva confirmada!</h3>
@@ -64,7 +64,7 @@ export function ReservaSucesso({
           {formatarPreco(valorCentavos)}
         </p>
       </div>
-      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+      <div className="flex w-full flex-col gap-2">
         <Button
           variant="outline"
           className="h-11"
