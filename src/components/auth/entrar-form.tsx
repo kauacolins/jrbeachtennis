@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { GoogleIcon } from "@/components/auth/google-icon";
 import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { vincularReservaAoUsuario } from "@/features/reservas/actions/vincular-reserva-usuario";
+import { formatarTelefone } from "@/lib/format";
 
 const MENSAGENS_ERRO: Record<string, string> = {
   INVALID_EMAIL_OR_PASSWORD: "E-mail ou senha incorretos.",
@@ -187,8 +188,8 @@ export function EntrarForm({
               autoComplete="tel"
               required
               minLength={8}
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              value={formatarTelefone(telefone)}
+              onChange={(e) => setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))}
               className="h-11"
             />
           </div>

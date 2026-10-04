@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { formatarTelefone } from "@/lib/format";
 
 export function PerfilForm({
   nomeInicial,
@@ -63,8 +64,8 @@ export function PerfilForm({
           autoComplete="tel"
           required
           minLength={8}
-          value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
+          value={formatarTelefone(telefone)}
+          onChange={(e) => setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))}
           className="h-11"
         />
       </div>

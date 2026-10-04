@@ -15,7 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { formatarDataLonga, formatarHora, formatarPreco } from "@/lib/format";
+import {
+  formatarDataLonga,
+  formatarHora,
+  formatarPreco,
+  formatarTelefone,
+} from "@/lib/format";
 import { criarReservaPorModalidade } from "@/features/reservas/actions/criar-reserva-modalidade";
 import { useSession } from "@/lib/auth-client";
 
@@ -178,8 +183,10 @@ export function ResumoReserva({
                     autoComplete="tel"
                     required
                     minLength={8}
-                    value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
+                    value={formatarTelefone(telefone)}
+                    onChange={(e) =>
+                      setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))
+                    }
                     className="h-11"
                   />
                 </div>
