@@ -78,31 +78,59 @@ model Reserva {
   @@index([userId])
 }
 
+// Modelos de autenticação no formato que o Better Auth espera
+// (https://better-auth.com — e-mail/senha + login Google, RNF02).
+// O e-mail é a identidade: Google com e-mail já cadastrado liga à mesma conta.
 model User {
   id            String    @id @default(cuid())
-  nome          String
+  name          String
   email         String    @unique
-  emailVerified DateTime?
-  senhaHash     String? // nulo para quem só entra com Google
-  telefone      String? // contato; pedido no primeiro acesso via Google
-  imagem        String? // foto do Google
+  emailVerified Boolean   @default(false)
+  image         String? // foto do Google
+  telefone      String? // contato; pedido no cadastro ou no primeiro acesso via Google
   role          Role      @default(CLIENT)
-  contas        Account[]
   reservas      Reserva[]
+  sessions      Session[]
+  accounts      Account[]
   createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
-// Login social (Google). Formato padrão de conta social do Better Auth / Auth.js
-model Account {
-  id                String    @id @default(cuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider          String // "google"
-  providerAccountId String
-  accessToken       String?
-  refreshToken      String?
-  idToken           String?
-  expiresAt         DateTime?
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
-  @@unique([provider, providerAccountId])
+// Login com senha (hash fica em password) ou social (Google).
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String // "credential" (e-mail/senha) ou "google"
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 }
