@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Camera, MessageCircle } from "lucide-react";
 import { obterHorarioGeral } from "@/features/quadras/actions/obter-horario-geral";
@@ -9,8 +10,14 @@ export async function SiteFooter() {
     <footer id="contato" className="bg-brand-black text-brand-black-foreground">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-3">
         <div className="flex flex-col gap-2">
-          <span className="font-heading text-xl font-bold tracking-tight">
-            ARENA<span className="text-primary">JR</span>
+          <span className="inline-flex w-fit items-center rounded-md bg-white p-1.5">
+            <Image
+              src="/logo.png"
+              alt="Arena JR"
+              width={240}
+              height={80}
+              className="h-9 w-auto"
+            />
           </span>
           <p className="text-sm text-brand-black-foreground/70">
             {/* TODO: endereço real da arena */}

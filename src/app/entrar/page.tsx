@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { EntrarForm } from "@/components/auth/entrar-form";
 import { googleAuthHabilitado } from "@/lib/auth";
@@ -23,11 +24,15 @@ export default async function EntrarPage({
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-10 px-4 py-12">
-      <Link
-        href="/"
-        className="self-center font-heading text-xl font-bold tracking-tight"
-      >
-        ARENA<span className="text-primary">JR</span>
+      <Link href="/" className="flex self-center items-center rounded-md bg-white p-1.5">
+        <Image
+          src="/logo.png"
+          alt="Arena JR"
+          width={240}
+          height={80}
+          priority
+          className="h-10 w-auto"
+        />
       </Link>
       <EntrarForm
         googleHabilitado={googleAuthHabilitado}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,8 +32,15 @@ export function SiteHeaderApp() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link href="/" className="font-heading text-lg font-bold tracking-tight">
-          Arena<span className="text-primary">JR</span>
+        <Link href="/" className="flex items-center rounded-md bg-white p-1">
+          <Image
+            src="/logo.png"
+            alt="Arena JR"
+            width={240}
+            height={80}
+            priority
+            className="h-8 w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
