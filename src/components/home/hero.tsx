@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Clock3, ShieldCheck, Wallet } from "lucide-react";
-import { QuickSearch } from "@/components/home/quick-search";
+import { QuickSearch } from "@/components/reservas/quick-search";
 import { listarModalidades } from "@/features/modalidades/actions/listar-modalidades";
 
 const SELOS = [
