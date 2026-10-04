@@ -104,6 +104,7 @@ model User {
   image         String? // foto do Google
   telefone      String? // contato; pedido no cadastro ou no primeiro acesso via Google
   role          Role      @default(CLIENT)
+  removidoEm    DateTime? // soft delete de conta de equipe (admin/operador/instrutor)
   reservas      Reserva[]
   sessions      Session[]
   accounts      Account[]

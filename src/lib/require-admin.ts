@@ -12,9 +12,9 @@ export async function exigirAdmin() {
 
   const user = await prisma.user.findUnique({
     where: { id: sessao.user.id },
-    select: { id: true, name: true, role: true },
+    select: { id: true, name: true, role: true, removidoEm: true },
   });
-  if (!user || !PAPEIS_GERENCIAMENTO.includes(user.role)) return null;
+  if (!user || user.removidoEm || !PAPEIS_GERENCIAMENTO.includes(user.role)) return null;
 
   return user;
 }
