@@ -27,3 +27,26 @@ export function formatarDataCurta(data: Date | string): string {
 export function dataParaISO(data: Date | string): string {
   return formatInTimeZone(data, TIME_ZONE, "yyyy-MM-dd");
 }
+
+/** Minutos desde 00:00 -> "HH:mm". Usado na agenda do admin (obterAgendaDia). */
+export function minutosParaHora(min: number): string {
+  const horas = String(Math.floor(min / 60)).padStart(2, "0");
+  const minutos = String(min % 60).padStart(2, "0");
+  return `${horas}:${minutos}`;
+}
+
+/**
+ * Formata telefone BR progressivamente: "11987654321" -> "(11) 98765-4321".
+ * Degrada bem com qualquer quantidade de dígitos, então serve tanto pra
+ * exibir um telefone já salvo quanto de máscara enquanto a pessoa digita.
+ */
+export function formatarTelefone(valor: string): string {
+  const digitos = valor.replace(/\D/g, "").slice(0, 11);
+  if (digitos.length === 0) return "";
+  if (digitos.length <= 2) return `(${digitos}`;
+  if (digitos.length <= 6) return `(${digitos.slice(0, 2)}) ${digitos.slice(2)}`;
+  if (digitos.length <= 10) {
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`;
+  }
+  return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
+}
