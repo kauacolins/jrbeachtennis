@@ -17,6 +17,6 @@ export async function removerBloqueio(
   await prisma.bloqueio.deleteMany({ where: { id: bloqueioId } });
 
   revalidatePath("/gerenciamento");
-  revalidatePath("/gerenciamento/bloqueios");
+  revalidatePath("/gerenciamento/quadras/bloqueios");
   return { ok: true };
 }

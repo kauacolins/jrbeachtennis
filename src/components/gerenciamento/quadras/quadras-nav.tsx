@@ -5,20 +5,28 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "/gerenciamento/configuracoes/quadras", label: "Quadras" },
-  { href: "/gerenciamento/configuracoes/usuarios", label: "Usuários" },
+  { href: "/gerenciamento/quadras", label: "Quadras" },
+  { href: "/gerenciamento/quadras/horarios", label: "Horários" },
+  { href: "/gerenciamento/quadras/bloqueios", label: "Bloqueios" },
 ];
 
-export function ConfiguracoesNav() {
+// RF10/RF11/RF12 vivem juntos aqui: são as três facetas de como uma quadra
+// fica disponível pra reserva (quais modalidades e preço, quando abre, e
+// quais horários pontuais ficam de fora) — por isso andam lado a lado em
+// vez de espalhados pela navegação principal.
+export function QuadrasNav() {
   const pathname = usePathname();
 
   return (
     <nav
-      aria-label="Configurações"
+      aria-label="Quadras"
       className="flex gap-1 overflow-x-auto sm:w-48 sm:shrink-0 sm:flex-col sm:gap-0.5"
     >
       {LINKS.map((link) => {
-        const ativo = pathname.startsWith(link.href);
+        const ativo =
+          link.href === "/gerenciamento/quadras"
+            ? pathname === link.href
+            : pathname.startsWith(link.href);
         return (
           <Link
             key={link.href}

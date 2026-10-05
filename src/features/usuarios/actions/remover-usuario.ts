@@ -28,6 +28,6 @@ export async function removerUsuario(usuarioId: string): Promise<RemoverUsuarioR
     prisma.session.deleteMany({ where: { userId: usuarioId } }),
   ]);
 
-  revalidatePath("/gerenciamento/configuracoes/usuarios");
+  revalidatePath("/gerenciamento/equipe");
   return { ok: true };
 }

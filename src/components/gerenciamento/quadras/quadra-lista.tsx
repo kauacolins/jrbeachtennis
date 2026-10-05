@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
-import { QuadraForm } from "@/components/gerenciamento/configuracoes/quadra-form";
+import { QuadraForm } from "@/components/gerenciamento/quadras/quadra-form";
 import { formatarPreco } from "@/lib/format";
 import { removerQuadra } from "@/features/quadras/actions/remover-quadra";
 import type { QuadraAdmin } from "@/features/quadras/actions/listar-quadras-admin";

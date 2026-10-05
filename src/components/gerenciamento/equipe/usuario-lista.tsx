@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
-import { UsuarioForm } from "@/components/gerenciamento/configuracoes/usuario-form";
+import { UsuarioForm } from "@/components/gerenciamento/equipe/usuario-form";
 import { formatarTelefone } from "@/lib/format";
 import { removerUsuario } from "@/features/usuarios/actions/remover-usuario";
 import { PAPEIS_EQUIPE } from "@/features/usuarios/schema";

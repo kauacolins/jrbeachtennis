@@ -4,11 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+// Dois grupos: "Agenda" é a operação do dia a dia (ver reserva, criar,
+// cancelar); "Quadras" e "Equipe" são configuração de baixa frequência —
+// Quadras reúne cadastro, horário de funcionamento e bloqueios porque são
+// as três facetas da mesma entidade (ver QuadrasNav), em vez de ficarem
+// soltos no nível principal como antes.
 const LINKS = [
   { href: "/gerenciamento", label: "Agenda" },
-  { href: "/gerenciamento/horarios", label: "Horários" },
-  { href: "/gerenciamento/bloqueios", label: "Bloqueios" },
-  { href: "/gerenciamento/configuracoes", label: "Configurações" },
+  { href: "/gerenciamento/quadras", label: "Quadras" },
+  { href: "/gerenciamento/equipe", label: "Equipe" },
 ];
 
 export function GerenciamentoNav() {

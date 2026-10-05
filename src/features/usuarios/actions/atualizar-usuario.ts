@@ -43,6 +43,6 @@ export async function atualizarUsuario(
     data: { name: nome, email, telefone: telefone || null, role },
   });
 
-  revalidatePath("/gerenciamento/configuracoes/usuarios");
+  revalidatePath("/gerenciamento/equipe");
   return { ok: true };
 }

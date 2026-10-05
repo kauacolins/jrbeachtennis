@@ -43,6 +43,6 @@ export async function criarBloqueio(
   });
 
   revalidatePath("/gerenciamento");
-  revalidatePath("/gerenciamento/bloqueios");
+  revalidatePath("/gerenciamento/quadras/bloqueios");
   return { ok: true };
 }

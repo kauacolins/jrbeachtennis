@@ -27,9 +27,9 @@ export async function removerQuadra(quadraId: string): Promise<RemoverQuadraResu
     throw error;
   }
 
-  revalidatePath("/gerenciamento/configuracoes/quadras");
-  revalidatePath("/gerenciamento/horarios");
-  revalidatePath("/gerenciamento/bloqueios");
+  revalidatePath("/gerenciamento/quadras");
+  revalidatePath("/gerenciamento/quadras/horarios");
+  revalidatePath("/gerenciamento/quadras/bloqueios");
   revalidatePath("/gerenciamento");
   return { ok: true };
 }

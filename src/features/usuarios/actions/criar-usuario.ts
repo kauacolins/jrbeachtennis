@@ -54,6 +54,6 @@ export async function criarUsuario(
     return criado;
   });
 
-  revalidatePath("/gerenciamento/configuracoes/usuarios");
+  revalidatePath("/gerenciamento/equipe");
   return { ok: true, usuarioId: usuario.id };
 }

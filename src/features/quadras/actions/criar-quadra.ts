@@ -40,8 +40,8 @@ export async function criarQuadra(
     },
   });
 
-  revalidatePath("/gerenciamento/configuracoes/quadras");
-  revalidatePath("/gerenciamento/horarios");
-  revalidatePath("/gerenciamento/bloqueios");
+  revalidatePath("/gerenciamento/quadras");
+  revalidatePath("/gerenciamento/quadras/horarios");
+  revalidatePath("/gerenciamento/quadras/bloqueios");
   return { ok: true, quadraId: quadra.id };
 }

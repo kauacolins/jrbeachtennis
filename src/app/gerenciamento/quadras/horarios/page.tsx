@@ -5,21 +5,23 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { listarQuadrasAdmin } from "@/features/quadras/actions/listar-quadras-admin";
-import { HorarioFuncionamentoForm } from "@/components/gerenciamento/horario-funcionamento-form";
+import { HorarioFuncionamentoForm } from "@/components/gerenciamento/quadras/horario-funcionamento-form";
 
 // RF11: horário de funcionamento por quadra e dia da semana.
 export default async function HorariosPage() {
   const quadras = await listarQuadrasAdmin();
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
-      <h1 className="mb-1 font-heading text-xl font-bold">
-        Horário de funcionamento
-      </h1>
-      <p className="mb-4 text-sm text-muted-foreground">
-        Defina, por quadra e dia da semana, de que hora até que hora ela abre.
-        Dias desmarcados ficam fechados pra reserva.
-      </p>
+    <div className="flex flex-col gap-3">
+      <div>
+        <h1 className="font-heading text-xl font-bold">
+          Horário de funcionamento
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Defina, por quadra e dia da semana, de que hora até que hora ela abre.
+          Dias desmarcados ficam fechados pra reserva.
+        </p>
+      </div>
 
       {quadras.length === 0 ? (
         <p className="text-sm text-muted-foreground">
