@@ -23,6 +23,10 @@ const STATUS_INFO: Record<
   ReservaUsuario["status"],
   { label: string; className: string }
 > = {
+  PENDENTE_PAGAMENTO: {
+    label: "Aguardando pagamento",
+    className: "bg-warning text-warning-foreground",
+  },
   CONFIRMADA: {
     label: "Confirmada",
     className: "bg-accent text-accent-foreground",

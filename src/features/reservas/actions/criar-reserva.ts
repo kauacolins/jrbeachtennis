@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { formatInTimeZone } from "date-fns-tz";
 import { prisma } from "@/lib/prisma";
-import { JANELA_MAXIMA_DIAS, TIME_ZONE } from "@/lib/constants";
+import { JANELA_MAXIMA_DIAS, PRAZO_PAGAMENTO_PIX_MIN, TIME_ZONE } from "@/lib/constants";
 import { diaSemanaDaData } from "@/lib/datas";
 import { getSessaoAtual } from "@/lib/get-session";
+import { pagamentoPixHabilitado } from "@/lib/mercadopago";
+import { expirarReservasPendentes } from "./expirar-reservas-pendentes";
 import { criarReservaSchema, type CriarReservaInput } from "../schema";
 
 export type CriarReservaResultado =
@@ -17,6 +19,13 @@ export type CriarReservaResultado =
       valorCentavos: number;
       // se quem reservou já estava logado, não precisa oferecer login depois.
       logado: boolean;
+      // true: reserva nasceu PENDENTE_PAGAMENTO, falta gerar e pagar o Pix
+      // (ver criarPagamentoPix). false: Mercado Pago não configurado nesse
+      // ambiente — reserva já nasce CONFIRMADA, igual ao comportamento
+      // anterior ao pagamento online.
+      precisaPagamento: boolean;
+      // prazo pro Pix, só quando precisaPagamento — ver PagamentoPix.
+      expiraEm: string | null;
     }
   | { ok: false; erro: string };
 
@@ -76,6 +85,8 @@ export async function criarReserva(
   const sessao = await getSessaoAtual();
   const userId = sessao?.user?.id;
 
+  await expirarReservasPendentes();
+
   const resultado = await prisma.$transaction(async (tx): Promise<CriarReservaResultado> => {
     const quadra = await tx.quadra.findFirst({
       where: { id: quadraId, ativa: true },
@@ -129,6 +140,10 @@ export async function criarReserva(
         inicio,
         fim,
         valorCentavos,
+        status: pagamentoPixHabilitado ? "PENDENTE_PAGAMENTO" : "CONFIRMADA",
+        expiraEm: pagamentoPixHabilitado
+          ? new Date(agora.getTime() + PRAZO_PAGAMENTO_PIX_MIN * 60_000)
+          : null,
       },
     });
 
@@ -139,6 +154,8 @@ export async function criarReserva(
       fim: reserva.fim.toISOString(),
       valorCentavos: reserva.valorCentavos,
       logado: Boolean(userId),
+      precisaPagamento: pagamentoPixHabilitado,
+      expiraEm: reserva.expiraEm?.toISOString() ?? null,
     };
   });
 

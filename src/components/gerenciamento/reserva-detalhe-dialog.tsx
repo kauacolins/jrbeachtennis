@@ -23,6 +23,10 @@ import { marcarNaoCompareceu } from "@/features/reservas/actions/marcar-nao-comp
 import type { AgendaBloco } from "@/features/gerenciamento/actions/obter-agenda-dia";
 
 const STATUS_INFO: Record<string, { label: string; className: string }> = {
+  PENDENTE_PAGAMENTO: {
+    label: "Aguardando Pix",
+    className: "bg-warning text-warning-foreground",
+  },
   CONFIRMADA: { label: "Confirmada", className: "bg-accent text-accent-foreground" },
   CONCLUIDA: { label: "Concluída", className: "bg-secondary text-secondary-foreground" },
   NAO_COMPARECEU: {

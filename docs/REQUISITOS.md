@@ -13,12 +13,13 @@ Site para reservar horários em quadras de beach tennis, futebol, vôlei e outra
 - Reserva de quadra por hora (blocos de 60 min).
 - Day use (entrada livre o dia todo) e plano mensal.
 - Login com e-mail e senha ou com Google.
-- Pagamento combinado no local: o sistema registra e o admin marca como pago.
+- Reserva de quadra: pagamento via Pix (Mercado Pago) direto no fluxo, sem redirecionar pra fora do site. Reserva nasce PENDENTE_PAGAMENTO com 15 min pra pagar (ver RN9); sem Mercado Pago configurado no ambiente, cai de volta pro fluxo antigo (CONFIRMADA direto). Reserva manual do admin (RF14) continua sem Pix.
+- Day use e mensal: pagamento combinado no local, o sistema registra e o admin marca como pago (ainda não online).
 - Painel administrativo simples para o dono.
 
 **Fora do MVP** (ver seção 9)
 
-- Pagamento online, vários estabelecimentos, horário fixo semanal, app mobile, notificações por WhatsApp.
+- Pagamento online pra day use/mensal, assinatura recorrente automática, vários estabelecimentos, horário fixo semanal, app mobile, notificações por WhatsApp.
 
 ## 2. Perfis de usuário
 
@@ -78,7 +79,7 @@ Os valores abaixo são padrões e devem ficar configuráveis.
 6. **Limite por cliente:** no máximo 2 reservas futuras ativas por cliente.
 7. **Cancelamento pelo cliente:** até 24 h antes do início. Depois disso, só o admin cancela.
 8. **Preço congelado:** o valor da reserva (preço/hora × horas) e o do passe são salvos na criação; mudar o preço depois não altera o que já foi vendido.
-9. **Status da reserva:** nasce CONFIRMADA. Pode virar CANCELADA, CONCLUIDA ou NAO_COMPARECEU. Cancelada libera o horário.
+9. **Status da reserva:** com pagamento via Pix configurado, nasce PENDENTE_PAGAMENTO e tem 15 min para o Pix cair — não caindo a tempo, vira CANCELADA sozinha e libera o horário (sem job/cron: cada leitura relevante expira as pendentes vencidas antes de checar conflito, ver `expirarReservasPendentes`). Sem Mercado Pago configurado no ambiente, nasce CONFIRMADA direto, como antes. A partir de CONFIRMADA pode virar CANCELADA, CONCLUIDA ou NAO_COMPARECEU. Cancelada libera o horário. Reserva manual do admin (RF14) sempre nasce CONFIRMADA, sem Pix — pagamento combinado no local, como day use/mensal.
 10. **Day use:** um passe por pessoa por data. Se houver limite diário, a compra é bloqueada quando lota. Com plano mensal ativo na data, o passe custa R$ 0 e fica ligado ao plano.
 11. **Plano mensal:** vale de `inicio` até `inicio + 30 dias`. Ativo = pago e dentro da validade.
 12. **Fuso horário:** datas salvas em UTC e exibidas em America/Sao_Paulo.
@@ -95,7 +96,7 @@ Os valores abaixo são padrões e devem ficar configuráveis.
 | RNF05 | Validação | Entradas validadas no servidor com Zod |
 | RNF06 | Usabilidade | Mobile first. Reserva em até 3 toques a partir da agenda |
 | RNF07 | Desempenho | Agenda do dia carrega em menos de 1 s com até 10 quadras |
-| RNF08 | Privacidade | LGPD: coletar só nome, e-mail e celular; permitir excluir a conta |
+| RNF08 | Privacidade | LGPD: coletar só nome, e-mail e celular; permitir excluir a conta. CPF é exceção pontual: só é pedido na hora de gerar o Pix da reserva (exigência do Mercado Pago), nunca salvo na Reserva — passa direto pra API de pagamento, não fica em repouso no banco |
 | RNF09 | Hospedagem | Vercel (app) + banco gerenciado (Neon, Supabase ou Railway) |
 | RNF10 | Qualidade | Testes das regras de negócio (conflito, prazo, limite, day use); migrations versionadas com `prisma migrate` |
 | RNF11 | Custo | Login sem custo por acesso. E-mails (recuperação de senha, confirmação) no plano grátis de um serviço como o Resend |
@@ -296,7 +297,7 @@ ALTER TABLE "Reserva" ADD CONSTRAINT sem_sobreposicao
 
 | Ordem | Funcionalidade | O que muda no sistema |
 | --- | --- | --- |
-| 1 | Pagamento online (Pix, cartão) via Mercado Pago, Asaas ou Stripe | Status PENDENTE_PAGAMENTO com expiração (ex.: 15 min), webhook confirma; sinal ou valor cheio |
+| 1 | Pagamento online pra day use/mensal, e cartão como opção além do Pix na reserva | Reserva via Pix já saiu do MVP (ver seção 1/RN9) — falta extrapolar pro Produto/Assinatura/PasseDayUse (seção 7) e, se quiser, cartão via Mercado Pago |
 | 2 | Notificações por WhatsApp/SMS | Lembrete 2 h antes, confirmação e cancelamento; fila de jobs (Inngest, QStash, BullMQ) |
 | 3 | Horário fixo semanal | Recorrência (toda terça 20h) que gera reservas e trata conflitos |
 | 4 | Política de cancelamento e reembolso | Reembolso parcial por prazo, créditos na conta |

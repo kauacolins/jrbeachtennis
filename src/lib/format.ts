@@ -50,3 +50,20 @@ export function formatarTelefone(valor: string): string {
   }
   return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
 }
+
+/**
+ * Formata CPF progressivamente: "12345678901" -> "123.456.789-01". Mesma
+ * ideia de formatarTelefone — serve tanto pra exibir quanto de máscara
+ * durante a digitação. Só máscara, não valida dígito verificador (quem
+ * valida de verdade é o Mercado Pago na hora de gerar o Pix).
+ */
+export function formatarCpf(valor: string): string {
+  const digitos = valor.replace(/\D/g, "").slice(0, 11);
+  if (digitos.length === 0) return "";
+  if (digitos.length <= 3) return digitos;
+  if (digitos.length <= 6) return `${digitos.slice(0, 3)}.${digitos.slice(3)}`;
+  if (digitos.length <= 9) {
+    return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6)}`;
+  }
+  return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
+}

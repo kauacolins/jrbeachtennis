@@ -25,3 +25,16 @@ export const criarReservaModalidadeSchema = criarReservaSchema.omit({
 export type CriarReservaModalidadeInput = z.infer<
   typeof criarReservaModalidadeSchema
 >;
+
+// CPF só entra aqui, na hora de gerar o Pix — não é salvo na Reserva (ver
+// criarPagamentoPix). O Mercado Pago exige identificação do pagador pra
+// cobrança via Pix.
+export const criarPagamentoPixSchema = z.object({
+  reservaId: z.string().min(1),
+  cpf: z
+    .string()
+    .trim()
+    .regex(/^\d{11}$/, "Informe um CPF válido."),
+});
+
+export type CriarPagamentoPixInput = z.infer<typeof criarPagamentoPixSchema>;

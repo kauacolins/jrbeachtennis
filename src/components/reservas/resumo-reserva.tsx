@@ -22,6 +22,7 @@ import {
   formatarTelefone,
 } from "@/lib/format";
 import { criarReservaPorModalidade } from "@/features/reservas/actions/criar-reserva-modalidade";
+import { PagamentoPix } from "@/components/reservas/pagamento-pix";
 import { useSession } from "@/lib/auth-client";
 
 const CONTATO_STORAGE_KEY = "arena-jr:contato-reserva";
@@ -55,6 +56,12 @@ export interface ReservaConfirmada {
   logado: boolean;
 }
 
+// Estado intermediário: reserva já existe (PENDENTE_PAGAMENTO) segurando o
+// horário, falta o Pix cair — ver criarReserva.
+interface ReservaPendentePagamento extends ReservaConfirmada {
+  expiraEm: string;
+}
+
 export function ResumoReserva({
   aberto,
   onAbertoChange,
@@ -84,6 +91,9 @@ export function ResumoReserva({
   const [telefone, setTelefone] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, startTransition] = useTransition();
+  // Reserva já criada (PENDENTE_PAGAMENTO) e aguardando o Pix — enquanto
+  // isso não existir, mostra o formulário de contato (passo 1).
+  const [reservaPendente, setReservaPendente] = useState<ReservaPendentePagamento | null>(null);
 
   useEffect(() => {
     if (!aberto) return;
@@ -101,6 +111,7 @@ export function ResumoReserva({
       }
     }
     setErro(null);
+    setReservaPendente(null);
   }, [aberto, session.data]);
 
   // Logado e com telefone na conta: a gente já tem tudo, não precisa
@@ -131,16 +142,29 @@ export function ResumoReserva({
       }
 
       salvarContato(nome, telefone);
+
+      if (resultado.precisaPagamento && resultado.expiraEm) {
+        setReservaPendente({ ...resultado, expiraEm: resultado.expiraEm });
+        return;
+      }
       onConfirmado(resultado);
     });
+  }
+
+  function pagamentoExpirado() {
+    setReservaPendente(null);
+    setErro("O prazo pra pagar o Pix expirou e o horário foi liberado. Escolha um horário de novo.");
+    onConflito();
   }
 
   return (
     <Sheet open={aberto} onOpenChange={onAbertoChange}>
       <SheetContent side="bottom">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <SheetHeader>
-            <SheetTitle>Confirmar reserva</SheetTitle>
+            <SheetTitle>
+              {reservaPendente ? "Pagar com Pix" : "Confirmar reserva"}
+            </SheetTitle>
             <SheetDescription>{modalidadeNome}</SheetDescription>
           </SheetHeader>
 
@@ -150,65 +174,81 @@ export function ResumoReserva({
               {formatarHora(inicioISO)} às {formatarHora(fimISO)}
             </p>
             <p className="font-medium">{formatarPreco(valorCentavos)}</p>
-            <p className="text-xs text-muted-foreground">
-              Cancelamento gratuito até 24 h antes do horário.
-            </p>
+            {!reservaPendente && (
+              <p className="text-xs text-muted-foreground">
+                Cancelamento gratuito até 24 h antes do horário.
+              </p>
+            )}
           </div>
 
-          {precisaFormulario && (
+          {reservaPendente ? (
             <>
               <Separator />
-              <div className="flex flex-col gap-3 px-4">
-                {precisaNome && (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="nomeContato">Nome</Label>
-                    <Input
-                      id="nomeContato"
-                      name="nomeContato"
-                      autoComplete="name"
-                      required
-                      minLength={2}
-                      value={nome}
-                      onChange={(e) => setNome(e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-                )}
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="telefoneContato">Telefone</Label>
-                  <Input
-                    id="telefoneContato"
-                    name="telefoneContato"
-                    type="tel"
-                    autoComplete="tel"
-                    required
-                    minLength={8}
-                    value={formatarTelefone(telefone)}
-                    onChange={(e) =>
-                      setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))
-                    }
-                    className="h-11"
-                  />
-                </div>
-              </div>
+              <PagamentoPix
+                reservaId={reservaPendente.reservaId}
+                expiraEmISO={reservaPendente.expiraEm}
+                onConfirmado={() => onConfirmado(reservaPendente)}
+                onExpirado={pagamentoExpirado}
+              />
             </>
-          )}
+          ) : (
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {precisaFormulario && (
+                <>
+                  <Separator />
+                  <div className="flex flex-col gap-3 px-4">
+                    {precisaNome && (
+                      <div className="flex flex-col gap-1.5">
+                        <Label htmlFor="nomeContato">Nome</Label>
+                        <Input
+                          id="nomeContato"
+                          name="nomeContato"
+                          autoComplete="name"
+                          required
+                          minLength={2}
+                          value={nome}
+                          onChange={(e) => setNome(e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="telefoneContato">Telefone</Label>
+                      <Input
+                        id="telefoneContato"
+                        name="telefoneContato"
+                        type="tel"
+                        autoComplete="tel"
+                        required
+                        minLength={8}
+                        value={formatarTelefone(telefone)}
+                        onChange={(e) =>
+                          setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))
+                        }
+                        className="h-11"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
-          {erro && (
-            <div className="px-4">
-              <Alert variant="destructive">
-                <AlertCircle aria-hidden />
-                <AlertDescription aria-live="polite">{erro}</AlertDescription>
-              </Alert>
-            </div>
-          )}
+              {erro && (
+                <div className="px-4">
+                  <Alert variant="destructive">
+                    <AlertCircle aria-hidden />
+                    <AlertDescription aria-live="polite">{erro}</AlertDescription>
+                  </Alert>
+                </div>
+              )}
 
-          <SheetFooter>
-            <Button type="submit" disabled={enviando} className="h-11">
-              {enviando ? "Confirmando…" : "Confirmar reserva"}
-            </Button>
-          </SheetFooter>
-        </form>
+              <SheetFooter>
+                <Button type="submit" disabled={enviando} className="h-11">
+                  {enviando ? "Confirmando…" : "Confirmar reserva"}
+                </Button>
+              </SheetFooter>
+            </form>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );

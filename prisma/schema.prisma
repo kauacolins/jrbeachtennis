@@ -20,6 +20,7 @@ enum Role {
 }
 
 enum StatusReserva {
+  PENDENTE_PAGAMENTO // reserva de autoatendimento aguardando o Pix cair (ver criarReserva)
   CONFIRMADA
   CANCELADA
   CONCLUIDA
@@ -86,6 +87,8 @@ model Reserva {
   valorCentavos   Int           // preço congelado
   status          StatusReserva @default(CONFIRMADA)
   pago            Boolean       @default(false)
+  pagamentoId     String?       @unique // id do Payment no Mercado Pago (Pix)
+  expiraEm        DateTime?     // prazo pro Pix cair; passou disso, não bloqueia mais horário (ver expirarReservasPendentes)
   canceladaEm     DateTime?
   createdAt       DateTime      @default(now())
 

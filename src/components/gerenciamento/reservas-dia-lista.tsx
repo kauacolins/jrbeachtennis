@@ -25,6 +25,10 @@ import type {
 } from "@/features/gerenciamento/actions/obter-agenda-dia";
 
 const STATUS_INFO: Record<string, { label: string; className: string }> = {
+  PENDENTE_PAGAMENTO: {
+    label: "Aguardando Pix",
+    className: "bg-warning text-warning-foreground",
+  },
   CONFIRMADA: { label: "Confirmada", className: "bg-accent text-accent-foreground" },
   CONCLUIDA: { label: "Concluída", className: "bg-secondary text-secondary-foreground" },
   NAO_COMPARECEU: {
@@ -35,7 +39,12 @@ const STATUS_INFO: Record<string, { label: string; className: string }> = {
 };
 
 type FiltroPago = "todos" | "pago" | "a_pagar";
-type FiltroStatus = "todos" | "CONFIRMADA" | "NAO_COMPARECEU" | "CANCELADA";
+type FiltroStatus =
+  | "todos"
+  | "PENDENTE_PAGAMENTO"
+  | "CONFIRMADA"
+  | "NAO_COMPARECEU"
+  | "CANCELADA";
 
 const FILTROS_PAGO: { valor: FiltroPago; label: string }[] = [
   { valor: "todos", label: "Todos os pagamentos" },
@@ -45,6 +54,7 @@ const FILTROS_PAGO: { valor: FiltroPago; label: string }[] = [
 
 const FILTROS_STATUS: { valor: FiltroStatus; label: string }[] = [
   { valor: "todos", label: "Todos os status" },
+  { valor: "PENDENTE_PAGAMENTO", label: "Aguardando Pix" },
   { valor: "CONFIRMADA", label: "Confirmada" },
   { valor: "NAO_COMPARECEU", label: "Não compareceu" },
   { valor: "CANCELADA", label: "Cancelada" },
