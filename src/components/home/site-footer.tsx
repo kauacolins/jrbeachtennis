@@ -10,9 +10,9 @@ export async function SiteFooter() {
     <footer id="contato" className="bg-brand-black text-brand-black-foreground">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-3">
         <div className="flex flex-col gap-2">
-          <span className="inline-flex w-fit items-center rounded-md bg-white p-1.5">
+          <span className="inline-flex w-fit items-center">
             <Image
-              src="/logo.png"
+              src="/logo_branca.png"
               alt="Arena JR"
               width={240}
               height={80}
@@ -20,8 +20,8 @@ export async function SiteFooter() {
             />
           </span>
           <p className="text-sm text-brand-black-foreground/70">
-            {/* TODO: endereço real da arena */}
-            Endereço: a confirmar
+            {/* TODO: endereço completo da arena */}
+            Brejo do Cruz, PB
           </p>
           {horario && (
             <p className="text-sm text-brand-black-foreground/70">

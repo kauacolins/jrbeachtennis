@@ -21,8 +21,10 @@ export default async function ContatoPage() {
           <MapPin className="mt-0.5 size-5 text-brand-text" aria-hidden />
           <div>
             <p className="font-medium">Endereço</p>
-            {/* TODO: endereço real da arena */}
-            <p className="text-sm text-muted-foreground">A confirmar</p>
+            {/* TODO: endereço completo da arena */}
+            <p className="text-sm text-muted-foreground">
+              Brejo do Cruz, PB
+            </p>
           </div>
         </div>
 

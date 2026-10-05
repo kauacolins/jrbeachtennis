@@ -14,7 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { AuthStatus } from "@/components/auth/auth-status";
+import { AuthEntrarButton } from "@/components/auth/auth-status";
 
 // Header da landing page: só âncoras pras seções da própria página. Links
 // de conta (Minhas reservas, Meu perfil) e as versões "página" de Como
@@ -45,14 +45,25 @@ export function SiteHeader() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center rounded-md bg-white p-1.5">
+        <Link
+          href="/"
+          className="flex items-center rounded-md bg-white p-1.5 dark:bg-transparent dark:p-0"
+        >
           <Image
             src="/logo.png"
             alt="Arena JR"
             width={240}
             height={80}
             priority
-            className="h-9 w-auto"
+            className="h-9 w-auto dark:hidden"
+          />
+          <Image
+            src="/logo_branca.png"
+            alt="Arena JR"
+            width={240}
+            height={80}
+            priority
+            className="hidden h-9 w-auto dark:block"
           />
         </Link>
 
@@ -74,7 +85,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <div className="hidden items-center gap-2 md:flex">
-            <AuthStatus />
+            <AuthEntrarButton />
           </div>
           <Button
             className="h-11 px-5"
@@ -121,7 +132,7 @@ export function SiteHeader() {
                 ))}
               </nav>
               <div className="border-t px-4 pt-4">
-                <AuthStatus />
+                <AuthEntrarButton />
               </div>
             </SheetContent>
           </Sheet>

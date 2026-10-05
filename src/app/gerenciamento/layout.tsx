@@ -20,14 +20,22 @@ export default async function GerenciamentoLayout({
       <header className="sticky top-0 z-30 border-b bg-background">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <span className="flex items-center rounded-md bg-white p-1">
+            <span className="flex items-center rounded-md bg-white p-1 dark:bg-transparent dark:p-0">
               <Image
                 src="/logo.png"
                 alt="Arena JR"
                 width={240}
                 height={80}
                 priority
-                className="h-8 w-auto"
+                className="h-8 w-auto dark:hidden"
+              />
+              <Image
+                src="/logo_branca.png"
+                alt="Arena JR"
+                width={240}
+                height={80}
+                priority
+                className="hidden h-8 w-auto dark:block"
               />
             </span>
             <span className="text-sm font-normal text-muted-foreground">

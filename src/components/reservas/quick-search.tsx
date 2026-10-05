@@ -59,7 +59,7 @@ export function QuickSearch({
           value={modalidadeId}
           onValueChange={(value) => value && setModalidadeId(value)}
         >
-          <SelectTrigger className="h-11 w-full sm:flex-1">
+          <SelectTrigger className="h-11! w-full sm:flex-1">
             <SelectValue placeholder="Modalidade" />
           </SelectTrigger>
           <SelectContent>
