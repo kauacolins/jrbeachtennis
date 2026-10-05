@@ -128,7 +128,19 @@ export async function criarPagamentoPix(
       expiraEm: reserva.expiraEm.toISOString(),
     };
   } catch (error) {
-    console.error("[mercadopago] erro ao criar pagamento pix", error);
+    // O SDK trunca "causes" no log padrão (Node não expande array
+    // aninhado) — é lá que o Mercado Pago manda o motivo específico do
+    // 401 (campo inválido, aplicação incompatível, etc.), então loga por
+    // fora pra não perder essa informação na próxima falha.
+    const causas =
+      error && typeof error === "object" && "causes" in error
+        ? (error as { causes: unknown }).causes
+        : undefined;
+    console.error(
+      "[mercadopago] erro ao criar pagamento pix",
+      error,
+      causas ? `causes: ${JSON.stringify(causas)}` : ""
+    );
     return { ok: false, erro: "Não foi possível gerar o Pix. Tente novamente." };
   }
 }
