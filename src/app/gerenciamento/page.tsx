@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { obterAgendaDia } from "@/features/gerenciamento/actions/obter-agenda-dia";
+import { listarQuadrasAdmin } from "@/features/quadras/actions/listar-quadras-admin";
 import { adicionarDias } from "@/lib/datas";
 import { dataParaISO } from "@/lib/format";
 import { AgendaDoDia } from "@/components/gerenciamento/agenda-do-dia";
@@ -18,7 +19,10 @@ export default async function GerenciamentoPage({
   const hojeISO = dataParaISO(new Date());
   const dataISO = data && /^\d{4}-\d{2}-\d{2}$/.test(data) ? data : hojeISO;
 
-  const agenda = await obterAgendaDia(dataISO);
+  const [agenda, quadrasAdmin] = await Promise.all([
+    obterAgendaDia(dataISO),
+    listarQuadrasAdmin(),
+  ]);
 
   const anteriorISO = adicionarDias(dataISO, -1);
   const proximaISO = adicionarDias(dataISO, 1);
@@ -58,7 +62,12 @@ export default async function GerenciamentoPage({
         </div>
       </div>
 
-      <AgendaDoDia key={dataISO} agenda={agenda} hojeISO={hojeISO} />
+      <AgendaDoDia
+        key={dataISO}
+        agenda={agenda}
+        hojeISO={hojeISO}
+        quadrasAdmin={quadrasAdmin}
+      />
     </div>
   );
 }
