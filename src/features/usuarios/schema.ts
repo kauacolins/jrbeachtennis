@@ -35,3 +35,20 @@ export const atualizarUsuarioSchema = z.object({
 
 export type CriarUsuarioInput = z.infer<typeof criarUsuarioSchema>;
 export type AtualizarUsuarioInput = z.infer<typeof atualizarUsuarioSchema>;
+
+// Edição de cadastro de cliente pelo admin (nome/e-mail/telefone errados,
+// pedido de correção por telefone etc.) — sem papel nem senha, que não são
+// coisa de cliente (ver atualizarUsuarioSchema, que é só pra equipe).
+export const atualizarClienteSchema = z.object({
+  usuarioId: z.string().min(1),
+  nome: z.string().trim().min(2, "Informe o nome.").max(120),
+  email: z.string().trim().toLowerCase().email("Informe um e-mail válido."),
+  telefone: z
+    .string()
+    .trim()
+    .regex(/^\d{8,11}$/, "Telefone inválido.")
+    .optional()
+    .or(z.literal("")),
+});
+
+export type AtualizarClienteInput = z.infer<typeof atualizarClienteSchema>;
