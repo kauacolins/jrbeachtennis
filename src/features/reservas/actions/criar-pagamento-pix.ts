@@ -129,17 +129,17 @@ export async function criarPagamentoPix(
     };
   } catch (error) {
     // O SDK trunca "causes" no log padrão (Node não expande array
-    // aninhado) — é lá que o Mercado Pago manda o motivo específico do
-    // 401 (campo inválido, aplicação incompatível, etc.), então loga por
-    // fora pra não perder essa informação na próxima falha.
+    // aninhado), e alguns agregadores de log (ex.: Vercel) só mostram o
+    // primeiro argumento de um console.error com vários — então tudo
+    // precisa ir concatenado numa única string pra não perder o motivo
+    // específico do 401 que o Mercado Pago manda em "causes".
     const causas =
       error && typeof error === "object" && "causes" in error
         ? (error as { causes: unknown }).causes
         : undefined;
+    const mensagem = error instanceof Error ? error.message : String(error);
     console.error(
-      "[mercadopago] erro ao criar pagamento pix",
-      error,
-      causas ? `causes: ${JSON.stringify(causas)}` : ""
+      `[mercadopago] erro ao criar pagamento pix: ${mensagem} | causes: ${JSON.stringify(causas)}`
     );
     return { ok: false, erro: "Não foi possível gerar o Pix. Tente novamente." };
   }
