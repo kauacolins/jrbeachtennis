@@ -21,10 +21,19 @@ export type CriarPagamentoPixResultado =
 // criarReservaSchema) — o Mercado Pago exige um pra gerar o Pix, então
 // sintetiza um a partir do telefone em vez de pedir ao cliente. Cliente
 // logado usa o e-mail real da conta.
+//
+// Em ambiente de teste, o Mercado Pago rejeita e-mail "inventado" com
+// "Unauthorized use of live credentials" — ele precisa ser o de um
+// usuário de teste comprador criado no painel deles (Suas integrações >
+// Contas de teste). MERCADOPAGO_TEST_PAYER_EMAIL sobrescreve o e-mail
+// sintetizado só nesse cenário; em produção fica vazio e não tem efeito.
 function emailPagador(reserva: {
   telefoneContato: string | null;
   user: { email: string } | null;
 }) {
+  if (process.env.MERCADOPAGO_TEST_PAYER_EMAIL) {
+    return process.env.MERCADOPAGO_TEST_PAYER_EMAIL;
+  }
   if (reserva.user?.email) return reserva.user.email;
   const digitos = (reserva.telefoneContato ?? "").replace(/\D/g, "") || "cliente";
   return `${digitos}@clientes.arenajr.com.br`;
