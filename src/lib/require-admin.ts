@@ -18,3 +18,11 @@ export async function exigirAdmin() {
 
   return user;
 }
+
+// Configuração que mexe em preço (produtos do bar, day use, mensal) fica só
+// com o ADMIN; o operador do balcão só lança e fecha comandas.
+export async function exigirSomenteAdmin() {
+  const user = await exigirAdmin();
+  if (!user || user.role !== Role.ADMIN) return null;
+  return user;
+}

@@ -30,7 +30,7 @@ enum StatusReserva {
 model Modalidade {
   id       String    @id @default(cuid())
   nome     String    @unique // Beach tennis, Futebol, Vôlei...
-  quadras  Quadra[]  // muitos-para-muitos
+  quadras  Quadra[] // muitos-para-muitos
   reservas Reserva[]
 }
 
@@ -41,7 +41,7 @@ model Quadra {
   fotoUrl           String?
   precoHoraCentavos Int
   ativa             Boolean                @default(true)
-  modalidades       Modalidade[]           // muitos-para-muitos
+  modalidades       Modalidade[] // muitos-para-muitos
   horarios          HorarioFuncionamento[]
   bloqueios         Bloqueio[]
   reservas          Reserva[]
@@ -76,21 +76,22 @@ model Reserva {
   id              String        @id @default(cuid())
   quadraId        String
   quadra          Quadra        @relation(fields: [quadraId], references: [id])
-  modalidadeId    String        // precisa ser uma das modalidades da quadra
+  modalidadeId    String // precisa ser uma das modalidades da quadra
   modalidade      Modalidade    @relation(fields: [modalidadeId], references: [id])
-  userId          String?       // nulo em reserva manual sem conta
+  userId          String? // nulo em reserva manual sem conta
   user            User?         @relation(fields: [userId], references: [id])
-  nomeContato     String?       // reserva manual
+  nomeContato     String? // reserva manual
   telefoneContato String?
-  inicio          DateTime      // UTC
-  fim             DateTime      // UTC
-  valorCentavos   Int           // preço congelado
+  inicio          DateTime // UTC
+  fim             DateTime // UTC
+  valorCentavos   Int // preço congelado
   status          StatusReserva @default(CONFIRMADA)
   pago            Boolean       @default(false)
   pagamentoId     String?       @unique // id do Payment no Mercado Pago (Pix)
-  expiraEm        DateTime?     // prazo pro Pix cair; passou disso, não bloqueia mais horário (ver expirarReservasPendentes)
+  expiraEm        DateTime? // prazo pro Pix cair; passou disso, não bloqueia mais horário (ver expirarReservasPendentes)
   canceladaEm     DateTime?
   createdAt       DateTime      @default(now())
+  itemComanda     ItemComanda? // RF37: paga junto com a comanda
 
   @@index([quadraId, inicio])
   @@index([userId])
@@ -109,6 +110,7 @@ model User {
   role          Role      @default(CLIENT)
   removidoEm    DateTime? // soft delete de conta de equipe (admin/operador/instrutor)
   reservas      Reserva[]
+  cliente       Cliente?
   sessions      Session[]
   accounts      Account[]
   createdAt     DateTime  @default(now())
@@ -152,6 +154,159 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Balcão: day use, plano mensal e comandas (docs/COMANDAS.md, RF17–RF21,
+// RF30–RF38). Tudo pago no local; o operador marca o método.
+
+enum MetodoPagamento {
+  DINHEIRO
+  PIX
+  CARTAO_DEBITO
+  CARTAO_CREDITO
+}
+
+enum TipoProduto {
+  DAY_USE // por pessoa, por dia
+  MENSAL // por pessoa, 30 dias
+}
+
+// Cadastro simplificado feito no balcão (nome + telefone), sem conta: o User
+// do Better Auth exige e-mail. Se a pessoa tiver conta com o mesmo telefone,
+// fica ligado a ela (userId).
+model Cliente {
+  id          String        @id @default(cuid())
+  nome        String
+  telefone    String?       @unique // só dígitos
+  userId      String?       @unique
+  user        User?         @relation(fields: [userId], references: [id])
+  passes      PasseDayUse[]
+  assinaturas Assinatura[]
+  createdAt   DateTime      @default(now())
+
+  @@index([nome])
+}
+
+// RF17: preço do day use e do mensal, editável pelo admin. Um registro por
+// tipo, criado na migration.
+model Produto {
+  id            String        @id @default(cuid())
+  tipo          TipoProduto   @unique
+  nome          String
+  precoCentavos Int
+  duracaoDias   Int? // 30 no mensal
+  limiteDiario  Int? // day use: máximo de pessoas por dia; nulo = sem limite
+  ativo         Boolean       @default(true)
+  passes        PasseDayUse[]
+  assinaturas   Assinatura[]
+}
+
+// RN10: um passe por cliente por data (checado na transação, não por
+// @@unique, pra dar pra lançar de novo depois de cancelar).
+model PasseDayUse {
+  id            String           @id @default(cuid())
+  produtoId     String
+  produto       Produto          @relation(fields: [produtoId], references: [id])
+  clienteId     String
+  cliente       Cliente          @relation(fields: [clienteId], references: [id])
+  data          String // "yyyy-MM-dd" em America/Sao_Paulo — é um dia, não um instante
+  valorCentavos Int // congelado; 0 quando coberto pelo mensal
+  assinaturaId  String?
+  assinatura    Assinatura?      @relation(fields: [assinaturaId], references: [id])
+  pago          Boolean          @default(false)
+  metodo        MetodoPagamento?
+  pagoEm        DateTime?
+  canceladoEm   DateTime?
+  createdAt     DateTime         @default(now())
+  itemComanda   ItemComanda?
+
+  @@index([data])
+  @@index([clienteId, data])
+}
+
+// RN11: ativo = pago, não cancelado e inicio <= agora < fim.
+model Assinatura {
+  id            String           @id @default(cuid())
+  clienteId     String
+  cliente       Cliente          @relation(fields: [clienteId], references: [id])
+  produtoId     String
+  produto       Produto          @relation(fields: [produtoId], references: [id])
+  inicio        DateTime // UTC
+  fim           DateTime // inicio + duracaoDias
+  valorCentavos Int // congelado
+  pago          Boolean          @default(false)
+  metodo        MetodoPagamento?
+  canceladaEm   DateTime?
+  passes        PasseDayUse[]
+  createdAt     DateTime         @default(now())
+
+  @@index([clienteId, fim])
+}
+
+enum TipoItemComanda {
+  BAR
+  DAY_USE
+  RESERVA
+}
+
+enum StatusComanda {
+  ABERTA
+  FECHADA
+  CANCELADA
+}
+
+// RF30: produtos do bar. Sem estoque — só registra o que foi vendido.
+model ProdutoBar {
+  id               String        @id @default(cuid())
+  nome             String
+  categoria        String? // Bebida, Comida...
+  precoCentavos    Int
+  ativo            Boolean       @default(true)
+  // Foto já reduzida no navegador (WebP, até 512 px) e guardada aqui mesmo —
+  // o projeto não tem storage de arquivos. Servida por
+  // /api/produtos-bar/[id]/foto; fotoAtualizadaEm entra na URL pra
+  // invalidar o cache quando a foto muda. Nunca carregar `foto` em listagem.
+  foto             Bytes?
+  fotoTipo         String?
+  fotoAtualizadaEm DateTime?
+  itens            ItemComanda[]
+}
+
+// Comanda pelo nome: só o nome digitado pelo operador, sem cadastro.
+model Comanda {
+  id            String           @id @default(cuid())
+  nome          String
+  status        StatusComanda    @default(ABERTA)
+  totalCentavos Int              @default(0) // recalculado a cada item
+  metodo        MetodoPagamento? // preenchido ao fechar
+  abertaEm      DateTime         @default(now())
+  fechadaEm     DateTime?
+  itens         ItemComanda[]
+
+  @@index([status, nome])
+  @@index([abertaEm])
+}
+
+// O campo certo por tipo é garantido por uma CHECK na migration
+// (item_tipo_ok); os @unique impedem passe/reserva em duas comandas.
+model ItemComanda {
+  id                    String          @id @default(cuid())
+  comandaId             String
+  comanda               Comanda         @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+  tipo                  TipoItemComanda @default(BAR)
+  descricao             String // "Água", "Day use", "Quadra 2 · 19:00–20:00"
+  produtoId             String? // só BAR
+  produto               ProdutoBar?     @relation(fields: [produtoId], references: [id])
+  passeId               String?         @unique // só DAY_USE
+  passe                 PasseDayUse?    @relation(fields: [passeId], references: [id])
+  reservaId             String?         @unique // só RESERVA
+  reserva               Reserva?        @relation(fields: [reservaId], references: [id])
+  quantidade            Int             @default(1)
+  precoUnitarioCentavos Int // congelado no lançamento
+  createdAt             DateTime        @default(now())
+
+  @@index([comandaId])
 }
 
 // ---------------------------------------------------------------------------

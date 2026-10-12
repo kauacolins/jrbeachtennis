@@ -14,7 +14,7 @@ Site para reservar horários em quadras de beach tennis, futebol, vôlei e outra
 - Day use (entrada livre o dia todo) e plano mensal.
 - Login com e-mail e senha ou com Google.
 - Reserva de quadra: pagamento via Pix (Mercado Pago) direto no fluxo, sem redirecionar pra fora do site. Reserva nasce PENDENTE_PAGAMENTO com 15 min pra pagar (ver RN9); sem Mercado Pago configurado no ambiente, cai de volta pro fluxo antigo (CONFIRMADA direto). Reserva manual do admin (RF14) continua sem Pix. **Por enquanto desligado (`PIX_NA_RESERVA_ATIVO = false`): a reserva nasce CONFIRMADA e o pagamento é no local.**
-- Day use e mensal: pagamento combinado no local, o sistema registra e o admin marca como pago (ainda não online).
+- Day use e mensal: vendidos no balcão pelo operador, pagos no local (forma de pagamento registrada). Day use entra pela comanda; ver `docs/COMANDAS.md`.
 - Painel administrativo simples para o dono.
 
 **Fora do MVP** (ver seção 9)
@@ -62,8 +62,8 @@ Quem está de day use joga nas quadras que estiverem livres. Para garantir uma q
 | RF15 | Cancelar qualquer reserva e marcar pago / não compareceu | Admin | Desejável |
 | RF16 | E-mail de confirmação e de cancelamento da reserva | Cliente | Desejável |
 | RF17 | Cadastrar e editar produtos e preços (day use, mensal) | Admin | Essencial |
-| RF18 | Ver a lista de day use do dia, marcar presença e definir limite diário opcional | Admin | Essencial |
-| RF19 | Comprar passe de day use para uma data, enquanto houver vaga | Cliente | Essencial |
+| RF18 | Ver a lista de day use do dia e definir limite diário opcional (o passe nasce no balcão, então estar na lista já é a presença) | Admin | Essencial |
+| RF19 | Comprar passe de day use para uma data, enquanto houver vaga | Cliente | Adiado: day use é vendido no balcão, pela comanda (RF36, `docs/COMANDAS.md`) |
 | RF20 | Ativar, renovar e cancelar o plano mensal de um cliente; ver quem está vencido | Admin | Essencial |
 | RF21 | Ver o próprio plano mensal e a data de vencimento | Cliente | Desejável |
 

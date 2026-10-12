@@ -12,7 +12,14 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { formatarDataExtensaISO } from "@/lib/datas";
 
-export function SeletorDataAdmin({ dataISO }: { dataISO: string }) {
+// basePath: a página que recebe ?data= (agenda, day use, histórico de comandas).
+export function SeletorDataAdmin({
+  dataISO,
+  basePath = "/gerenciamento/agenda",
+}: {
+  dataISO: string;
+  basePath?: string;
+}) {
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
 
@@ -35,7 +42,7 @@ export function SeletorDataAdmin({ dataISO }: { dataISO: string }) {
             if (!data) return;
             const iso = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
             setAberto(false);
-            router.push(`/gerenciamento?data=${iso}`);
+            router.push(`${basePath}?data=${iso}`);
           }}
         />
       </PopoverContent>
