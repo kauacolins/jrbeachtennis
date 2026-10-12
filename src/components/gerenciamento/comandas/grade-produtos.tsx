@@ -129,9 +129,10 @@ export function GradeProdutos({
                 <button
                   type="button"
                   onClick={() => onLancar(produto)}
+                  title={produto.nome}
                   aria-label={`Lançar ${produto.nome}, ${formatarPreco(produto.precoCentavos)}${qtd > 0 ? `. ${qtd} ${textoQuantidade}` : ""}`}
                   className={cn(
-                    "group relative flex w-full flex-col overflow-hidden rounded-xl border bg-background text-left transition-[transform,border-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97] motion-reduce:active:scale-100",
+                    "group relative flex h-full w-full flex-col overflow-hidden rounded-xl border bg-background text-left transition-[transform,border-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97] motion-reduce:active:scale-100",
                     qtd > 0 && "border-primary"
                   )}
                 >
@@ -149,8 +150,8 @@ export function GradeProdutos({
                       {qtd}
                     </span>
                   )}
-                  <span className="flex flex-1 flex-col gap-0.5 p-2">
-                    <span className="line-clamp-2 text-sm leading-tight font-medium">{produto.nome}</span>
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5 p-2">
+                    <span className="truncate text-sm leading-tight font-medium">{produto.nome}</span>
                     <span className="text-xs text-muted-foreground tabular-nums">
                       {formatarPreco(produto.precoCentavos)}
                     </span>
