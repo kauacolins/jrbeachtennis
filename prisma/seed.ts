@@ -1,4 +1,6 @@
+import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { hashPassword } from "better-auth/crypto";
 import { PrismaClient } from "../src/app/generated/prisma/client";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
@@ -84,7 +86,58 @@ async function seedQuadra(
   return quadra;
 }
 
+// Admin inicial, com credenciais vindas do .env (SEED_ADMIN_*). Cria User +
+// Account "credential" direto via Prisma, no mesmo formato do Better Auth
+// (ver criarUsuario). Se a conta já existir, garante o papel ADMIN e
+// sincroniza a senha com o .env.
+async function seedAdmin() {
+  const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
+  const senha = process.env.SEED_ADMIN_PASSWORD;
+  const nome = process.env.SEED_ADMIN_NAME?.trim() || "Administrador";
+
+  if (!email || !senha) {
+    console.warn("SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD ausentes — admin não criado.");
+    return;
+  }
+  if (senha.length < 8) {
+    throw new Error("SEED_ADMIN_PASSWORD precisa ter pelo menos 8 caracteres.");
+  }
+
+  const senhaHash = await hashPassword(senha);
+
+  await prisma.$transaction(async (tx) => {
+    const user = await tx.user.upsert({
+      where: { email },
+      update: { role: "ADMIN", removidoEm: null },
+      create: { name: nome, email, role: "ADMIN", emailVerified: true },
+    });
+
+    const credencial = await tx.account.findFirst({
+      where: { userId: user.id, providerId: "credential" },
+    });
+    if (credencial) {
+      await tx.account.update({
+        where: { id: credencial.id },
+        data: { password: senhaHash },
+      });
+    } else {
+      await tx.account.create({
+        data: {
+          userId: user.id,
+          accountId: user.id,
+          providerId: "credential",
+          password: senhaHash,
+        },
+      });
+    }
+  });
+
+  console.log(`Admin ${email} pronto.`);
+}
+
 async function main() {
+  await seedAdmin();
+
   const modalidades = await seedModalidades();
 
   await seedQuadra(
