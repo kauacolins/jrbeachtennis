@@ -20,6 +20,11 @@ export const fecharComandaSchema = z.object({
   metodo: metodoPagamentoSchema,
 });
 
+export const fecharComandasSchema = z.object({
+  comandaIds: z.array(z.string().min(1)).min(1, "Selecione pelo menos uma comanda.").max(200),
+  metodo: metodoPagamentoSchema,
+});
+
 export const adicionarDayUseSchema = z.object({
   comandaId: z.string().min(1),
   clienteId: z.string().min(1),
