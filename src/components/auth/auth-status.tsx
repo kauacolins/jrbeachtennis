@@ -65,7 +65,7 @@ export function AuthStatus() {
 }
 
 // Versão enxuta pra landing page: nada de "Olá, {nome}"/"Sair" ali, só um
-// botão "Entrar" que já manda quem tem sessão direto pro gerenciamento.
+// botão "Entrar" de cliente. A equipe entra por /admin (login separado).
 export function AuthEntrarButton() {
   const session = useSession();
   const montado = useMontado();
@@ -74,7 +74,7 @@ export function AuthEntrarButton() {
     return <div className="h-11 w-20" aria-hidden />;
   }
 
-  const destino = session.data?.user ? "/gerenciamento" : "/entrar";
+  const destino = session.data?.user ? "/minhas-reservas" : "/entrar";
 
   return (
     <Button

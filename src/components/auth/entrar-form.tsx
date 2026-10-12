@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
@@ -10,8 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { GoogleIcon } from "@/components/auth/google-icon";
-import { signIn, signUp, useSession } from "@/lib/auth-client";
+import { signIn, signOut, signUp, useSession } from "@/lib/auth-client";
 import { vincularReservaAoUsuario } from "@/features/reservas/actions/vincular-reserva-usuario";
+import { sessaoEhDaEquipe } from "@/features/auth/actions/acesso-equipe";
 import { formatarTelefone } from "@/lib/format";
 
 const MENSAGENS_ERRO: Record<string, string> = {
@@ -53,6 +55,7 @@ export function EntrarForm({
   const [telefone, setTelefone] = useState(telefoneInicial);
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [contaDaEquipe, setContaDaEquipe] = useState(false);
   const [enviando, startTransition] = useTransition();
   const vinculoFeito = useRef(false);
 
@@ -62,12 +65,21 @@ export function EntrarForm({
     }
     vinculoFeito.current = true;
 
-    if (!reservaId) {
-      router.replace(redirectPara);
-      return;
-    }
-
     startTransition(async () => {
+      // Login separado: conta da equipe não entra pelo login de cliente
+      // (inclusive via Google), tem que usar /admin.
+      if (await sessaoEhDaEquipe()) {
+        await signOut();
+        vinculoFeito.current = false;
+        setContaDaEquipe(true);
+        return;
+      }
+
+      if (!reservaId) {
+        router.replace(redirectPara);
+        return;
+      }
+
       const resultado = await vincularReservaAoUsuario(reservaId);
       if (resultado.ok) {
         toast.success("Reserva vinculada à sua conta.");
@@ -79,6 +91,7 @@ export function EntrarForm({
   function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setErro(null);
+    setContaDaEquipe(false);
 
     startTransition(async () => {
       // `telefone` é um additionalField configurado no servidor (lib/auth.ts);
@@ -208,6 +221,19 @@ export function EntrarForm({
             className="h-11"
           />
         </div>
+
+        {contaDaEquipe && (
+          <Alert variant="destructive">
+            <AlertCircle aria-hidden />
+            <AlertDescription aria-live="polite">
+              Essa é uma conta da equipe. Entre pelo{" "}
+              <Link href="/admin" className="font-medium underline underline-offset-4">
+                acesso da equipe
+              </Link>
+              .
+            </AlertDescription>
+          </Alert>
+        )}
 
         {erro && (
           <Alert variant="destructive">
