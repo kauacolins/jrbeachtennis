@@ -176,7 +176,7 @@ export function ResumoReserva({
             <p className="font-medium">{formatarPreco(valorCentavos)}</p>
             {!reservaPendente && (
               <p className="text-xs text-muted-foreground">
-                Cancelamento gratuito até 24 h antes do horário.
+                Pagamento no local. Cancelamento gratuito até 24 h antes do horário.
               </p>
             )}
           </div>

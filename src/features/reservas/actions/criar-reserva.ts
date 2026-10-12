@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { formatInTimeZone } from "date-fns-tz";
 import { prisma } from "@/lib/prisma";
-import { JANELA_MAXIMA_DIAS, PRAZO_PAGAMENTO_PIX_MIN, TIME_ZONE } from "@/lib/constants";
+import {
+  JANELA_MAXIMA_DIAS,
+  LIMITE_RESERVAS_ABERTAS,
+  PIX_NA_RESERVA_ATIVO,
+  PRAZO_PAGAMENTO_PIX_MIN,
+  TIME_ZONE,
+} from "@/lib/constants";
 import { diaSemanaDaData } from "@/lib/datas";
 import { getSessaoAtual } from "@/lib/get-session";
 import { pagamentoPixHabilitado } from "@/lib/mercadopago";
@@ -20,9 +26,9 @@ export type CriarReservaResultado =
       // se quem reservou já estava logado, não precisa oferecer login depois.
       logado: boolean;
       // true: reserva nasceu PENDENTE_PAGAMENTO, falta gerar e pagar o Pix
-      // (ver criarPagamentoPix). false: Mercado Pago não configurado nesse
-      // ambiente — reserva já nasce CONFIRMADA, igual ao comportamento
-      // anterior ao pagamento online.
+      // (ver criarPagamentoPix). false: Pix na reserva desligado
+      // (PIX_NA_RESERVA_ATIVO) ou Mercado Pago não configurado — reserva já
+      // nasce CONFIRMADA e o pagamento é no local.
       precisaPagamento: boolean;
       // prazo pro Pix, só quando precisaPagamento — ver PagamentoPix.
       expiraEm: string | null;
@@ -85,9 +91,30 @@ export async function criarReserva(
   const sessao = await getSessaoAtual();
   const userId = sessao?.user?.id;
 
+  const exigePix = PIX_NA_RESERVA_ATIVO && pagamentoPixHabilitado;
+
   await expirarReservasPendentes();
 
   const resultado = await prisma.$transaction(async (tx): Promise<CriarReservaResultado> => {
+    // RN6: conta pela conta (se logado) ou pelo telefone — assim quem
+    // reserva sem login não passa do limite só saindo da conta.
+    const reservasAbertas = await tx.reserva.count({
+      where: {
+        status: { in: ["PENDENTE_PAGAMENTO", "CONFIRMADA"] },
+        fim: { gt: agora },
+        OR: [
+          ...(userId ? [{ userId }] : []),
+          { telefoneContato },
+        ],
+      },
+    });
+    if (reservasAbertas >= LIMITE_RESERVAS_ABERTAS) {
+      return {
+        ok: false,
+        erro: `Você já tem ${LIMITE_RESERVAS_ABERTAS} reservas em aberto. Aguarde uma delas acontecer ou cancele para reservar outro horário.`,
+      };
+    }
+
     const quadra = await tx.quadra.findFirst({
       where: { id: quadraId, ativa: true },
       include: { modalidades: true, horarios: true },
@@ -140,8 +167,8 @@ export async function criarReserva(
         inicio,
         fim,
         valorCentavos,
-        status: pagamentoPixHabilitado ? "PENDENTE_PAGAMENTO" : "CONFIRMADA",
-        expiraEm: pagamentoPixHabilitado
+        status: exigePix ? "PENDENTE_PAGAMENTO" : "CONFIRMADA",
+        expiraEm: exigePix
           ? new Date(agora.getTime() + PRAZO_PAGAMENTO_PIX_MIN * 60_000)
           : null,
       },
@@ -154,7 +181,7 @@ export async function criarReserva(
       fim: reserva.fim.toISOString(),
       valorCentavos: reserva.valorCentavos,
       logado: Boolean(userId),
-      precisaPagamento: pagamentoPixHabilitado,
+      precisaPagamento: exigePix,
       expiraEm: reserva.expiraEm?.toISOString() ?? null,
     };
   });

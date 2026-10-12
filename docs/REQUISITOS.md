@@ -13,7 +13,7 @@ Site para reservar horários em quadras de beach tennis, futebol, vôlei e outra
 - Reserva de quadra por hora (blocos de 60 min).
 - Day use (entrada livre o dia todo) e plano mensal.
 - Login com e-mail e senha ou com Google.
-- Reserva de quadra: pagamento via Pix (Mercado Pago) direto no fluxo, sem redirecionar pra fora do site. Reserva nasce PENDENTE_PAGAMENTO com 15 min pra pagar (ver RN9); sem Mercado Pago configurado no ambiente, cai de volta pro fluxo antigo (CONFIRMADA direto). Reserva manual do admin (RF14) continua sem Pix.
+- Reserva de quadra: pagamento via Pix (Mercado Pago) direto no fluxo, sem redirecionar pra fora do site. Reserva nasce PENDENTE_PAGAMENTO com 15 min pra pagar (ver RN9); sem Mercado Pago configurado no ambiente, cai de volta pro fluxo antigo (CONFIRMADA direto). Reserva manual do admin (RF14) continua sem Pix. **Por enquanto desligado (`PIX_NA_RESERVA_ATIVO = false`): a reserva nasce CONFIRMADA e o pagamento é no local.**
 - Day use e mensal: pagamento combinado no local, o sistema registra e o admin marca como pago (ainda não online).
 - Painel administrativo simples para o dono.
 
@@ -76,7 +76,7 @@ Os valores abaixo são padrões e devem ficar configuráveis.
 3. **Dentro do funcionamento:** início e fim dentro do horário de funcionamento da quadra naquele dia da semana.
 4. **Blocos de 1 hora:** duração múltipla de 60 min (mínimo 1 h, máximo 3 h). Início sempre em hora cheia.
 5. **Antecedência:** não dá para reservar horário que já passou; janela de até 30 dias à frente.
-6. **Limite por cliente:** no máximo 2 reservas futuras ativas por cliente.
+6. **Limite por cliente:** no máximo 2 reservas em aberto (PENDENTE_PAGAMENTO ou CONFIRMADA que ainda não terminaram) por cliente, contadas pela conta ou pelo telefone de contato. Reserva manual do admin não entra no limite.
 7. **Cancelamento pelo cliente:** até 24 h antes do início. Depois disso, só o admin cancela.
 8. **Preço congelado:** o valor da reserva (preço/hora × horas) e o do passe são salvos na criação; mudar o preço depois não altera o que já foi vendido.
 9. **Status da reserva:** com pagamento via Pix configurado, nasce PENDENTE_PAGAMENTO e tem 15 min para o Pix cair — não caindo a tempo, vira CANCELADA sozinha e libera o horário (sem job/cron: cada leitura relevante expira as pendentes vencidas antes de checar conflito, ver `expirarReservasPendentes`). Sem Mercado Pago configurado no ambiente, nasce CONFIRMADA direto, como antes. A partir de CONFIRMADA pode virar CANCELADA, CONCLUIDA ou NAO_COMPARECEU. Cancelada libera o horário. Reserva manual do admin (RF14) sempre nasce CONFIRMADA, sem Pix — pagamento combinado no local, como day use/mensal.
