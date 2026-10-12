@@ -1,8 +1,11 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { exigirAdmin } from "@/lib/require-admin";
-import { GerenciamentoNav } from "@/components/gerenciamento/gerenciamento-nav";
-import { AuthStatus } from "@/components/auth/auth-status";
+import {
+  GerenciamentoMenuMobile,
+  GerenciamentoNav,
+} from "@/components/gerenciamento/gerenciamento-nav";
+import { SairEquipe } from "@/components/auth/sair-equipe";
 
 // RNF03: toda rota de admin checa o perfil no servidor. O middleware só
 // garante que existe sessão (ver src/middleware.ts); aqui é onde o papel
@@ -13,7 +16,7 @@ export default async function GerenciamentoLayout({
   children: React.ReactNode;
 }) {
   const admin = await exigirAdmin();
-  if (!admin) redirect("/entrar?redirect=/gerenciamento");
+  if (!admin) redirect("/admin");
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -38,13 +41,16 @@ export default async function GerenciamentoLayout({
                 className="hidden h-8 w-auto dark:block"
               />
             </span>
-            <span className="text-sm font-normal text-muted-foreground">
+            <span className="hidden text-sm font-normal text-muted-foreground md:inline">
               · Gerenciamento
             </span>
           </div>
-          <AuthStatus />
+          <div className="hidden md:block">
+            <SairEquipe nome={admin.name} />
+          </div>
+          <GerenciamentoMenuMobile ehAdmin={admin.role === "ADMIN"} />
         </div>
-        <GerenciamentoNav />
+        <GerenciamentoNav ehAdmin={admin.role === "ADMIN"} />
       </header>
       <main>{children}</main>
     </div>
