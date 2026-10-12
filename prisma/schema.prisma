@@ -153,3 +153,27 @@ model Verification {
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
 }
+
+// ---------------------------------------------------------------------------
+// Opções de select editáveis no banco, agrupadas por chave (ex.:
+// "categoria_produto" → Bebida, Comida). Quem usa guarda o `nome` da opção
+// como texto (ex.: ProdutoBar.categoria), então desativar uma opção não
+// apaga o que já foi salvo com ela.
+
+model SelectGroup {
+  id     String         @id @default(cuid())
+  chave  String         @unique // usada no código, ex.: "categoria_produto"
+  nome   String // rótulo legível, ex.: "Categoria de produto"
+  opcoes SelectOption[]
+}
+
+model SelectOption {
+  id      String      @id @default(cuid())
+  grupoId String
+  grupo   SelectGroup @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  nome    String
+  ordem   Int         @default(0)
+  ativo   Boolean     @default(true)
+
+  @@unique([grupoId, nome])
+}
