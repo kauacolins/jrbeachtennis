@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { cn } from "@/lib/utils";
 import { formatarPreco, minutosParaHora } from "@/lib/format";
@@ -23,6 +24,7 @@ import type {
   AgendaBloco,
   AgendaDia,
 } from "@/features/gerenciamento/actions/obter-agenda-dia";
+import { normalizarBusca } from "@/lib/busca";
 
 const STATUS_INFO: Record<string, { label: string; className: string }> = {
   PENDENTE_PAGAMENTO: {
@@ -59,13 +61,6 @@ const FILTROS_STATUS: { valor: FiltroStatus; label: string }[] = [
   { valor: "NAO_COMPARECEU", label: "Não compareceu" },
   { valor: "CANCELADA", label: "Cancelada" },
 ];
-
-function normalizar(texto: string) {
-  return texto
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-}
 
 // Select.Value, sem children, mostra o value cru — precisa de uma função
 // pra traduzir pro label de exibição.
@@ -147,7 +142,7 @@ export function ReservasDoDiaLista({
   );
 
   const reservasFiltradas = useMemo(() => {
-    const termo = normalizar(busca.trim());
+    const termo = normalizarBusca(busca.trim());
     return reservas.filter((reserva) => {
       if (filtroPago === "pago" && !reserva.pago) return false;
       if (filtroPago === "a_pagar" && reserva.pago) return false;
@@ -158,7 +153,7 @@ export function ReservasDoDiaLista({
       if (!termo) return true;
       return [reserva.titulo, reserva.subtitulo, reserva.quadraNome]
         .filter(Boolean)
-        .some((campo) => normalizar(campo as string).includes(termo));
+        .some((campo) => normalizarBusca(campo as string).includes(termo));
     });
   }, [reservas, busca, filtroPago, filtroStatus]);
 
@@ -267,95 +262,104 @@ export function ReservasDoDiaLista({
             : "Nenhuma reserva nesse dia."}
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {reservasFiltradas.map((reserva) => {
-            const info =
-              STATUS_INFO[reserva.status ?? "CONFIRMADA"] ?? STATUS_INFO.CONFIRMADA;
-            const cancelada = reserva.status === "CANCELADA";
-            const emAndamento = pendenteId === reserva.id && isPending;
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Horário</TableHead>
+              <TableHead className="hidden sm:table-cell">Quadra</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead className="hidden text-right md:table-cell">Valor</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
+              <TableHead>Pagamento</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {reservasFiltradas.map((reserva) => {
+              const info =
+                STATUS_INFO[reserva.status ?? "CONFIRMADA"] ?? STATUS_INFO.CONFIRMADA;
+              const cancelada = reserva.status === "CANCELADA";
+              const emAndamento = pendenteId === reserva.id && isPending;
 
-            return (
-              <li
-                key={reserva.id}
-                className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-sm"
-              >
-                <button
-                  type="button"
-                  onClick={() => onSelecionarReserva(reserva, reserva.quadraNome)}
-                  className="flex min-w-0 flex-1 flex-col text-left outline-none focus-visible:underline"
-                >
-                  <span className="font-medium tabular-nums">
-                    {minutosParaHora(reserva.inicioMin)}–
-                    {minutosParaHora(reserva.fimMin)}{" "}
-                    <span className="font-normal text-muted-foreground">
-                      · {reserva.quadraNome}
-                    </span>
-                  </span>
-                  <span
-                    className={cn(
-                      "truncate text-muted-foreground",
-                      cancelada && "line-through"
-                    )}
-                  >
-                    {reserva.titulo}
-                    {reserva.subtitulo ? ` · ${reserva.subtitulo}` : ""}
-                  </span>
-                </button>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {typeof reserva.valorCentavos === "number" && (
-                    <span className="text-sm font-medium tabular-nums">
-                      {formatarPreco(reserva.valorCentavos)}
-                    </span>
-                  )}
-                  <Badge className={info.className}>{info.label}</Badge>
-                  {!cancelada && (
-                    <Badge
-                      variant={reserva.pago ? "outline" : "default"}
-                      className={reserva.pago ? "" : "bg-warning text-warning-foreground"}
+              return (
+                <TableRow key={reserva.id}>
+                  <TableCell className="font-medium whitespace-nowrap tabular-nums">
+                    <button
+                      type="button"
+                      onClick={() => onSelecionarReserva(reserva, reserva.quadraNome)}
+                      className="text-left underline-offset-4 outline-none hover:underline focus-visible:underline"
+                      aria-label={`Ver reserva das ${minutosParaHora(reserva.inicioMin)} na ${reserva.quadraNome}`}
                     >
-                      {reserva.pago ? "Pago" : "A pagar"}
-                    </Badge>
-                  )}
-
-                  {!cancelada && (
-                    <>
-                      <ConfirmarBotao
-                        size="sm"
-                        variant="outline"
-                        label={reserva.pago ? "Marcar não pago" : "Marcar pago"}
-                        titulo={
-                          reserva.pago ? "Marcar como não pago?" : "Marcar como pago?"
-                        }
-                        descricao={
-                          reserva.pago
-                            ? "O pagamento volta a aparecer como pendente."
-                            : "Confirma que o pagamento dessa reserva foi recebido."
-                        }
-                        textoConfirmar="Confirmar"
-                        textoConfirmando="Salvando…"
-                        disabled={emAndamento}
-                        onConfirmar={() => marcarPago(reserva.id, !reserva.pago)}
-                      />
-                      <ConfirmarBotao
-                        size="sm"
-                        variant="destructive"
-                        actionVariant="destructive"
-                        label="Cancelar"
-                        titulo="Cancelar essa reserva?"
-                        descricao="Libera o horário na agenda. Essa ação não pode ser desfeita."
-                        textoConfirmar="Cancelar reserva"
-                        textoConfirmando="Cancelando…"
-                        disabled={emAndamento}
-                        onConfirmar={() => cancelar(reserva.id)}
-                      />
-                    </>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                      {minutosParaHora(reserva.inicioMin)}–{minutosParaHora(reserva.fimMin)}
+                    </button>
+                  </TableCell>
+                  <TableCell className="hidden text-muted-foreground sm:table-cell">
+                    {reserva.quadraNome}
+                  </TableCell>
+                  <TableCell className={cn("max-w-56", cancelada && "line-through")}>
+                    <span className="block truncate">{reserva.titulo}</span>
+                    {reserva.subtitulo && (
+                      <span className="block truncate text-xs text-muted-foreground">{reserva.subtitulo}</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden text-right whitespace-nowrap tabular-nums md:table-cell">
+                    {typeof reserva.valorCentavos === "number" ? formatarPreco(reserva.valorCentavos) : "—"}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <Badge className={info.className}>{info.label}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {cancelada ? (
+                      <Badge className={cn(info.className, "md:hidden")}>{info.label}</Badge>
+                    ) : (
+                      <Badge
+                        variant={reserva.pago ? "outline" : "default"}
+                        className={reserva.pago ? "" : "bg-warning text-warning-foreground"}
+                      >
+                        {reserva.pago ? "Pago" : "A pagar"}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {!cancelada && (
+                      <div className="flex justify-end gap-2">
+                        <ConfirmarBotao
+                          size="sm"
+                          variant="outline"
+                          label={reserva.pago ? "Marcar não pago" : "Marcar pago"}
+                          titulo={
+                            reserva.pago ? "Marcar como não pago?" : "Marcar como pago?"
+                          }
+                          descricao={
+                            reserva.pago
+                              ? "O pagamento volta a aparecer como pendente."
+                              : "Confirma que o pagamento dessa reserva foi recebido."
+                          }
+                          textoConfirmar="Confirmar"
+                          textoConfirmando="Salvando…"
+                          disabled={emAndamento}
+                          onConfirmar={() => marcarPago(reserva.id, !reserva.pago)}
+                        />
+                        <ConfirmarBotao
+                          size="sm"
+                          variant="destructive"
+                          actionVariant="destructive"
+                          label="Cancelar"
+                          titulo="Cancelar essa reserva?"
+                          descricao="Libera o horário na agenda. Essa ação não pode ser desfeita."
+                          textoConfirmar="Cancelar reserva"
+                          textoConfirmando="Cancelando…"
+                          disabled={emAndamento}
+                          onConfirmar={() => cancelar(reserva.id)}
+                        />
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
     </div>
   );

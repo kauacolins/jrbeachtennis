@@ -13,12 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { UsuarioForm } from "@/components/gerenciamento/equipe/usuario-form";
 import { formatarTelefone } from "@/lib/format";
 import { removerUsuario } from "@/features/usuarios/actions/remover-usuario";
 import { PAPEIS_EQUIPE } from "@/features/usuarios/schema";
 import type { UsuarioAdmin } from "@/features/usuarios/actions/listar-usuarios";
+import { normalizarBusca } from "@/lib/busca";
 
 const LABEL_PAPEL: Record<(typeof PAPEIS_EQUIPE)[number], string> = {
   ADMIN: "Admin",
@@ -28,13 +30,6 @@ const LABEL_PAPEL: Record<(typeof PAPEIS_EQUIPE)[number], string> = {
 
 const FILTRO_TODOS = "TODOS" as const;
 type FiltroPapel = typeof FILTRO_TODOS | (typeof PAPEIS_EQUIPE)[number];
-
-function normalizar(texto: string) {
-  return texto
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-}
 
 // CRUD de contas de equipe (admin/operador/instrutor). Trocar papel ou
 // excluir exige confirmação — são ações sensíveis (elevação de acesso ou
@@ -55,11 +50,11 @@ export function UsuarioLista({
   const [removendoId, setRemovendoId] = useState<string | null>(null);
 
   const usuariosFiltrados = useMemo(() => {
-    const termo = normalizar(busca.trim());
+    const termo = normalizarBusca(busca.trim());
     return usuarios.filter((usuario) => {
       const bateBusca =
         !termo ||
-        [usuario.name, usuario.email].some((campo) => normalizar(campo).includes(termo));
+        [usuario.name, usuario.email].some((campo) => normalizarBusca(campo).includes(termo));
       const batePapel = filtroPapel === FILTRO_TODOS || usuario.role === filtroPapel;
       return bateBusca && batePapel;
     });
@@ -134,50 +129,58 @@ export function UsuarioLista({
           Nenhum usuário encontrado.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {usuariosFiltrados.map((usuario) => (
-            <li
-              key={usuario.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 text-sm"
-            >
-              <div>
-                <p className="font-medium">
-                  {usuario.name}
-                  {usuario.id === usuarioAtualId && (
-                    <span className="ml-2 text-xs text-muted-foreground">(você)</span>
-                  )}
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    · {LABEL_PAPEL[usuario.role as (typeof PAPEIS_EQUIPE)[number]] ?? usuario.role}
-                  </span>
-                </p>
-                <p className="text-muted-foreground">
-                  {usuario.email}
-                  {usuario.telefone ? ` · ${formatarTelefone(usuario.telefone)}` : ""}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => abrirEdicao(usuario)}>
-                  Editar
-                </Button>
-                {usuario.id !== usuarioAtualId && (
-                  <ConfirmarBotao
-                    size="sm"
-                    variant="destructive"
-                    actionVariant="destructive"
-                    label="Excluir"
-                    titulo="Excluir esse usuário?"
-                    descricao={`${usuario.name} perde o acesso de ${LABEL_PAPEL[usuario.role as (typeof PAPEIS_EQUIPE)[number]] ?? usuario.role} imediatamente. O histórico dele é mantido.`}
-                    textoConfirmar="Excluir"
-                    textoConfirmando="Excluindo…"
-                    disabled={removendoId === usuario.id}
-                    onConfirmar={() => remover(usuario)}
-                  />
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Papel</TableHead>
+              <TableHead className="hidden md:table-cell">E-mail</TableHead>
+              <TableHead className="hidden sm:table-cell">Telefone</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {usuariosFiltrados.map((usuario) => {
+              const papel = LABEL_PAPEL[usuario.role as (typeof PAPEIS_EQUIPE)[number]] ?? usuario.role;
+              return (
+                <TableRow key={usuario.id}>
+                  <TableCell className="font-medium">
+                    {usuario.name}
+                    {usuario.id === usuarioAtualId && (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">(você)</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{papel}</TableCell>
+                  <TableCell className="hidden text-muted-foreground md:table-cell">{usuario.email}</TableCell>
+                  <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
+                    {usuario.telefone ? formatarTelefone(usuario.telefone) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => abrirEdicao(usuario)}>
+                        Editar
+                      </Button>
+                      {usuario.id !== usuarioAtualId && (
+                        <ConfirmarBotao
+                          size="sm"
+                          variant="destructive"
+                          actionVariant="destructive"
+                          label="Excluir"
+                          titulo="Excluir esse usuário?"
+                          descricao={`${usuario.name} perde o acesso de ${papel} imediatamente. O histórico dele é mantido.`}
+                          textoConfirmar="Excluir"
+                          textoConfirmando="Excluindo…"
+                          disabled={removendoId === usuario.id}
+                          onConfirmar={() => remover(usuario)}
+                        />
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
 
       <UsuarioForm

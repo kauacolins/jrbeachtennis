@@ -4,9 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { QuadraForm } from "@/components/gerenciamento/quadras/quadra-form";
+import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
+import { filtrarPorBusca } from "@/lib/busca";
 import { formatarPreco } from "@/lib/format";
 import { removerQuadra } from "@/features/quadras/actions/remover-quadra";
 import type { QuadraAdmin } from "@/features/quadras/actions/listar-quadras-admin";
@@ -26,6 +30,8 @@ export function QuadraLista({
   const router = useRouter();
   const [formAberto, setFormAberto] = useState(false);
   const [quadraEditando, setQuadraEditando] = useState<QuadraAdmin | null>(null);
+  const [busca, setBusca] = useState("");
+  const visiveis = filtrarPorBusca(quadras, busca, (q) => [q.nome, ...q.modalidades.map((m) => m.nome)]);
 
   function abrirNova() {
     setQuadraEditando(null);
@@ -62,44 +68,67 @@ export function QuadraLista({
           Nenhuma quadra cadastrada ainda.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {quadras.map((quadra) => (
-            <li
-              key={quadra.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 text-sm"
-            >
-              <div>
-                <p className="font-medium">
-                  {quadra.nome}
-                  {!quadra.ativa && (
-                    <span className="ml-2 text-xs text-muted-foreground">(inativa)</span>
-                  )}
-                </p>
-                <p className="text-muted-foreground">
-                  {quadra.modalidades.map((m) => m.nome).join(", ") || "Sem modalidade"} ·{" "}
-                  {formatarPreco(quadra.precoHoraCentavos)}/h
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => abrirEdicao(quadra)}>
-                  Editar
-                </Button>
-                <ConfirmarBotao
-                  size="sm"
-                  variant="destructive"
-                  actionVariant="destructive"
-                  label="Excluir"
-                  titulo="Excluir essa quadra?"
-                  descricao="Só funciona se ela não tiver horário, bloqueio ou reserva cadastrados. Essa ação não pode ser desfeita."
-                  textoConfirmar="Excluir"
-                  textoConfirmando="Excluindo…"
-                  onConfirmar={() => remover(quadra.id)}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
+        <>
+          <CampoBusca
+            value={busca}
+            onChange={setBusca}
+            placeholder="Buscar por nome ou modalidade"
+            ariaLabel="Buscar quadra"
+          />
+          {visiveis.length === 0 ? (
+            <SemResultadoBusca busca={busca} />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="hidden md:table-cell">Modalidades</TableHead>
+                  <TableHead className="text-right">Preço/h</TableHead>
+                  <TableHead className="hidden sm:table-cell">Situação</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visiveis.map((quadra) => (
+                  <TableRow key={quadra.id}>
+                    <TableCell className="font-medium">{quadra.nome}</TableCell>
+                    <TableCell className="hidden text-muted-foreground md:table-cell">
+                      {quadra.modalidades.map((m) => m.nome).join(", ") || "Sem modalidade"}
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap tabular-nums">
+                      {formatarPreco(quadra.precoHoraCentavos)}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {quadra.ativa ? (
+                        <Badge variant="secondary">Ativa</Badge>
+                      ) : (
+                        <Badge variant="outline">Inativa</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => abrirEdicao(quadra)}>
+                          Editar
+                        </Button>
+                        <ConfirmarBotao
+                          size="sm"
+                          variant="destructive"
+                          actionVariant="destructive"
+                          label="Excluir"
+                          titulo="Excluir essa quadra?"
+                          descricao="Só funciona se ela não tiver horário, bloqueio ou reserva cadastrados. Essa ação não pode ser desfeita."
+                          textoConfirmar="Excluir"
+                          textoConfirmando="Excluindo…"
+                          onConfirmar={() => remover(quadra.id)}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </>
       )}
 
       <QuadraForm

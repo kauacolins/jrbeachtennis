@@ -5,16 +5,11 @@ import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ClienteForm } from "@/components/gerenciamento/equipe/cliente-form";
 import { formatarDataCurta, formatarTelefone } from "@/lib/format";
 import type { ClienteAdmin } from "@/features/usuarios/actions/listar-clientes";
-
-function normalizar(texto: string) {
-  return texto
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-}
+import { normalizarBusca } from "@/lib/busca";
 
 // Lista de quem fez cadastro público em /entrar — só consulta + correção
 // de nome/e-mail/telefone quando o cliente pede por telefone (ver
@@ -26,11 +21,11 @@ export function ClienteLista({ clientes }: { clientes: ClienteAdmin[] }) {
   const [clienteEditando, setClienteEditando] = useState<ClienteAdmin | null>(null);
 
   const clientesFiltrados = useMemo(() => {
-    const termo = normalizar(busca.trim());
+    const termo = normalizarBusca(busca.trim());
     if (!termo) return clientes;
     return clientes.filter((cliente) =>
       [cliente.name, cliente.email, cliente.telefone ?? ""].some((campo) =>
-        normalizar(campo).includes(termo)
+        normalizarBusca(campo).includes(termo)
       )
     );
   }, [clientes, busca]);
@@ -62,28 +57,36 @@ export function ClienteLista({ clientes }: { clientes: ClienteAdmin[] }) {
             : "Nenhum cliente encontrado."}
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {clientesFiltrados.map((cliente) => (
-            <li
-              key={cliente.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 text-sm"
-            >
-              <div>
-                <p className="font-medium">{cliente.name}</p>
-                <p className="text-muted-foreground">
-                  {cliente.email}
-                  {cliente.telefone ? ` · ${formatarTelefone(cliente.telefone)}` : ""}
-                  {" · cadastrado em "}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead className="hidden md:table-cell">E-mail</TableHead>
+              <TableHead>Telefone</TableHead>
+              <TableHead className="hidden sm:table-cell">Cadastro</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clientesFiltrados.map((cliente) => (
+              <TableRow key={cliente.id}>
+                <TableCell className="font-medium">{cliente.name}</TableCell>
+                <TableCell className="hidden text-muted-foreground md:table-cell">{cliente.email}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  {cliente.telefone ? formatarTelefone(cliente.telefone) : "—"}
+                </TableCell>
+                <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
                   {formatarDataCurta(cliente.createdAt)}
-                </p>
-              </div>
-
-              <Button variant="outline" size="sm" onClick={() => setClienteEditando(cliente)}>
-                Editar
-              </Button>
-            </li>
-          ))}
-        </ul>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="outline" size="sm" onClick={() => setClienteEditando(cliente)}>
+                    Editar
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
 
       <ClienteForm
