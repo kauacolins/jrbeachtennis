@@ -28,7 +28,7 @@ export async function cancelarReservaAdmin(
     data: { status: "CANCELADA", canceladaEm: new Date() },
   });
 
-  revalidatePath("/gerenciamento");
+  revalidatePath("/gerenciamento/agenda");
   revalidatePath("/minhas-reservas");
   return { ok: true };
 }

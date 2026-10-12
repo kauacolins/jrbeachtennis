@@ -131,7 +131,7 @@ export async function criarReservaAdmin(
   });
 
   if (resultado.ok) {
-    revalidatePath("/gerenciamento");
+    revalidatePath("/gerenciamento/agenda");
   }
 
   return resultado;

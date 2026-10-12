@@ -72,6 +72,6 @@ export async function atualizarHorarioFuncionamento(
   );
 
   revalidatePath("/gerenciamento/quadras/horarios");
-  revalidatePath("/gerenciamento");
+  revalidatePath("/gerenciamento/agenda");
   return { ok: true };
 }

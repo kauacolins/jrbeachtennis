@@ -31,6 +31,6 @@ export async function marcarNaoCompareceu(
     },
   });
 
-  revalidatePath("/gerenciamento");
+  revalidatePath("/gerenciamento/agenda");
   return { ok: true };
 }

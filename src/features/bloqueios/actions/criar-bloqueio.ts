@@ -42,7 +42,7 @@ export async function criarBloqueio(
     data: { quadraId, inicio, fim, motivo: motivo || null },
   });
 
-  revalidatePath("/gerenciamento");
+  revalidatePath("/gerenciamento/agenda");
   revalidatePath("/gerenciamento/quadras/bloqueios");
   return { ok: true };
 }

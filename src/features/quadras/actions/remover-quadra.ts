@@ -30,6 +30,6 @@ export async function removerQuadra(quadraId: string): Promise<RemoverQuadraResu
   revalidatePath("/gerenciamento/quadras");
   revalidatePath("/gerenciamento/quadras/horarios");
   revalidatePath("/gerenciamento/quadras/bloqueios");
-  revalidatePath("/gerenciamento");
+  revalidatePath("/gerenciamento/agenda");
   return { ok: true };
 }
