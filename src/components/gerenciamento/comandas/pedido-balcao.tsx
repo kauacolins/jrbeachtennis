@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { GradeProdutos } from "@/components/gerenciamento/comandas/grade-produtos";
 import { EscolherComandaDialog } from "@/components/gerenciamento/comandas/escolher-comanda-dialog";
-import { cn } from "@/lib/utils";
 import { formatarPreco } from "@/lib/format";
 import { lancarPedido } from "@/features/comandas/actions/lancar-pedido";
 import type { ComandaResumo } from "@/features/comandas/actions/listar-comandas";
@@ -15,11 +14,6 @@ import type { ProdutoParaLancar } from "@/features/produtos/actions/listar-produ
 
 type Destino = { comandaId: string } | { novoNome: string };
 type Etapa = "produtos" | "revisao";
-
-const ETAPAS: { valor: Etapa; label: string }[] = [
-  { valor: "produtos", label: "Produtos" },
-  { valor: "revisao", label: "Total e comanda" },
-];
 
 // Pedido em duas etapas: (1) toca nos produtos da grade, cada toque soma 1;
 // (2) revisa quantidades e total e escolhe a comanda. O carrinho fica só no
@@ -89,60 +83,33 @@ export function PedidoBalcao({
 
   return (
     <div className="flex flex-col gap-4">
-      <ol aria-label="Etapas do pedido" className="flex items-center gap-2 text-sm">
-        {ETAPAS.map((item, i) => {
-          const atual = item.valor === etapa;
-          return (
-            <li key={item.valor} className="flex items-center gap-2">
-              {i > 0 && <span className="h-px w-6 bg-border" aria-hidden />}
-              <span
-                aria-current={atual ? "step" : undefined}
-                className={cn(
-                  "flex items-center gap-2 font-medium",
-                  atual ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex size-6 items-center justify-center rounded-full text-xs tabular-nums",
-                    atual ? "bg-primary text-primary-foreground" : "bg-muted"
-                  )}
-                >
-                  {i + 1}
-                </span>
-                {item.label}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-
       {/* Etapa 1 fica montada (só escondida) pra manter busca e categoria ao voltar. */}
       <section
         aria-labelledby="produtos-titulo"
         hidden={etapa !== "produtos"}
-        className="flex flex-col gap-3 rounded-xl border bg-background p-4"
+        className="flex flex-col gap-3"
       >
-        <h2 id="produtos-titulo" className="font-medium">
+        <TituloEtapa id="produtos-titulo" numero={1}>
           Escolha os produtos
-        </h2>
+        </TituloEtapa>
         <GradeProdutos
           produtos={produtos}
           quantidades={carrinho}
           textoQuantidade="no pedido"
           sempreMostrarBusca
           onLancar={(produto) => alterar(produto.id, 1)}
+          onDiminuir={(produto) => alterar(produto.id, -1)}
         />
       </section>
 
       {etapa === "revisao" && (
         <section
           aria-labelledby="revisao-titulo"
-          className="mx-auto flex w-full max-w-xl flex-col gap-3 rounded-xl border bg-background p-4"
+          className="mx-auto flex w-full max-w-xl flex-col gap-3"
         >
-          <h2 id="revisao-titulo" className="font-medium">
+          <TituloEtapa id="revisao-titulo" numero={2}>
             Confira o pedido
-          </h2>
+          </TituloEtapa>
 
           {itens.length === 0 ? (
             <p className="flex flex-col items-center gap-2 py-6 text-center text-sm text-muted-foreground">
@@ -238,5 +205,27 @@ export function PedidoBalcao({
         onEscolher={adicionar}
       />
     </div>
+  );
+}
+
+function TituloEtapa({
+  id,
+  numero,
+  children,
+}: {
+  id: string;
+  numero: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <h2 id={id} className="flex items-center gap-2 font-medium">
+      <span
+        className="flex size-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground tabular-nums"
+        aria-label={`Etapa ${numero} de 2:`}
+      >
+        {numero}
+      </span>
+      {children}
+    </h2>
   );
 }

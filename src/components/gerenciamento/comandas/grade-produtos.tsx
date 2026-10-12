@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Minus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatarPreco } from "@/lib/format";
@@ -13,13 +13,15 @@ const TODAS = "__todas__";
 
 // RF33: cardápio do bar em cards com foto, nome e preço — um toque lança 1.
 // Os mais vendidos vêm primeiro (ordem de listarProdutosParaLancar); o
-// número no canto mostra quantos daquele produto já estão na comanda.
+// número no canto mostra quantos daquele produto já estão na comanda, e o
+// "−" no canto oposto tira um.
 export function GradeProdutos({
   produtos,
   quantidades,
   textoQuantidade = "na comanda",
   sempreMostrarBusca = false,
   onLancar,
+  onDiminuir,
 }: {
   produtos: ProdutoParaLancar[];
   quantidades: Record<string, number>;
@@ -27,6 +29,7 @@ export function GradeProdutos({
   // Sem isso, a busca só aparece com cardápio grande (LIMITE_SEM_BUSCA).
   sempreMostrarBusca?: boolean;
   onLancar: (produto: ProdutoParaLancar) => void;
+  onDiminuir?: (produto: ProdutoParaLancar) => void;
 }) {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState(TODAS);
@@ -87,7 +90,7 @@ export function GradeProdutos({
         </div>
       )}
 
-      {categorias.length > 1 && (
+      {categorias.length > 0 && (
         <div
           role="radiogroup"
           aria-label="Categoria"
@@ -102,7 +105,7 @@ export function GradeProdutos({
                 aria-checked={categoria === valor}
                 onClick={() => setCategoria(valor)}
                 className={cn(
-                  "h-9 shrink-0 snap-start rounded-full border px-3.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                  "h-9 shrink-0 snap-start rounded-lg border bg-background px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   categoria === valor
                     ? "border-primary bg-primary text-primary-foreground"
                     : "hover:bg-muted"
@@ -122,7 +125,7 @@ export function GradeProdutos({
           {visiveis.map((produto) => {
             const qtd = quantidades[produto.id] ?? 0;
             return (
-              <li key={produto.id}>
+              <li key={produto.id} className="relative">
                 <button
                   type="button"
                   onClick={() => onLancar(produto)}
@@ -153,6 +156,17 @@ export function GradeProdutos({
                     </span>
                   </span>
                 </button>
+                {/* Fora do card: botão dentro de botão não é HTML válido. */}
+                {qtd > 0 && onDiminuir && (
+                  <button
+                    type="button"
+                    onClick={() => onDiminuir(produto)}
+                    aria-label={`Tirar um ${produto.nome}`}
+                    className="absolute top-1.5 left-1.5 flex size-6 items-center justify-center rounded-full border bg-background text-foreground shadow-sm transition-transform before:absolute before:-inset-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-90 motion-reduce:active:scale-100"
+                  >
+                    <Minus className="size-3.5" aria-hidden />
+                  </button>
+                )}
               </li>
             );
           })}

@@ -41,7 +41,7 @@ export function ComandaDetalhe({
   const deOutroDia = dataParaISO(comanda.abertaEm) !== hojeISO;
 
   // Quantos de cada produto já estão na comanda (badge do card). O toque soma
-  // na hora (useOptimistic) e o valor real chega com o router.refresh().
+  // ou tira na hora (useOptimistic) e o valor real chega com o router.refresh().
   const quantidadesReais = useMemo(() => {
     const mapa: Record<string, number> = {};
     for (const item of comanda.itens) {
@@ -51,8 +51,22 @@ export function ComandaDetalhe({
   }, [comanda.itens]);
   const [quantidades, somarOtimista] = useOptimistic(
     quantidadesReais,
-    (atual, produtoId: string) => ({ ...atual, [produtoId]: (atual[produtoId] ?? 0) + 1 })
+    (atual, { produtoId, delta }: { produtoId: string; delta: number }) => ({
+      ...atual,
+      [produtoId]: Math.max(0, (atual[produtoId] ?? 0) + delta),
+    })
   );
+
+  // O "−" do card tira do último item lançado daquele produto (pode haver mais
+  // de um, se o preço mudou entre os lançamentos).
+  function diminuirProduto(produtoId: string) {
+    const item = comanda.itens.findLast((i) => i.tipo === "BAR" && i.produtoId === produtoId);
+    if (!item) return;
+    executar(
+      () => diminuirItem(item.id),
+      () => somarOtimista({ produtoId, delta: -1 })
+    );
+  }
 
   function executar(
     acao: () => Promise<{ ok: true } | { ok: false; erro: string }>,
@@ -134,9 +148,10 @@ export function ComandaDetalhe({
               onLancar={(produto) =>
                 executar(
                   () => lancarProdutoBar(comanda.id, produto.id),
-                  () => somarOtimista(produto.id)
+                  () => somarOtimista({ produtoId: produto.id, delta: 1 })
                 )
               }
+              onDiminuir={(produto) => diminuirProduto(produto.id)}
             />
           </section>
         )}

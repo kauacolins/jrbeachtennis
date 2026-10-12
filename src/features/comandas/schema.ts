@@ -1,12 +1,18 @@
 import { z } from "zod";
 import { MetodoPagamento } from "@/app/generated/prisma/enums";
+import { temNomeESobrenome } from "@/lib/comanda";
 
 export const metodoPagamentoSchema = z.enum(MetodoPagamento, {
   error: "Escolha a forma de pagamento.",
 });
 
 export const abrirComandaSchema = z.object({
-  nome: z.string().trim().min(2, "Digite o nome da pessoa.").max(60),
+  nome: z
+    .string()
+    .trim()
+    .min(2, "Digite o nome da pessoa.")
+    .max(60)
+    .refine(temNomeESobrenome, "Digite nome e sobrenome da pessoa."),
 });
 
 export const fecharComandaSchema = z.object({

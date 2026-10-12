@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dataParaISO, formatarDataCurta, formatarHora, formatarPreco } from "@/lib/format";
-import { normalizarNomeComanda } from "@/lib/comanda";
+import { normalizarNomeComanda, temNomeESobrenome } from "@/lib/comanda";
 import { abrirComanda } from "@/features/comandas/actions/abrir-comanda";
 import type { ComandaResumo } from "@/features/comandas/actions/listar-comandas";
 
@@ -37,7 +37,8 @@ export function ComandasPainel({
     [comandas, termo]
   );
   const repetida = comandas.find((c) => normalizarNomeComanda(c.nome) === termo);
-  const podeAbrir = termo.length >= 2 && !repetida;
+  // Comanda nova pede nome e sobrenome, pra achar a pessoa depois na busca.
+  const podeAbrir = temNomeESobrenome(busca) && !repetida;
   const totalAberto = comandas.reduce((soma, c) => soma + c.totalCentavos, 0);
 
   function abrir(e?: React.FormEvent) {
@@ -67,7 +68,7 @@ export function ComandasPainel({
           />
           <Input
             aria-label="Nome da pessoa"
-            placeholder="Nome da pessoa"
+            placeholder="Nome e sobrenome da pessoa"
             autoFocus
             autoComplete="off"
             value={busca}
@@ -85,12 +86,19 @@ export function ComandasPainel({
         </Button>
       </form>
 
-      {repetida && (
+      {repetida ? (
         <p className="flex items-start gap-2 text-sm text-muted-foreground" aria-live="polite">
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
           Já existe comanda aberta para &quot;{repetida.nome}&quot;. Toque nela abaixo ou
           acrescente um sobrenome ou apelido para abrir outra.
         </p>
+      ) : (
+        termo &&
+        !podeAbrir && (
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Para abrir uma comanda nova, digite também o sobrenome.
+          </p>
+        )
       )}
 
       <div className="flex items-baseline justify-between text-sm">
@@ -103,7 +111,7 @@ export function ComandasPainel({
       {comandas.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
           <Receipt className="size-6" aria-hidden />
-          Nenhuma comanda aberta. Digite o nome da pessoa acima para abrir a primeira.
+          Nenhuma comanda aberta. Digite nome e sobrenome da pessoa acima para abrir a primeira.
         </div>
       ) : filtradas.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">

@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatarPreco } from "@/lib/format";
-import { normalizarNomeComanda } from "@/lib/comanda";
+import { normalizarNomeComanda, temNomeESobrenome } from "@/lib/comanda";
 import type { ComandaResumo } from "@/features/comandas/actions/listar-comandas";
 
 type Destino = { comandaId: string } | { novoNome: string };
 
 // Passo final da tela "Pedido": de quem é? Mesma lógica do painel (RF31/RF32)
 // — digita o nome, toca numa comanda aberta ou abre uma nova; nome igual a
-// uma aberta não abre outra (regra 1), o Enter cai na que já existe.
+// uma aberta não abre outra (regra 1), o Enter cai na que já existe. Comanda
+// nova pede nome e sobrenome, pra achar a pessoa depois na busca.
 export function EscolherComandaDialog({
   aberto,
   onOpenChange,
@@ -39,7 +40,8 @@ export function EscolherComandaDialog({
     [comandas, termo]
   );
   const repetida = comandas.find((c) => normalizarNomeComanda(c.nome) === termo);
-  const podeAbrir = termo.length >= 2 && !repetida;
+  const nomeCompleto = temNomeESobrenome(busca);
+  const podeAbrir = nomeCompleto && !repetida;
 
   function escolher(destino: Destino) {
     startTransition(async () => {
@@ -70,7 +72,7 @@ export function EscolherComandaDialog({
             />
             <Input
               aria-label="Nome da pessoa"
-              placeholder="Buscar comanda ou nome da nova"
+              placeholder="Buscar comanda ou nome e sobrenome"
               autoFocus
               autoComplete="off"
               value={busca}
@@ -101,8 +103,10 @@ export function EscolherComandaDialog({
             </p>
           ) : (
             !podeAbrir && (
-              <p className="text-sm text-muted-foreground">
-                Digite o nome da pessoa para abrir uma comanda nova.
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                {termo
+                  ? "Para abrir uma comanda nova, digite também o sobrenome."
+                  : "Digite nome e sobrenome da pessoa para abrir uma comanda nova."}
               </p>
             )
           )}
