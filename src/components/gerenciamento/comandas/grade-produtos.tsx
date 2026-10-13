@@ -1,15 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Minus, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Minus, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatarPreco } from "@/lib/format";
 import { FotoProduto } from "@/components/gerenciamento/produtos/foto-produto";
+import { ProdutoFormDialog } from "@/components/gerenciamento/produtos/produto-form-dialog";
 import type { ProdutoParaLancar } from "@/features/produtos/actions/listar-produtos";
 
 const LIMITE_SEM_BUSCA = 12;
-const TODAS = "__todas__";
 
 // RF33: cardápio do bar em cards com foto, nome e preço — um toque lança 1.
 // Os mais vendidos vêm primeiro (ordem de listarProdutosParaLancar); o
@@ -20,6 +21,10 @@ export function GradeProdutos({
   quantidades,
   textoQuantidade = "na comanda",
   sempreMostrarBusca = false,
+  // Card extra no fim da grade pra cadastrar produto sem saída da tela — só
+  // o ADMIN recebe essa prop preenchida (ver exigirSomenteAdmin na página);
+  // o operador do balcão não cadastra produto.
+  categoriasProduto,
   onLancar,
   onDiminuir,
 }: {
@@ -28,11 +33,14 @@ export function GradeProdutos({
   textoQuantidade?: string;
   // Sem isso, a busca só aparece com cardápio grande (LIMITE_SEM_BUSCA).
   sempreMostrarBusca?: boolean;
+  categoriasProduto?: string[];
   onLancar: (produto: ProdutoParaLancar) => void;
   onDiminuir?: (produto: ProdutoParaLancar) => void;
 }) {
+  const router = useRouter();
   const [busca, setBusca] = useState("");
-  const [categoria, setCategoria] = useState(TODAS);
+  const [criarAberto, setCriarAberto] = useState(false);
+  const podeAdicionarProduto = categoriasProduto !== undefined;
   // A ordem de "mais vendidos" muda a cada lançamento (o servidor recalcula);
   // trava a ordem da primeira renderização pra o card não pular de lugar
   // entre um toque e outro. Produto novo vai pro fim.
@@ -54,17 +62,20 @@ export function GradeProdutos({
       ),
     [produtos]
   );
+  // Sem "Todos": já abre filtrado na primeira categoria (nenhuma, se o
+  // cardápio não tiver categoria cadastrada — aí mostra tudo).
+  const [categoria, setCategoria] = useState<string | null>(() => categorias[0] ?? null);
 
   const visiveis = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
     return ordenados.filter(
       (p) =>
-        (categoria === TODAS || p.categoria === categoria) &&
+        (categoria === null || p.categoria === categoria) &&
         (!termo || p.nome.toLocaleLowerCase("pt-BR").includes(termo))
     );
   }, [ordenados, busca, categoria]);
 
-  if (produtos.length === 0) {
+  if (produtos.length === 0 && !podeAdicionarProduto) {
     return (
       <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
         Nenhum produto do bar cadastrado. O admin cadastra em Produtos.
@@ -96,31 +107,29 @@ export function GradeProdutos({
           aria-label="Categoria"
           className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1"
         >
-          {[{ valor: TODAS, label: "Todos" }, ...categorias.map((c) => ({ valor: c, label: c }))].map(
-            ({ valor, label }) => (
-              <button
-                key={valor}
-                type="button"
-                role="radio"
-                aria-checked={categoria === valor}
-                onClick={() => setCategoria(valor)}
-                className={cn(
-                  "h-9 shrink-0 snap-start rounded-lg border bg-background px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                  categoria === valor
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
-                )}
-              >
-                {label}
-              </button>
-            )
-          )}
+          {categorias.map((c) => (
+            <button
+              key={c}
+              type="button"
+              role="radio"
+              aria-checked={categoria === c}
+              onClick={() => setCategoria(c)}
+              className={cn(
+                "h-9 shrink-0 snap-start rounded-lg border bg-background px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                categoria === c ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted"
+              )}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       )}
 
-      {visiveis.length === 0 ? (
+      {visiveis.length === 0 && (
         <p className="py-4 text-center text-sm text-muted-foreground">Nenhum produto encontrado.</p>
-      ) : (
+      )}
+
+      {(visiveis.length > 0 || podeAdicionarProduto) && (
         <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-5">
           {visiveis.map((produto) => {
             const qtd = quantidades[produto.id] ?? 0;
@@ -171,7 +180,29 @@ export function GradeProdutos({
               </li>
             );
           })}
+          {podeAdicionarProduto && (
+            <li>
+              <button
+                type="button"
+                onClick={() => setCriarAberto(true)}
+                className="flex aspect-square h-full w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed text-muted-foreground transition-colors hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97] motion-reduce:active:scale-100"
+              >
+                <Plus className="size-5" aria-hidden />
+                <span className="text-sm font-medium">Adicionar Produto</span>
+              </button>
+            </li>
+          )}
         </ul>
+      )}
+
+      {podeAdicionarProduto && (
+        <ProdutoFormDialog
+          aberto={criarAberto}
+          onOpenChange={setCriarAberto}
+          produto={null}
+          categorias={categoriasProduto ?? []}
+          onSalvo={() => router.refresh()}
+        />
       )}
     </div>
   );

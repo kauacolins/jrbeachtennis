@@ -1,34 +1,51 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Minus, Plus, ShoppingBag } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Minus,
+  Plus,
+  Receipt,
+  Search,
+  ShoppingBag,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { GradeProdutos } from "@/components/gerenciamento/comandas/grade-produtos";
-import { EscolherComandaDialog } from "@/components/gerenciamento/comandas/escolher-comanda-dialog";
+import { VendaAvulsaDialog } from "@/components/gerenciamento/comandas/venda-avulsa-dialog";
 import { formatarPreco } from "@/lib/format";
+import { normalizarNomeComanda, temNomeESobrenome } from "@/lib/comanda";
 import { lancarPedido } from "@/features/comandas/actions/lancar-pedido";
 import type { ComandaResumo } from "@/features/comandas/actions/listar-comandas";
 import type { ProdutoParaLancar } from "@/features/produtos/actions/listar-produtos";
 
 type Destino = { comandaId: string } | { novoNome: string };
-type Etapa = "produtos" | "revisao";
+type Etapa = "produtos" | "revisao" | "comanda";
 
-// Pedido em duas etapas: (1) toca nos produtos da grade, cada toque soma 1;
-// (2) revisa quantidades e total e escolhe a comanda. O carrinho fica só no
+// Pedido em três etapas: (1) toca nos produtos da grade, cada toque soma 1;
+// (2) revisa quantidades e total; (3) escolhe de quem é a comanda. A etapa 3
+// é uma tela normal (não modal) pra não ficar embaixo do teclado no celular,
+// nem esconder a listagem de comandas abertas. O carrinho fica só no
 // navegador até ser adicionado; depois, limpa e volta pra etapa 1.
 export function PedidoBalcao({
   produtos,
   comandas,
+  categoriasProduto,
 }: {
   produtos: ProdutoParaLancar[];
   comandas: ComandaResumo[];
+  categoriasProduto?: string[];
 }) {
   const router = useRouter();
   const [etapa, setEtapa] = useState<Etapa>("produtos");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
-  const [escolherAberto, setEscolherAberto] = useState(false);
+  const [buscaComanda, setBuscaComanda] = useState("");
+  const [vendaAvulsaAberto, setVendaAvulsaAberto] = useState(false);
+  const [pendente, startTransition] = useTransition();
 
   const porId = useMemo(() => new Map(produtos.map((p) => [p.id, p])), [produtos]);
   // Ordem de inserção do objeto = ordem em que o operador tocou.
@@ -39,6 +56,18 @@ export function PedidoBalcao({
   const total = itens.reduce((soma, i) => soma + i.quantidade * i.produto.precoCentavos, 0);
   const qtdTotal = itens.reduce((soma, i) => soma + i.quantidade, 0);
   const resumo = `${qtdTotal} ${qtdTotal === 1 ? "item" : "itens"} · ${formatarPreco(total)}`;
+  const itensParaLancar = itens.map((i) => ({ produtoId: i.produto.id, quantidade: i.quantidade }));
+
+  const termoComanda = normalizarNomeComanda(buscaComanda);
+  const comandasFiltradas = useMemo(
+    () =>
+      termoComanda
+        ? comandas.filter((c) => normalizarNomeComanda(c.nome).includes(termoComanda))
+        : comandas,
+    [comandas, termoComanda]
+  );
+  const comandaRepetida = comandas.find((c) => normalizarNomeComanda(c.nome) === termoComanda);
+  const podeAbrirComanda = temNomeESobrenome(buscaComanda) && !comandaRepetida;
 
   function irPara(proxima: Etapa) {
     setEtapa(proxima);
@@ -55,30 +84,42 @@ export function PedidoBalcao({
     });
   }
 
-  async function adicionar(destino: Destino) {
-    const resultado = await lancarPedido({
-      ...destino,
-      itens: itens.map((i) => ({ produtoId: i.produto.id, quantidade: i.quantidade })),
+  function adicionar(destino: Destino) {
+    startTransition(async () => {
+      const resultado = await lancarPedido({ ...destino, itens: itensParaLancar });
+      if (!resultado.ok) {
+        toast.error(resultado.erro);
+        return;
+      }
+      const nome =
+        "novoNome" in destino
+          ? destino.novoNome.trim()
+          : comandas.find((c) => c.id === destino.comandaId)?.nome;
+      toast.success(`Pedido adicionado à comanda de ${nome}.`, {
+        action: {
+          label: "Ver comanda",
+          onClick: () => router.push(`/gerenciamento/comandas/${resultado.comandaId}`),
+        },
+      });
+      setCarrinho({});
+      setBuscaComanda("");
+      irPara("produtos");
+      router.refresh();
     });
-    if (!resultado.ok) {
-      toast.error(resultado.erro);
-      return false;
-    }
-    const nome =
-      "novoNome" in destino
-        ? destino.novoNome.trim()
-        : comandas.find((c) => c.id === destino.comandaId)?.nome;
-    toast.success(`Pedido adicionado à comanda de ${nome}.`, {
-      action: {
-        label: "Ver comanda",
-        onClick: () => router.push(`/gerenciamento/comandas/${resultado.comandaId}`),
-      },
-    });
+  }
+
+  function enviarComanda(e: React.FormEvent) {
+    e.preventDefault();
+    if (pendente) return;
+    if (comandaRepetida) adicionar({ comandaId: comandaRepetida.id });
+    else if (podeAbrirComanda) adicionar({ novoNome: buscaComanda });
+  }
+
+  function vendaAvulsaConcluida() {
     setCarrinho({});
-    setEscolherAberto(false);
+    setBuscaComanda("");
     irPara("produtos");
     router.refresh();
-    return true;
   }
 
   return (
@@ -97,6 +138,7 @@ export function PedidoBalcao({
           quantidades={carrinho}
           textoQuantidade="no pedido"
           sempreMostrarBusca
+          categoriasProduto={categoriasProduto}
           onLancar={(produto) => alterar(produto.id, 1)}
           onDiminuir={(produto) => alterar(produto.id, -1)}
         />
@@ -160,6 +202,119 @@ export function PedidoBalcao({
         </section>
       )}
 
+      {etapa === "comanda" && (
+        <section
+          aria-labelledby="comanda-titulo"
+          className="mx-auto flex w-full max-w-xl flex-col gap-3"
+        >
+          <TituloEtapa id="comanda-titulo" numero={3}>
+            De quem é o pedido?
+          </TituloEtapa>
+          <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite">
+            {resumo}
+          </p>
+
+          <form onSubmit={enviarComanda} className="flex flex-col gap-2">
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                aria-label="Nome da pessoa"
+                placeholder="Buscar comanda ou nome e sobrenome"
+                autoFocus
+                autoComplete="off"
+                value={buscaComanda}
+                onChange={(e) => setBuscaComanda(e.target.value)}
+                className="h-11 pl-9"
+              />
+            </div>
+            {/* Sempre visível: sem nome digitado fica desabilitado, mas deixa
+                claro que dá pra abrir uma comanda nova daqui. */}
+            <Button
+              type="submit"
+              variant={podeAbrirComanda ? "default" : "outline"}
+              className="h-11"
+              disabled={!podeAbrirComanda || pendente}
+            >
+              <Plus aria-hidden />
+              {pendente
+                ? "Adicionando…"
+                : podeAbrirComanda
+                  ? `Nova comanda “${buscaComanda.trim()}”`
+                  : "Nova comanda"}
+            </Button>
+            {comandaRepetida ? (
+              <p className="flex items-start gap-2 text-sm text-muted-foreground" aria-live="polite">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+                Já existe comanda aberta para &quot;{comandaRepetida.nome}&quot;. Toque nela abaixo ou
+                acrescente um sobrenome ou apelido para abrir outra.
+              </p>
+            ) : (
+              !podeAbrirComanda && (
+                <p className="text-sm text-muted-foreground" aria-live="polite">
+                  {termoComanda
+                    ? "Para abrir uma comanda nova, digite também o sobrenome."
+                    : "Digite nome e sobrenome da pessoa para abrir uma comanda nova."}
+                </p>
+              )
+            )}
+          </form>
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground" aria-hidden>
+            <span className="h-px flex-1 bg-border" />
+            ou
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          {/* RF39: cliente de balcão que não vai abrir comanda — recebe e
+              fecha na hora, sem precisar de nome. */}
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11"
+            disabled={pendente}
+            onClick={() => setVendaAvulsaAberto(true)}
+          >
+            <Receipt aria-hidden />
+            Venda avulsa — recebe agora
+          </Button>
+
+          {comandas.length === 0 ? (
+            <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+              Nenhuma comanda aberta ainda.
+            </p>
+          ) : comandasFiltradas.length === 0 ? (
+            <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+              Nenhuma comanda aberta com esse nome.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-1.5">
+              {comandasFiltradas.map((comanda) => (
+                <li key={comanda.id}>
+                  <button
+                    type="button"
+                    disabled={pendente}
+                    onClick={() => adicionar({ comandaId: comanda.id })}
+                    className="flex min-h-14 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{comanda.nome}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {comanda.qtdItens} {comanda.qtdItens === 1 ? "item" : "itens"}
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-medium tabular-nums">
+                      {formatarPreco(comanda.totalCentavos)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       {/* Barra de ação da etapa, presa no rodapé da tela. */}
       <div className="sticky bottom-0 z-20 -mx-4 border-t bg-background px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
@@ -178,7 +333,7 @@ export function PedidoBalcao({
                 <ArrowRight aria-hidden />
               </Button>
             </>
-          ) : (
+          ) : etapa === "revisao" ? (
             <>
               <Button variant="outline" className="h-11" onClick={() => irPara("produtos")}>
                 <ArrowLeft aria-hidden />
@@ -188,21 +343,27 @@ export function PedidoBalcao({
               <Button
                 className="h-11 flex-1 sm:ml-auto sm:flex-none"
                 disabled={itens.length === 0}
-                onClick={() => setEscolherAberto(true)}
+                onClick={() => irPara("comanda")}
               >
                 Adicionar à comanda
               </Button>
             </>
+          ) : (
+            <Button variant="outline" className="h-11" onClick={() => irPara("revisao")}>
+              <ArrowLeft aria-hidden />
+              Voltar
+            </Button>
           )}
         </div>
       </div>
 
-      <EscolherComandaDialog
-        aberto={escolherAberto}
-        onOpenChange={setEscolherAberto}
-        comandas={comandas}
+      <VendaAvulsaDialog
+        aberto={vendaAvulsaAberto}
+        onOpenChange={setVendaAvulsaAberto}
+        itens={itensParaLancar}
         resumo={resumo}
-        onEscolher={adicionar}
+        totalCentavos={total}
+        onVendida={vendaAvulsaConcluida}
       />
     </div>
   );
@@ -221,7 +382,7 @@ function TituloEtapa({
     <h2 id={id} className="flex items-center gap-2 font-medium">
       <span
         className="flex size-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground tabular-nums"
-        aria-label={`Etapa ${numero} de 2:`}
+        aria-label={`Etapa ${numero} de 3:`}
       >
         {numero}
       </span>

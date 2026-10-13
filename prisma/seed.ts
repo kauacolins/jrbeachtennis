@@ -135,6 +135,44 @@ async function seedAdmin() {
   console.log(`Admin ${email} pronto.`);
 }
 
+// RF30: produtos comuns de bar, pra não começar com o cardápio vazio.
+// Categoria precisa bater com uma opção ativa do grupo categoria_produto
+// (Bebida/Comida, criadas na migration select_group_option).
+async function seedProdutosBar() {
+  const produtos: { nome: string; categoria: "Bebida" | "Comida"; precoCentavos: number }[] = [
+    { nome: "Água sem gás 500ml", categoria: "Bebida", precoCentavos: 500 },
+    { nome: "Água com gás 500ml", categoria: "Bebida", precoCentavos: 500 },
+    { nome: "Água de coco 300ml", categoria: "Bebida", precoCentavos: 900 },
+    { nome: "Coca-Cola lata", categoria: "Bebida", precoCentavos: 700 },
+    { nome: "Guaraná Antarctica lata", categoria: "Bebida", precoCentavos: 700 },
+    { nome: "Suco de laranja 300ml", categoria: "Bebida", precoCentavos: 800 },
+    { nome: "Skol 600ml", categoria: "Bebida", precoCentavos: 1200 },
+    { nome: "Brahma Chopp 600ml", categoria: "Bebida", precoCentavos: 1300 },
+    { nome: "Original 600ml", categoria: "Bebida", precoCentavos: 1400 },
+    { nome: "Stella Artois Longneck", categoria: "Bebida", precoCentavos: 1200 },
+    { nome: "Budweiser Longneck", categoria: "Bebida", precoCentavos: 1100 },
+    { nome: "Heineken Longneck", categoria: "Bebida", precoCentavos: 1300 },
+    { nome: "Corona Extra Longneck", categoria: "Bebida", precoCentavos: 1400 },
+    { nome: "Caipirinha", categoria: "Bebida", precoCentavos: 1800 },
+    { nome: "Porção de batata frita", categoria: "Comida", precoCentavos: 2500 },
+    { nome: "Porção de calabresa acebolada", categoria: "Comida", precoCentavos: 2800 },
+    { nome: "Amendoim torrado", categoria: "Comida", precoCentavos: 1000 },
+    { nome: "Isca de frango", categoria: "Comida", precoCentavos: 3200 },
+    { nome: "Sanduíche misto quente", categoria: "Comida", precoCentavos: 1500 },
+  ];
+
+  for (const produto of produtos) {
+    const existente = await prisma.produtoBar.findFirst({ where: { nome: produto.nome } });
+    if (existente) {
+      await prisma.produtoBar.update({ where: { id: existente.id }, data: produto });
+    } else {
+      await prisma.produtoBar.create({ data: produto });
+    }
+  }
+
+  console.log(`Seed de produtos do bar concluído (${produtos.length}).`);
+}
+
 async function main() {
   await seedAdmin();
 
@@ -169,6 +207,8 @@ async function main() {
   );
 
   console.log("Seed de quadras concluído.");
+
+  await seedProdutosBar();
 }
 
 main()

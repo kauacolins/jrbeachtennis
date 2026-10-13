@@ -26,10 +26,12 @@ export function ComandaDetalhe({
   comanda,
   produtos,
   hojeISO,
+  categoriasProduto,
 }: {
   comanda: ComandaDetalheDados;
   produtos: ProdutoParaLancar[];
   hojeISO: string;
+  categoriasProduto?: string[];
 }) {
   const router = useRouter();
   const [pendente, startTransition] = useTransition();
@@ -145,6 +147,7 @@ export function ComandaDetalhe({
             <GradeProdutos
               produtos={produtos}
               quantidades={quantidades}
+              categoriasProduto={categoriasProduto}
               onLancar={(produto) =>
                 executar(
                   () => lancarProdutoBar(comanda.id, produto.id),

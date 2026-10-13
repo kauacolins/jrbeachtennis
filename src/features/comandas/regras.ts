@@ -56,6 +56,15 @@ export async function abrirComanda(
   return { ok: true, comandaId: comanda.id };
 }
 
+// Venda avulsa (balcão, sem comanda nomeada): abre, lança os itens e fecha
+// tudo na mesma transação (ver vender-avulso.ts). Como fecha na hora, não
+// passa pela regra 1 (nome único entre as abertas) — "Venda avulsa" pode
+// repetir, cada registro já nasce e morre fechado.
+export async function abrirVendaAvulsa(tx: Tx): Promise<{ comandaId: string }> {
+  const comanda = await tx.comanda.create({ data: { nome: "Venda avulsa" } });
+  return { comandaId: comanda.id };
+}
+
 // Toque no produto: soma 1 no item já lançado com o mesmo preço, ou cria um
 // novo (preço congelado no lançamento).
 export async function adicionarItemBar(

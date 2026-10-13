@@ -9,6 +9,7 @@ Complementa `docs/REQUISITOS.md` (RF17–RF21, RN10, RN11).
 - O sistema serve para **contar o total consumido** por pessoa. Não divide conta e não cobra online.
 - **2026-10-11:** a comanda também recebe **day use** e **reserva de quadra**, para a pessoa pagar tudo junto no final.
 - **2026-10-11:** day use e mensal são vendidos **no balcão** pelo operador (o cliente não compra pelo site). O day use precisa identificar a pessoa (um passe por dia, R$ 0 com mensal), então usa um **cadastro simplificado** (`Cliente`: nome e sobrenome, telefone opcional), separado da comanda. **2026-10-11:** o telefone virou opcional (só ajuda a identificar) e o cadastro passou a pedir nome e sobrenome.
+- **2026-10-13: venda avulsa.** Cliente de balcão que não vai abrir comanda (ex.: só uma água, vai embora na hora) recebe o pagamento direto na tela "Pedido", sem precisar de nome. Por baixo ainda é uma `Comanda` (nome fixo "Venda avulsa"), mas abre, lança os itens e fecha numa transação só — a regra 1 (nome único entre as abertas) não vale aqui, porque ela nunca fica de fato aberta para o operador ver.
 
 Como funcionava antes: o consumo de cada pessoa era anotado num caderninho e depois passado para o caderno.
 
@@ -37,6 +38,7 @@ Caminho alternativo, com o pedido primeiro e a pessoa depois (decidido em 2026-1
 2. Toca em "Continuar" e confere o pedido e o total (dá para ajustar as quantidades no −/+). Depois toca em "Adicionar à comanda" e escolhe de quem é o pedido: digita o nome e toca numa aberta, ou abre uma nova com esse nome (mesma regra 1 do painel).
 3. Todos os itens entram de uma vez, numa transação só. Se algum produto foi desativado no meio do caminho, nada é lançado (nem a comanda nova fica aberta).
 4. O pedido é limpo para o próximo. O aviso de sucesso tem um atalho "Ver comanda".
+5. **Venda avulsa:** em vez de digitar o nome, o operador toca em "Venda avulsa — recebe agora", escolhe a forma de pagamento e confirma. Abre, lança e fecha a comanda (nome "Venda avulsa") numa transação só; nada fica pendente para fechar depois.
 
 O pedido fica só no navegador até ser lançado. Day use e reserva continuam sendo lançados dentro da comanda.
 
@@ -79,6 +81,7 @@ O pedido fica só no navegador até ser lançado. Day use e reserva continuam se
 | RF36 | Adicionar day use à comanda (cria o passe do dia) | Admin, Operador | Essencial |
 | RF37 | Adicionar à comanda uma reserva de hoje não paga | Admin, Operador | Essencial |
 | RF38 | Ao pagar a comanda, marcar como pagos o passe e a reserva ligados | Admin, Operador | Essencial |
+| RF39 | Venda avulsa: lançar, receber e fechar sem nome, numa ação só | Admin, Operador | Essencial |
 
 ## Telas
 

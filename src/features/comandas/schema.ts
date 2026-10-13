@@ -35,24 +35,35 @@ export const adicionarReservaSchema = z.object({
   reservaId: z.string().min(1),
 });
 
+const itensPedidoSchema = z
+  .array(
+    z.object({
+      produtoId: z.string().min(1),
+      quantidade: z.number().int().min(1).max(99),
+    })
+  )
+  .min(1, "Escolha pelo menos um produto.")
+  .max(50);
+
 // Tela "Pedido": itens escolhidos antes, depois a comanda — uma aberta
 // (comandaId) ou uma nova pelo nome (novoNome).
 export const lancarPedidoSchema = z
   .object({
     comandaId: z.string().min(1).optional(),
     novoNome: abrirComandaSchema.shape.nome.optional(),
-    itens: z
-      .array(
-        z.object({
-          produtoId: z.string().min(1),
-          quantidade: z.number().int().min(1).max(99),
-        })
-      )
-      .min(1, "Escolha pelo menos um produto.")
-      .max(50),
+    itens: itensPedidoSchema,
   })
   .refine((d) => Boolean(d.comandaId) !== Boolean(d.novoNome), {
     error: "Escolha a comanda.",
   });
 
 export type LancarPedidoInput = z.input<typeof lancarPedidoSchema>;
+
+// Venda avulsa: sem comanda nomeada, recebe na hora — abre, lança e fecha
+// tudo numa transação só (ver features/comandas/actions/vender-avulso.ts).
+export const venderAvulsoSchema = z.object({
+  itens: itensPedidoSchema,
+  metodo: metodoPagamentoSchema,
+});
+
+export type VenderAvulsoInput = z.input<typeof venderAvulsoSchema>;
