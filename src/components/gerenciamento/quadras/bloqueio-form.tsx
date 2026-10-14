@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SeletorData } from "@/components/gerenciamento/seletor-data";
 import { criarBloqueio } from "@/features/bloqueios/actions/criar-bloqueio";
 import type { QuadraAdmin } from "@/features/quadras/actions/listar-quadras-admin";
 
@@ -64,13 +65,11 @@ export function BloqueioForm({ quadras }: { quadras: QuadraAdmin[] }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="bloqueio-data">Data</Label>
-        <Input
-          id="bloqueio-data"
-          type="date"
-          required
-          value={form.dataISO}
-          onChange={(e) => setForm((f) => ({ ...f, dataISO: e.target.value }))}
+        <Label>Data</Label>
+        <SeletorData
+          valor={form.dataISO}
+          onAlterar={(dataISO) => setForm((f) => ({ ...f, dataISO }))}
+          className="w-full"
         />
       </div>
 

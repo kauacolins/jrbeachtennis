@@ -21,6 +21,8 @@ import { AuthStatus } from "@/components/auth/auth-status";
 // âncoras de seção. Aqui são só rotas reais.
 const LINKS = [
   { href: "/minhas-reservas", label: "Minhas reservas" },
+  { href: "/torneios", label: "Torneios" },
+  { href: "/minhas-inscricoes", label: "Minhas inscrições" },
   { href: "/perfil", label: "Meu perfil" },
   { href: "/como-funciona", label: "Como funciona" },
   { href: "/contato", label: "Contato" },

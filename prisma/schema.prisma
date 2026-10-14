@@ -28,10 +28,11 @@ enum StatusReserva {
 }
 
 model Modalidade {
-  id       String    @id @default(cuid())
-  nome     String    @unique // Beach tennis, Futebol, Vôlei...
-  quadras  Quadra[] // muitos-para-muitos
-  reservas Reserva[]
+  id         String      @id @default(cuid())
+  nome       String      @unique // Beach tennis, Futebol, Vôlei...
+  quadras    Quadra[] // muitos-para-muitos
+  reservas   Reserva[]
+  categorias Categoria[]
 }
 
 model Quadra {
@@ -67,9 +68,12 @@ model Bloqueio {
   inicio    DateTime // UTC
   fim       DateTime // UTC
   motivo    String?
+  torneioId String? // bloqueio de quadra pro torneio (ver docs/TORNEIOS.md)
+  torneio   Torneio? @relation(fields: [torneioId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
   @@index([quadraId, inicio])
+  @@index([torneioId])
 }
 
 model Reserva {
@@ -101,20 +105,22 @@ model Reserva {
 // (https://better-auth.com — e-mail/senha + login Google, RNF02).
 // O e-mail é a identidade: Google com e-mail já cadastrado liga à mesma conta.
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String? // foto do Google
-  telefone      String? // contato; pedido no cadastro ou no primeiro acesso via Google
-  role          Role      @default(CLIENT)
-  removidoEm    DateTime? // soft delete de conta de equipe (admin/operador/instrutor)
-  reservas      Reserva[]
-  cliente       Cliente?
-  sessions      Session[]
-  accounts      Account[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                   String           @id @default(cuid())
+  name                 String
+  email                String           @unique
+  emailVerified        Boolean          @default(false)
+  image                String? // foto do Google
+  telefone             String? // contato; pedido no cadastro ou no primeiro acesso via Google
+  role                 Role             @default(CLIENT)
+  removidoEm           DateTime? // soft delete de conta de equipe (admin/operador/instrutor)
+  reservas             Reserva[]
+  cliente              Cliente?
+  sessions             Session[]
+  accounts             Account[]
+  inscricoesCriadas    Inscricao[]
+  inscricoesComoAtleta AtletaInscrito[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 }
 
 model Session {
@@ -331,4 +337,92 @@ model SelectOption {
   ativo   Boolean     @default(true)
 
   @@unique([grupoId, nome])
+}
+
+// ---------------------------------------------------------------------------
+// Campeonatos e torneios (docs/TORNEIOS.md). Primeira etapa: cadastro do
+// torneio, categorias e bloqueio das quadras. Inscrição pelo site e lista de
+// inscritos (Inscricao/AtletaInscrito) ficam para a próxima etapa.
+
+enum StatusTorneio {
+  RASCUNHO // só o admin vê
+  INSCRICOES_ABERTAS
+  INSCRICOES_ENCERRADAS
+  EM_ANDAMENTO
+  FINALIZADO
+  CANCELADO
+}
+
+model Torneio {
+  id                  String        @id @default(cuid())
+  slug                String        @unique // "beneficente-2026"
+  nome                String
+  descricao           String? // regulamento, premiação, kit
+  doacao              String? // ex.: "1 kg de alimento não perecível"
+  bannerUrl           String? // banner horizontal (home e topo da página do torneio), no Vercel Blob
+  destaqueHome        Boolean       @default(false) // mostrar o banner na home
+  destaqueAte         DateTime? // some da home depois disso; vazio = até dataFim
+  dataInicio          DateTime      @db.Date
+  dataFim             DateTime      @db.Date
+  inscricoesAbrem     DateTime
+  inscricoesFecham    DateTime
+  maxCategoriasAtleta Int?          @default(2) // vazio = sem limite
+  status              StatusTorneio @default(RASCUNHO)
+  categorias          Categoria[]
+  bloqueios           Bloqueio[] // quadras reservadas para o torneio
+  createdAt           DateTime      @default(now())
+}
+
+model Categoria {
+  id             String      @id @default(cuid())
+  torneioId      String
+  torneio        Torneio     @relation(fields: [torneioId], references: [id], onDelete: Cascade)
+  modalidadeId   String
+  modalidade     Modalidade  @relation(fields: [modalidadeId], references: [id])
+  nome           String // "Dupla Masc. C", "Simples Feminino D", "Livre"
+  minAtletas     Int         @default(1)
+  maxAtletas     Int         @default(1) // 2 na dupla; ex.: 12 no futebol
+  valorCentavos  Int // por inscrição
+  vagas          Int? // nº máximo de inscrições
+  inicioPrevisto DateTime? // programação prévia
+  ordem          Int         @default(0) // ordem de exibição
+  inscricoes     Inscricao[]
+
+  @@unique([torneioId, nome])
+}
+
+enum StatusInscricao {
+  PENDENTE // aguardando pagamento, sem prazo — segura a vaga até confirmar ou cancelar
+  CONFIRMADA // paga
+  CANCELADA
+}
+
+// Uma inscrição = um atleta, uma dupla ou um time, dependendo de
+// minAtletas/maxAtletas da categoria.
+model Inscricao {
+  id            String           @id @default(cuid())
+  categoriaId   String
+  categoria     Categoria        @relation(fields: [categoriaId], references: [id])
+  criadaPorId   String // quem fez a inscrição e paga
+  criadaPor     User             @relation(fields: [criadaPorId], references: [id])
+  nomeEquipe    String? // só para times
+  valorCentavos Int // preço congelado
+  status        StatusInscricao  @default(PENDENTE)
+  pagoEm        DateTime?
+  atletas       AtletaInscrito[]
+  createdAt     DateTime         @default(now())
+
+  @@index([categoriaId, status])
+}
+
+model AtletaInscrito {
+  id          String    @id @default(cuid())
+  inscricaoId String
+  inscricao   Inscricao @relation(fields: [inscricaoId], references: [id], onDelete: Cascade)
+  userId      String? // nulo para quem não tem conta
+  user        User?     @relation(fields: [userId], references: [id])
+  nome        String
+  celular     String // só dígitos; usado para checar duplicidade e limite por atleta
+
+  @@index([celular])
 }

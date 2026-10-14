@@ -28,6 +28,11 @@ export function dataParaISO(data: Date | string): string {
   return formatInTimeZone(data, TIME_ZONE, "yyyy-MM-dd");
 }
 
+/** "yyyy-MM-ddTHH:mm" em America/Sao_Paulo — valor de um <input type="datetime-local">. */
+export function dataParaDatetimeLocal(data: Date | string): string {
+  return formatInTimeZone(data, TIME_ZONE, "yyyy-MM-dd'T'HH:mm");
+}
+
 /** Minutos desde 00:00 -> "HH:mm". Usado na agenda do admin (obterAgendaDia). */
 export function minutosParaHora(min: number): string {
   const horas = String(Math.floor(min / 60)).padStart(2, "0");

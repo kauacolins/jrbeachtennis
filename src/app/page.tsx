@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/home/site-header";
 import { Hero } from "@/components/home/hero";
+import { TorneioBannerDestaque } from "@/components/home/torneio-banner-destaque";
 import { SportCards } from "@/components/home/sport-cards";
 import { TodaySlots } from "@/components/home/today-slots";
 import { HowItWorks } from "@/components/home/how-it-works";
@@ -31,6 +32,7 @@ export default function Home() {
       <SiteHeader />
       <main>
         <Hero />
+        <TorneioBannerDestaque />
         <SportCards />
         <TodaySlots />
         <HowItWorks />

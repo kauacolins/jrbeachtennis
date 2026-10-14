@@ -17,10 +17,10 @@ import {
 import { SairEquipe } from "@/components/auth/sair-equipe";
 
 // Início (atalhos) e depois dois grupos: operação do dia a dia (Agenda, Comandas, Day use, Planos —
-// o balcão) e configuração de baixa frequência (Quadras, Produtos, Equipe).
+// o balcão) e configuração de baixa frequência (Quadras, Produtos, Torneios, Equipe).
 // Quadras reúne cadastro, horário de funcionamento e bloqueios porque são
-// as três facetas da mesma entidade (ver QuadrasNav). Produtos mexe em
-// preço, então só aparece pro ADMIN (ver exigirSomenteAdmin).
+// as três facetas da mesma entidade (ver QuadrasNav). Produtos e Torneios
+// mexem em preço, então só aparecem pro ADMIN (ver exigirSomenteAdmin).
 const LINKS = [
   { href: "/gerenciamento", label: "Início" },
   { href: "/gerenciamento/agenda", label: "Agenda" },
@@ -29,6 +29,7 @@ const LINKS = [
   { href: "/gerenciamento/planos", label: "Planos" },
   { href: "/gerenciamento/quadras", label: "Quadras" },
   { href: "/gerenciamento/produtos", label: "Produtos", somenteAdmin: true },
+  { href: "/gerenciamento/torneios", label: "Torneios", somenteAdmin: true },
   { href: "/gerenciamento/equipe", label: "Equipe" },
 ];
 
