@@ -18,7 +18,7 @@ export default async function TorneioEdicaoPage({ params }: { params: Promise<{ 
   if (!torneio) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
+    <div className="px-4 py-6">
       <TorneioDetalhe
         torneio={torneio}
         modalidades={modalidades}

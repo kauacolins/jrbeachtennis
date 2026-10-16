@@ -14,7 +14,7 @@ export default async function InscritosPage({ params }: { params: Promise<{ id: 
   if (!torneio) notFound();
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="px-4 py-6">
       <InscritosLista torneio={torneio} inscricoes={inscricoes} />
     </div>
   );

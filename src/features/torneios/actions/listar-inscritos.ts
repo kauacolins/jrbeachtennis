@@ -20,3 +20,21 @@ export async function listarInscritos(torneioId: string) {
 }
 
 export type InscricaoAdmin = Awaited<ReturnType<typeof listarInscritos>>[number];
+
+// Dashboard (widget Pendências): inscrições aguardando pagamento em
+// qualquer torneio, mais recentes primeiro — pra achar rápido quem ainda
+// não pagou sem abrir cada torneio.
+export async function listarInscricoesPendentes() {
+  if (!(await exigirAdmin())) return [];
+
+  return prisma.inscricao.findMany({
+    where: { status: "PENDENTE" },
+    include: {
+      categoria: { select: { nome: true, torneio: { select: { id: true, nome: true } } } },
+      atletas: { select: { nome: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export type InscricaoPendente = Awaited<ReturnType<typeof listarInscricoesPendentes>>[number];

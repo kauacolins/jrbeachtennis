@@ -21,7 +21,7 @@ export default async function ProdutosPage() {
   ]);
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-6">
+    <div className="flex flex-col gap-8 px-4 py-6">
       <ProdutosBalcaoForm produtos={balcao} />
       <ProdutosBarLista produtos={bar} categorias={categorias} />
     </div>

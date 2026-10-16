@@ -65,3 +65,11 @@ export const STATUS_INSCRICAO: { valor: StatusInscricao; label: string }[] = [
 export function rotuloStatusInscricao(status: StatusInscricao) {
   return STATUS_INSCRICAO.find((s) => s.valor === status)?.label ?? status;
 }
+
+// Cor do badge de inscrição (docs/DESIGN_SYSTEM.md): paga usa accent,
+// aguardando pagamento usa warning, cancelada usa muted.
+export function classeStatusInscricao(status: StatusInscricao) {
+  if (status === "CONFIRMADA") return "bg-accent text-accent-foreground";
+  if (status === "PENDENTE") return "bg-warning text-warning-foreground";
+  return "bg-muted text-muted-foreground";
+}

@@ -26,5 +26,6 @@ export async function marcarReservaPago(
   await prisma.reserva.update({ where: { id: reservaId }, data: { pago } });
 
   revalidatePath("/gerenciamento/agenda");
+  revalidatePath("/gerenciamento");
   return { ok: true };
 }

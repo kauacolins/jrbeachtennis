@@ -73,9 +73,9 @@ export function HistoricoComandasLista({ comandas }: { comandas: HistoricoComand
                 </TableCell>
                 <TableCell>
                   {c.status === "CANCELADA" ? (
-                    <Badge variant="destructive">Cancelada</Badge>
+                    <Badge className="bg-muted text-muted-foreground">Cancelada</Badge>
                   ) : (
-                    <Badge variant="secondary">{rotuloMetodo(c.metodo)}</Badge>
+                    <Badge className="bg-accent text-accent-foreground">{rotuloMetodo(c.metodo)}</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right font-semibold whitespace-nowrap tabular-nums">

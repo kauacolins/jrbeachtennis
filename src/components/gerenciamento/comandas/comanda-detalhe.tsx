@@ -117,12 +117,14 @@ export function ComandaDetalhe({
             <>Aberta às {formatarHora(comanda.abertaEm)}</>
           )}
           {comanda.status === "FECHADA" && (
-            <Badge variant="secondary">
+            <Badge className="bg-accent text-accent-foreground">
               Paga · {rotuloMetodo(comanda.metodo)}
               {comanda.fechadaEm && ` · ${formatarHora(comanda.fechadaEm)}`}
             </Badge>
           )}
-          {comanda.status === "CANCELADA" && <Badge variant="destructive">Cancelada</Badge>}
+          {comanda.status === "CANCELADA" && (
+            <Badge className="bg-muted text-muted-foreground">Cancelada</Badge>
+          )}
         </p>
       </div>
 

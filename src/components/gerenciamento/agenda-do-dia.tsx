@@ -6,17 +6,18 @@ import { Button } from "@/components/ui/button";
 import { AgendaGrid } from "@/components/gerenciamento/agenda-grid";
 import { ReservasDoDiaLista } from "@/components/gerenciamento/reservas-dia-lista";
 import {
-  ReservaDetalheDialog,
+  ReservaDetalhePainel,
   type SelecaoAgenda,
-} from "@/components/gerenciamento/reserva-detalhe-dialog";
+} from "@/components/gerenciamento/reserva-detalhe-painel";
 import { NovaReservaDialog } from "@/components/gerenciamento/nova-reserva-dialog";
 import type { AgendaBloco, AgendaDia } from "@/features/gerenciamento/actions/obter-agenda-dia";
 import type { QuadraAdmin } from "@/features/quadras/actions/listar-quadras-admin";
 
 // Dono do estado local da agenda do dia: guarda os blocos pra poder
-// atualizar pago/status/cancelamento otimisticamente (ver ReservaDetalheDialog)
-// e repassa a mesma cópia pra grade e pra listagem, assim as duas ficam
-// sincronizadas quando uma reserva é alterada pelo diálogo.
+// atualizar pago/status/cancelamento otimisticamente (ver
+// ReservaDetalhePainel) e repassa a mesma cópia pra grade e pra listagem,
+// assim as duas ficam sincronizadas quando uma reserva é alterada pelo
+// painel.
 export function AgendaDoDia({
   agenda,
   hojeISO,
@@ -69,30 +70,32 @@ export function AgendaDoDia({
   const agendaAtual: AgendaDia = { ...agenda, quadras };
 
   return (
-    <>
-      <div className="mb-3 flex justify-end">
-        <Button className="h-11" onClick={() => setNovaReservaAberta(true)}>
-          <Plus aria-hidden />
-          Nova reserva
-        </Button>
+    <div className="flex gap-4">
+      <div className="min-w-0 flex-1">
+        <div className="mb-3 flex justify-end">
+          <Button className="h-11" onClick={() => setNovaReservaAberta(true)}>
+            <Plus aria-hidden />
+            Nova reserva
+          </Button>
+        </div>
+
+        <AgendaGrid
+          agenda={agendaAtual}
+          hojeISO={hojeISO}
+          onSelecionarReserva={selecionarReserva}
+        />
+
+        <h2 className="mt-6 mb-2 text-sm font-semibold text-muted-foreground">
+          Reservas do dia
+        </h2>
+        <ReservasDoDiaLista
+          agenda={agendaAtual}
+          onSelecionarReserva={selecionarReserva}
+          onAtualizado={atualizarBloco}
+        />
       </div>
 
-      <AgendaGrid
-        agenda={agendaAtual}
-        hojeISO={hojeISO}
-        onSelecionarReserva={selecionarReserva}
-      />
-
-      <h2 className="mt-6 mb-2 text-sm font-semibold text-muted-foreground">
-        Reservas do dia
-      </h2>
-      <ReservasDoDiaLista
-        agenda={agendaAtual}
-        onSelecionarReserva={selecionarReserva}
-        onAtualizado={atualizarBloco}
-      />
-
-      <ReservaDetalheDialog
+      <ReservaDetalhePainel
         selecao={selecao}
         dataISO={agenda.dataISO}
         onOpenChange={(aberto) => !aberto && setSelecao(null)}
@@ -106,6 +109,6 @@ export function AgendaDoDia({
         dataISO={agenda.dataISO}
         onCriada={adicionarBloco}
       />
-    </>
+    </div>
   );
 }

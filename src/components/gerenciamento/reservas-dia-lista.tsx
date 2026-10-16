@@ -25,20 +25,7 @@ import type {
   AgendaDia,
 } from "@/features/gerenciamento/actions/obter-agenda-dia";
 import { normalizarBusca } from "@/lib/busca";
-
-const STATUS_INFO: Record<string, { label: string; className: string }> = {
-  PENDENTE_PAGAMENTO: {
-    label: "Aguardando Pix",
-    className: "bg-warning text-warning-foreground",
-  },
-  CONFIRMADA: { label: "Confirmada", className: "bg-accent text-accent-foreground" },
-  CONCLUIDA: { label: "Concluída", className: "bg-secondary text-secondary-foreground" },
-  NAO_COMPARECEU: {
-    label: "Não compareceu",
-    className: "bg-destructive/10 text-destructive",
-  },
-  CANCELADA: { label: "Cancelada", className: "bg-muted text-muted-foreground" },
-};
+import { STATUS_RESERVA_INFO as STATUS_INFO } from "@/lib/status-reserva";
 
 type FiltroPago = "todos" | "pago" | "a_pagar";
 type FiltroStatus =

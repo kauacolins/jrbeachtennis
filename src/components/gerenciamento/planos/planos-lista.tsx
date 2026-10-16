@@ -161,9 +161,11 @@ export function PlanosLista({
                       {plano.vencendo ? (
                         <Badge className="bg-warning text-warning-foreground">Vence em breve</Badge>
                       ) : plano.ativo ? (
-                        <Badge variant="secondary">Ativo</Badge>
+                        <Badge className="bg-accent text-accent-foreground">Ativo</Badge>
+                      ) : plano.cancelado ? (
+                        <Badge className="bg-muted text-muted-foreground">Cancelado</Badge>
                       ) : (
-                        <Badge variant="outline">{plano.cancelado ? "Cancelado" : "Vencido"}</Badge>
+                        <Badge variant="destructive">Vencido</Badge>
                       )}
                     </TableCell>
                     <TableCell>

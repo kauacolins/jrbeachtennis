@@ -20,7 +20,7 @@ export default async function DayUsePage({
   const vagas = dia.limiteDiario !== null ? dia.limiteDiario - dia.totalAtivos : null;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
+    <div className="flex flex-col gap-4 px-4 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-xl font-bold">Day use</h1>
         <NavegacaoDia basePath="/gerenciamento/day-use" dataISO={dataISO} hojeISO={hojeISO} />

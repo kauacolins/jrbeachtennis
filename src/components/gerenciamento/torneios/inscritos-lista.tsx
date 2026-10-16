@@ -11,18 +11,12 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { formatarPreco, formatarTelefone } from "@/lib/format";
-import { rotuloStatusInscricao } from "@/lib/torneio";
+import { classeStatusInscricao, rotuloStatusInscricao } from "@/lib/torneio";
 import { confirmarPagamentoInscricao } from "@/features/torneios/actions/confirmar-pagamento-inscricao";
 import { cancelarInscricao } from "@/features/torneios/actions/cancelar-inscricao";
 import { cn } from "@/lib/utils";
 import type { TorneioDetalhe } from "@/features/torneios/actions/obter-torneio";
 import type { InscricaoAdmin } from "@/features/torneios/actions/listar-inscritos";
-
-function variantePorStatus(status: InscricaoAdmin["status"]) {
-  if (status === "CONFIRMADA") return "secondary" as const;
-  if (status === "CANCELADA") return "destructive" as const;
-  return "outline" as const;
-}
 
 // Campo com aspas duplicadas e entre "" — formato CSV padrão, abre certo no
 // Excel/Sheets mesmo com vírgula ou aspas no nome.
@@ -217,7 +211,7 @@ export function InscritosLista({
                                 {formatarPreco(inscricao.valorCentavos)}
                               </TableCell>
                               <TableCell>
-                                <Badge variant={variantePorStatus(inscricao.status)}>
+                                <Badge className={classeStatusInscricao(inscricao.status)}>
                                   {rotuloStatusInscricao(inscricao.status)}
                                 </Badge>
                               </TableCell>

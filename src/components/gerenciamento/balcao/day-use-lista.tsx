@@ -72,11 +72,13 @@ export function DayUseLista({ passes }: { passes: PassesDoDia["passes"] }) {
                 </TableCell>
                 <TableCell>
                   {passe.cancelado ? (
-                    <Badge variant="destructive">Cancelado</Badge>
+                    <Badge className="bg-muted text-muted-foreground">Cancelado</Badge>
                   ) : passe.cobertoPeloPlano ? (
                     <Badge variant="secondary">Plano mensal</Badge>
                   ) : passe.pago ? (
-                    <Badge variant="secondary">Pago · {rotuloMetodo(passe.metodo)}</Badge>
+                    <Badge className="bg-accent text-accent-foreground">
+                      Pago · {rotuloMetodo(passe.metodo)}
+                    </Badge>
                   ) : (
                     <Badge className="bg-warning text-warning-foreground">A pagar</Badge>
                   )}

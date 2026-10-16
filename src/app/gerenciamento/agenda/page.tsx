@@ -27,7 +27,7 @@ export default async function AgendaPage({
   const proximaISO = adicionarDias(dataISO, 1);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="px-4 py-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-xl font-bold">Agenda do dia</h1>
         <div className="flex items-center gap-2">

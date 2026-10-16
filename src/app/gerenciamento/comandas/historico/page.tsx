@@ -19,7 +19,7 @@ export default async function HistoricoComandasPage({
   if (!historico) return null;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
+    <div className="flex flex-col gap-4 px-4 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-xl font-bold">Comandas</h1>
         <ComandasNav />
