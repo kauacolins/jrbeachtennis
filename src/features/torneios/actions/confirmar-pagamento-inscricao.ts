@@ -16,7 +16,12 @@ export async function confirmarPagamentoInscricao(
 
   const resultado = await prisma.$transaction((tx) => confirmarTx(tx, inscricaoId, new Date()));
   if (resultado.ok) {
+    const inscricao = await prisma.inscricao.findUnique({
+      where: { id: inscricaoId },
+      select: { categoria: { select: { torneioId: true } } },
+    });
     revalidatePath("/gerenciamento/torneios");
+    if (inscricao) revalidatePath(`/gerenciamento/torneios/${inscricao.categoria.torneioId}`);
     revalidatePath("/minhas-inscricoes");
   }
   return resultado;

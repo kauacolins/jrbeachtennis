@@ -1,23 +1,16 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Trophy } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { CancelarInscricaoBotao } from "@/components/torneios/cancelar-inscricao-botao";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { InscricaoCard } from "@/components/torneios/inscricao-card";
 import { getSessaoAtual } from "@/lib/get-session";
 import { listarMinhasInscricoes } from "@/features/torneios/actions/listar-minhas-inscricoes";
-import type { MinhaInscricao } from "@/features/torneios/actions/listar-minhas-inscricoes";
-import { formatarDataCurta, formatarPreco } from "@/lib/format";
-import { rotuloStatusInscricao } from "@/lib/torneio";
 
 export const metadata: Metadata = {
   title: "Minhas inscrições | Arena JR",
 };
-
-function variantePorStatus(status: MinhaInscricao["status"]) {
-  if (status === "CONFIRMADA") return "secondary" as const;
-  if (status === "CANCELADA") return "destructive" as const;
-  return "outline" as const;
-}
 
 export default async function MinhasInscricoesPage() {
   const sessao = await getSessaoAtual();
@@ -26,6 +19,14 @@ export default async function MinhasInscricoesPage() {
   }
 
   const inscricoes = await listarMinhasInscricoes(sessao.user.id);
+
+  const ativas = inscricoes
+    .filter((i) => i.status !== "CANCELADA")
+    .sort(
+      (a, b) =>
+        a.categoria.torneio.dataInicio.getTime() - b.categoria.torneio.dataInicio.getTime()
+    );
+  const canceladas = inscricoes.filter((i) => i.status === "CANCELADA");
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 sm:py-8">
@@ -37,33 +38,41 @@ export default async function MinhasInscricoesPage() {
           <p className="text-sm text-muted-foreground">
             Você ainda não se inscreveu em nenhum torneio.
           </p>
+          <Button render={<Link href="/torneios" />} nativeButton={false} size="sm">
+            Ver torneios abertos
+          </Button>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {inscricoes.map((inscricao) => (
-            <li key={inscricao.id} className="flex flex-col gap-2 rounded-xl border p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">{inscricao.categoria.torneio.nome}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {inscricao.categoria.nome} ·{" "}
-                    {formatarDataCurta(inscricao.categoria.torneio.dataInicio)}
-                  </p>
-                </div>
-                <Badge variant={variantePorStatus(inscricao.status)}>
-                  {rotuloStatusInscricao(inscricao.status)}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {inscricao.atletas.map((a) => a.nome).join(" · ")} ·{" "}
-                {formatarPreco(inscricao.valorCentavos)}
+        <Tabs defaultValue="ativas">
+          <TabsList>
+            <TabsTrigger value="ativas">Ativas</TabsTrigger>
+            <TabsTrigger value="canceladas">Canceladas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ativas" className="flex flex-col gap-3 pt-4">
+            {ativas.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">
+                Nenhuma inscrição ativa agora.
               </p>
-              {inscricao.status !== "CANCELADA" && (
-                <CancelarInscricaoBotao inscricaoId={inscricao.id} />
-              )}
-            </li>
-          ))}
-        </ul>
+            ) : (
+              ativas.map((inscricao) => (
+                <InscricaoCard key={inscricao.id} inscricao={inscricao} />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="canceladas" className="flex flex-col gap-3 pt-4">
+            {canceladas.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">
+                Nenhuma inscrição cancelada.
+              </p>
+            ) : (
+              canceladas.map((inscricao) => (
+                <InscricaoCard key={inscricao.id} inscricao={inscricao} />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

@@ -107,7 +107,7 @@ export function QuickSearch({
           disabled={!modalidadeId}
         >
           <Search aria-hidden />
-          Ver horários
+          Reservar horário
         </Button>
       </div>
     </div>

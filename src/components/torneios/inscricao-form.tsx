@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatarPreco, formatarTelefone } from "@/lib/format";
 import { inscrever } from "@/features/torneios/actions/inscrever";
+import { PixInstrucoes } from "@/components/torneios/pix-instrucoes";
 
 interface AtletaForm {
   nome: string;
@@ -42,6 +43,8 @@ export function InscricaoForm({
   });
   const [enviando, startTransition] = useTransition();
 
+  const emEquipe = maxAtletas > 1;
+
   function atualizarAtleta(indice: number, patch: Partial<AtletaForm>) {
     setAtletas((atual) => atual.map((atleta, i) => (i === indice ? { ...atleta, ...patch } : atleta)));
   }
@@ -72,17 +75,13 @@ export function InscricaoForm({
   }
 
   return (
-    <form onSubmit={enviar} className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        Valor da inscrição:{" "}
-        <span className="font-medium text-foreground">{formatarPreco(valorCentavos)}</span>
-      </p>
-
-      {maxAtletas > 1 && (
+    <form onSubmit={enviar} className="flex flex-col gap-5">
+      {emEquipe && (
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="inscricao-equipe">Nome do time (opcional)</Label>
           <Input
             id="inscricao-equipe"
+            placeholder="Ex.: Irmãos da areia"
             value={nomeEquipe}
             onChange={(e) => setNomeEquipe(e.target.value)}
             className="h-11"
@@ -91,10 +90,26 @@ export function InscricaoForm({
       )}
 
       <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm">{emEquipe ? "Atletas" : "Seus dados"}</Label>
+          {emEquipe && (
+            <span className="text-xs text-muted-foreground">
+              {atletas.length} de {maxAtletas}
+            </span>
+          )}
+        </div>
+
         {atletas.map((atleta, indice) => (
-          <div key={indice} className="flex flex-col gap-2 rounded-xl border p-3">
+          <div key={indice} className="flex flex-col gap-3 rounded-xl border p-3">
             <div className="flex items-center justify-between">
-              <Label>{indice === 0 ? "Você" : `Atleta ${indice + 1}`}</Label>
+              <div className="flex items-center gap-2">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                  {indice + 1}
+                </span>
+                <span className="text-sm font-medium">
+                  {indice === 0 ? "Você" : `Atleta ${indice + 1}`}
+                </span>
+              </div>
               {indice >= minAtletas && (
                 <Button
                   type="button"
@@ -128,18 +143,26 @@ export function InscricaoForm({
             />
           </div>
         ))}
+
+        {atletas.length < maxAtletas && (
+          <Button type="button" variant="outline" className="h-11 self-start" onClick={adicionarAtleta}>
+            <Plus aria-hidden />
+            Adicionar atleta
+          </Button>
+        )}
       </div>
 
-      {atletas.length < maxAtletas && (
-        <Button type="button" variant="outline" className="h-11 self-start" onClick={adicionarAtleta}>
-          <Plus aria-hidden />
-          Adicionar atleta
-        </Button>
-      )}
+      <PixInstrucoes />
 
-      <Button type="submit" className="h-11" disabled={enviando}>
-        {enviando ? "Enviando…" : "Confirmar inscrição"}
-      </Button>
+      <div className="sticky bottom-0 -mx-4 flex items-center justify-between gap-3 border-t bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0">
+        <div className="text-sm">
+          <p className="text-muted-foreground">Total</p>
+          <p className="font-heading text-lg font-semibold">{formatarPreco(valorCentavos)}</p>
+        </div>
+        <Button type="submit" className="h-11 flex-1 sm:flex-none sm:px-8" disabled={enviando}>
+          {enviando ? "Enviando…" : "Confirmar inscrição"}
+        </Button>
+      </div>
     </form>
   );
 }

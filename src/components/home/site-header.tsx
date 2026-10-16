@@ -84,16 +84,7 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <div className="hidden items-center gap-2 md:flex">
-            <AuthEntrarButton />
-          </div>
-          <Button
-            className="h-11 px-5"
-            render={<a href="#modalidades" />}
-            nativeButton={false}
-          >
-            Reservar horário
-          </Button>
+          <AuthEntrarButton />
 
           <Sheet>
             <SheetTrigger
@@ -131,9 +122,6 @@ export function SiteHeader() {
                   </SheetClose>
                 ))}
               </nav>
-              <div className="border-t px-4 pt-4">
-                <AuthEntrarButton />
-              </div>
             </SheetContent>
           </Sheet>
         </div>

@@ -16,6 +16,7 @@ export async function removerBloqueioTorneio(
   await prisma.bloqueio.deleteMany({ where: { id: bloqueioId, torneioId } });
 
   revalidatePath(`/gerenciamento/torneios/${torneioId}`);
+  revalidatePath(`/gerenciamento/torneios/${torneioId}/edicao`);
   revalidatePath("/gerenciamento/agenda");
   revalidatePath("/gerenciamento/quadras/bloqueios");
   return { ok: true };

@@ -26,5 +26,6 @@ export async function removerCategoria(
   }
 
   revalidatePath(`/gerenciamento/torneios/${torneioId}`);
+  revalidatePath(`/gerenciamento/torneios/${torneioId}/edicao`);
   return { ok: true };
 }

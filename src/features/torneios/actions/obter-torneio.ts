@@ -9,7 +9,10 @@ export async function obterTorneio(torneioId: string) {
     where: { id: torneioId },
     include: {
       categorias: {
-        include: { modalidade: true },
+        include: {
+          modalidade: true,
+          _count: { select: { inscricoes: { where: { status: { not: "CANCELADA" } } } } },
+        },
         orderBy: [{ modalidade: { nome: "asc" } }, { ordem: "asc" }],
       },
       bloqueios: {

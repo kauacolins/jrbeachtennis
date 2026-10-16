@@ -53,7 +53,7 @@ export function TorneioCriarForm() {
         return;
       }
       toast.success("Torneio criado.");
-      router.push(`/gerenciamento/torneios/${resultado.torneioId}`);
+      router.push(`/gerenciamento/torneios/${resultado.torneioId}/edicao`);
     });
   }
 

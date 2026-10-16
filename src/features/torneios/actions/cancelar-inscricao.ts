@@ -25,9 +25,14 @@ export async function cancelarInscricao(inscricaoId: string): Promise<CancelarIn
 
   const resultado = await prisma.$transaction((tx) => cancelarTx(tx, inscricaoId));
   if (resultado.ok) {
+    const inscricao = await prisma.inscricao.findUnique({
+      where: { id: inscricaoId },
+      select: { categoria: { select: { torneioId: true } } },
+    });
     revalidatePath("/minhas-inscricoes");
     revalidatePath("/torneios", "layout");
     revalidatePath("/gerenciamento/torneios");
+    if (inscricao) revalidatePath(`/gerenciamento/torneios/${inscricao.categoria.torneioId}`);
   }
   return resultado;
 }

@@ -131,6 +131,18 @@ export async function cancelarInscricao(tx: Tx, inscricaoId: string): Promise<Re
   return { ok: true };
 }
 
+// Cancelar o torneio cancela as inscrições e libera as quadras bloqueadas
+// pra ele (docs/TORNEIOS.md, "Regras"). Chamado por salvarTorneio sempre
+// que o status vira CANCELADO — idempotente, então salvar de novo um
+// torneio já cancelado não faz nada a mais.
+export async function cancelarTorneio(tx: Tx, torneioId: string): Promise<void> {
+  await tx.inscricao.updateMany({
+    where: { categoria: { torneioId }, status: { not: "CANCELADA" } },
+    data: { status: "CANCELADA" },
+  });
+  await tx.bloqueio.deleteMany({ where: { torneioId } });
+}
+
 // Pagamento confirmado à mão pelo admin na primeira versão (ver
 // docs/TORNEIOS.md, "Decidido").
 export async function confirmarPagamentoInscricao(

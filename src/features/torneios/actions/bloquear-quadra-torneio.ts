@@ -41,6 +41,7 @@ export async function bloquearQuadraTorneio(
   });
 
   revalidatePath(`/gerenciamento/torneios/${torneioId}`);
+  revalidatePath(`/gerenciamento/torneios/${torneioId}/edicao`);
   revalidatePath("/gerenciamento/agenda");
   revalidatePath("/gerenciamento/quadras/bloqueios");
   return { ok: true };

@@ -9,6 +9,7 @@ import { slugify } from "@/lib/slug";
 import { BANNER_TAMANHO_MAXIMO, BANNER_TIPOS_ACEITOS } from "@/lib/banner-torneio";
 import { blobHabilitado, enviarParaBlob, removerDoBlob } from "@/lib/blob";
 import { salvarTorneioSchema, type SalvarTorneioInput } from "../schema";
+import { cancelarTorneio } from "../regras";
 
 export type SalvarTorneioResultado = { ok: true; torneioId: string } | { ok: false; erro: string };
 
@@ -119,8 +120,19 @@ export async function salvarTorneio(
     ? await prisma.torneio.update({ where: { id: torneioId }, data, select: { id: true } })
     : await prisma.torneio.create({ data, select: { id: true } });
 
+  if (data.status === "CANCELADO") {
+    await prisma.$transaction((tx) => cancelarTorneio(tx, torneio.id));
+    revalidatePath(`/gerenciamento/torneios/${torneio.id}/inscritos`);
+    revalidatePath("/gerenciamento/agenda");
+    revalidatePath("/gerenciamento/quadras/bloqueios");
+    revalidatePath("/minhas-inscricoes");
+    revalidatePath("/torneios", "layout");
+  }
+
   revalidatePath("/gerenciamento/torneios");
   revalidatePath(`/gerenciamento/torneios/${torneio.id}`);
+  revalidatePath(`/gerenciamento/torneios/${torneio.id}/edicao`);
   revalidatePath("/"); // banner pode entrar ou sair da home
+  revalidatePath("/", "layout"); // torneio pode entrar ou sair do modal de eventos (EventosModal)
   return { ok: true, torneioId: torneio.id };
 }

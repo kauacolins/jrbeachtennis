@@ -2,21 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import Image from "next/image";
+import { ImageIcon, Plus, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
 import { filtrarPorBusca } from "@/lib/busca";
 import { formatarDataCurta } from "@/lib/format";
-import { rotuloStatusTorneio } from "@/lib/torneio";
+import { rotuloStatusTorneio, variantePorStatusTorneio } from "@/lib/torneio";
 import type { TorneioAdmin } from "@/features/torneios/actions/listar-torneios";
-
-function variantePorStatus(status: TorneioAdmin["status"]) {
-  if (status === "CANCELADO") return "destructive" as const;
-  if (status === "RASCUNHO" || status === "INSCRICOES_ENCERRADAS") return "outline" as const;
-  return "secondary" as const;
-}
 
 export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
   const router = useRouter();
@@ -51,9 +46,13 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-14">
+                    <span className="sr-only">Banner</span>
+                  </TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead className="hidden sm:table-cell">Período</TableHead>
                   <TableHead className="hidden sm:table-cell">Categorias</TableHead>
+                  <TableHead className="hidden sm:table-cell">Inscritos</TableHead>
                   <TableHead>Situação</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -65,15 +64,46 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
                     className="cursor-pointer"
                     onClick={() => router.push(`/gerenciamento/torneios/${torneio.id}`)}
                   >
-                    <TableCell className="font-medium">{torneio.nome}</TableCell>
+                    <TableCell className="py-2">
+                      <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">
+                        {torneio.bannerUrl ? (
+                          <Image
+                            src={torneio.bannerUrl}
+                            alt={torneio.nome}
+                            fill
+                            sizes="40px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center text-muted-foreground/60">
+                            <ImageIcon className="size-4" aria-hidden />
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <span className="inline-flex items-center gap-1.5">
+                        {torneio.nome}
+                        {torneio.destaqueHome && (
+                          <Star
+                            className="size-3.5 shrink-0 fill-warning text-warning"
+                            aria-hidden
+                          />
+                        )}
+                        {torneio.destaqueHome && <span className="sr-only">(destaque na home)</span>}
+                      </span>
+                    </TableCell>
                     <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {formatarDataCurta(torneio.dataInicio)} – {formatarDataCurta(torneio.dataFim)}
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
                       {torneio._count.categorias}
                     </TableCell>
+                    <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
+                      {torneio.totalInscritos}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant={variantePorStatus(torneio.status)}>
+                      <Badge variant={variantePorStatusTorneio(torneio.status)}>
                         {rotuloStatusTorneio(torneio.status)}
                       </Badge>
                     </TableCell>
@@ -83,7 +113,7 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          router.push(`/gerenciamento/torneios/${torneio.id}`);
+                          router.push(`/gerenciamento/torneios/${torneio.id}/edicao`);
                         }}
                       >
                         Editar

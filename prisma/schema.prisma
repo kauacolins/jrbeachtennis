@@ -426,3 +426,22 @@ model AtletaInscrito {
 
   @@index([celular])
 }
+
+// ---------------------------------------------------------------------------
+// Avisos do admin (aula, manutenção, evento do dia...) mostrados no modal de
+// entrada do site, junto com torneios de inscrição aberta (ver
+// listarEventosAtivos). Sem exclusão em cascata: evento não referencia nada.
+
+model Evento {
+  id                 String    @id @default(cuid())
+  titulo             String
+  resumo             String? // linha curta no modal; vazio = usa início da descrição
+  descricao          String? // texto completo na página de detalhe
+  data               DateTime? // dia/hora do evento, só exibição (ex.: "hoje às 19h")
+  imagem             Bytes?
+  imagemTipo         String?
+  imagemAtualizadaEm DateTime?
+  ativo              Boolean   @default(true)
+  ordem              Int       @default(0)
+  createdAt          DateTime  @default(now())
+}

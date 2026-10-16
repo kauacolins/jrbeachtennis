@@ -17,3 +17,10 @@ export const PIX_NA_RESERVA_ATIVO = false;
 // Regra 6 do docs/REQUISITOS.md: reservas em aberto (pendentes ou confirmadas
 // que ainda não terminaram) por cliente.
 export const LIMITE_RESERVAS_ABERTAS = 2;
+
+// Pix manual do torneio (docs/TORNEIOS.md, "pagamento confirmado à mão pelo
+// admin"): instruções mostradas pro cliente na inscrição e em Minhas
+// inscrições até o admin confirmar o pagamento. Sem as duas variáveis, cai
+// num texto genérico (ver PixInstrucoes).
+export const PIX_CHAVE_ARENA = process.env.PIX_CHAVE_ARENA || "";
+export const PIX_TITULAR_ARENA = process.env.PIX_TITULAR_ARENA || "";

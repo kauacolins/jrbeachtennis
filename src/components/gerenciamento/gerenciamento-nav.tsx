@@ -1,118 +1,92 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { SairEquipe } from "@/components/auth/sair-equipe";
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
 
-// Início (atalhos) e depois dois grupos: operação do dia a dia (Agenda, Comandas, Day use, Planos —
-// o balcão) e configuração de baixa frequência (Quadras, Produtos, Torneios, Equipe).
-// Quadras reúne cadastro, horário de funcionamento e bloqueios porque são
-// as três facetas da mesma entidade (ver QuadrasNav). Produtos e Torneios
-// mexem em preço, então só aparecem pro ADMIN (ver exigirSomenteAdmin).
-const LINKS = [
-  { href: "/gerenciamento", label: "Início" },
-  { href: "/gerenciamento/agenda", label: "Agenda" },
-  { href: "/gerenciamento/comandas", label: "Comandas" },
-  { href: "/gerenciamento/day-use", label: "Day use" },
-  { href: "/gerenciamento/planos", label: "Planos" },
-  { href: "/gerenciamento/quadras", label: "Quadras" },
-  { href: "/gerenciamento/produtos", label: "Produtos", somenteAdmin: true },
-  { href: "/gerenciamento/torneios", label: "Torneios", somenteAdmin: true },
-  { href: "/gerenciamento/equipe", label: "Equipe" },
+interface LinkNav {
+  href: string;
+  label: string;
+  somenteAdmin?: boolean;
+}
+
+// Início isolado e depois dois grupos: operação do dia a dia (o balcão) e
+// configuração de baixa frequência. Produtos e Torneios mexem em preço, só
+// aparecem pro ADMIN (ver exigirSomenteAdmin).
+const GRUPOS: { titulo?: string; links: LinkNav[] }[] = [
+  { links: [{ href: "/gerenciamento", label: "Início" }] },
+  {
+    titulo: "Operação",
+    links: [
+      { href: "/gerenciamento/agenda", label: "Agenda" },
+      { href: "/gerenciamento/comandas", label: "Comandas" },
+      { href: "/gerenciamento/day-use", label: "Day use" },
+      { href: "/gerenciamento/planos", label: "Planos" },
+    ],
+  },
+  {
+    titulo: "Configuração",
+    links: [
+      { href: "/gerenciamento/quadras", label: "Quadras" },
+      { href: "/gerenciamento/produtos", label: "Produtos", somenteAdmin: true },
+      { href: "/gerenciamento/torneios", label: "Torneios", somenteAdmin: true },
+      { href: "/gerenciamento/eventos", label: "Eventos" },
+      { href: "/gerenciamento/equipe", label: "Equipe" },
+    ],
+  },
 ];
 
-function useLinks(ehAdmin: boolean) {
+function ehLinkAtivo(pathname: string, href: string) {
+  return href === "/gerenciamento" ? pathname === href : pathname.startsWith(href);
+}
+
+// Sidebar do admin (componente Sidebar do shadcn/ui): fica abaixo do
+// cabeçalho fixo, que sobrepõe sua borda superior (ver GerenciamentoLayout —
+// top-14 + altura ajustada). No celular vira gaveta, aberta pelo
+// SidebarTrigger do cabeçalho. "Operação" e "Configuração" em verde pra
+// separar visualmente os grupos.
+export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
   const pathname = usePathname();
-  return LINKS.filter((link) => ehAdmin || !link.somenteAdmin).map((link) => ({
-    ...link,
-    ativo:
-      link.href === "/gerenciamento"
-        ? pathname === link.href
-        : pathname.startsWith(link.href),
-  }));
-}
-
-// Abas abaixo do cabeçalho — só a partir do md; no celular a navegação fica
-// no menu hambúrguer (GerenciamentoMenuMobile).
-export function GerenciamentoNav({ ehAdmin }: { ehAdmin: boolean }) {
-  const links = useLinks(ehAdmin);
 
   return (
-    <nav
-      aria-label="Navegação do gerenciamento"
-      className="mx-auto hidden max-w-6xl gap-1 overflow-x-auto px-4 md:flex"
-    >
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          aria-current={link.ativo ? "page" : undefined}
-          className={cn(
-            "shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors",
-            link.ativo
-              ? "border-primary text-foreground"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {link.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
-export function GerenciamentoMenuMobile({ ehAdmin }: { ehAdmin: boolean }) {
-  const links = useLinks(ehAdmin);
-  const [aberto, setAberto] = useState(false);
-
-  return (
-    <Sheet open={aberto} onOpenChange={setAberto}>
-      <SheetTrigger
-        render={<Button variant="ghost" size="icon" className="h-11 w-11 md:hidden" />}
-      >
-        <Menu aria-hidden />
-        <span className="sr-only">Abrir menu</span>
-      </SheetTrigger>
-      <SheetContent side="right">
-        <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
-        </SheetHeader>
-        <nav aria-label="Navegação do gerenciamento" className="flex flex-col gap-1 px-4">
-          {links.map((link) => (
-            <SheetClose
-              key={link.href}
-              render={
-                <Link
-                  href={link.href}
-                  aria-current={link.ativo ? "page" : undefined}
-                  className={cn(
-                    "flex h-11 items-center rounded-lg px-2 text-base font-medium hover:bg-muted",
-                    link.ativo && "bg-muted text-primary"
-                  )}
-                />
-              }
-              nativeButton={false}
-            >
-              {link.label}
-            </SheetClose>
-          ))}
-        </nav>
-        <div className="border-t px-4 pt-4">
-          <SairEquipe className="w-full justify-start px-2" />
-        </div>
-      </SheetContent>
-    </Sheet>
+    <Sidebar style={{ top: "3.5rem", height: "calc(100svh - 3.5rem)" }}>
+      <SidebarContent>
+        {GRUPOS.map((grupo, indice) => {
+          const links = grupo.links.filter((link) => ehAdmin || !link.somenteAdmin);
+          if (links.length === 0) return null;
+          return (
+            <SidebarGroup key={indice}>
+              {indice > 0 && <SidebarSeparator className="mb-2" />}
+              {grupo.titulo && (
+                <SidebarGroupLabel className="font-semibold text-sidebar-primary-foreground">
+                  {grupo.titulo}
+                </SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {links.map((link) => (
+                    <SidebarMenuItem key={link.href}>
+                      <SidebarMenuButton isActive={ehLinkAtivo(pathname, link.href)} render={<Link href={link.href} />}>
+                        {link.label}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
+      </SidebarContent>
+    </Sidebar>
   );
 }
