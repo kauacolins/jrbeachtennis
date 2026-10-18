@@ -68,37 +68,39 @@ export function TorneioVisaoGeral({
         </Button>
       </div>
 
-      {torneio.bannerUrl && (
-        <div className="relative aspect-[3/1] w-full overflow-hidden rounded-xl bg-muted">
-          <Image src={torneio.bannerUrl} alt={torneio.nome} fill sizes="700px" className="object-cover" />
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-        <Badge variant={variantePorStatusTorneio(torneio.status)}>{rotuloStatusTorneio(torneio.status)}</Badge>
-        {torneio.destaqueHome && (
-          <span className="inline-flex items-center gap-1 text-warning">
-            <Star className="size-3.5 fill-warning" aria-hidden />
-            Destaque na home
-          </span>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+        {torneio.bannerUrl && (
+          <div className="relative aspect-[4/5] w-32 shrink-0 overflow-hidden rounded-xl bg-muted">
+            <Image src={torneio.bannerUrl} alt={torneio.nome} fill sizes="128px" className="object-cover" />
+          </div>
         )}
-        <span className="inline-flex items-center gap-1.5">
-          <CalendarClock className="size-4" aria-hidden />
-          {formatarDataCurta(torneio.dataInicio)} – {formatarDataCurta(torneio.dataFim)}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <Ticket className="size-4" aria-hidden />
-          Inscrições {formatarDataCurta(torneio.inscricoesAbrem)} {formatarHora(torneio.inscricoesAbrem)} –{" "}
-          {formatarDataCurta(torneio.inscricoesFecham)} {formatarHora(torneio.inscricoesFecham)}
-        </span>
-        <Link
-          href={`/torneios/${torneio.slug}`}
-          target="_blank"
-          className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
-        >
-          /torneios/{torneio.slug}
-          <ExternalLink className="size-3.5" aria-hidden />
-        </Link>
+
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <Badge variant={variantePorStatusTorneio(torneio.status)}>{rotuloStatusTorneio(torneio.status)}</Badge>
+          {torneio.destaqueHome && (
+            <span className="inline-flex items-center gap-1 text-warning">
+              <Star className="size-3.5 fill-warning" aria-hidden />
+              Destaque na home
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarClock className="size-4" aria-hidden />
+            {formatarDataCurta(torneio.dataInicio)} – {formatarDataCurta(torneio.dataFim)}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Ticket className="size-4" aria-hidden />
+            Inscrições {formatarDataCurta(torneio.inscricoesAbrem)} {formatarHora(torneio.inscricoesAbrem)} –{" "}
+            {formatarDataCurta(torneio.inscricoesFecham)} {formatarHora(torneio.inscricoesFecham)}
+          </span>
+          <Link
+            href={`/torneios/${torneio.slug}`}
+            target="_blank"
+            className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
+          >
+            /torneios/{torneio.slug}
+            <ExternalLink className="size-3.5" aria-hidden />
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

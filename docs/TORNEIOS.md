@@ -33,11 +33,11 @@ Gênero e nível deixam de ser campos com regra: viram parte do nome da categori
 
 ## Banner na home (pedido do Kaua, 2026-10-13)
 
-- No cadastro do torneio, o admin sobe um **banner horizontal** e marca "Destacar na home".
-- Tamanho recomendado: **1920 x 640 px (3:1)**, JPG ou WebP até 1 MB. Textos e logo no centro, porque no celular a imagem fica estreita e as bordas cortam.
+- No cadastro do torneio, o admin sobe um **banner vertical** e marca "Destacar na home".
+- Tamanho: **1080 x 1350 px (4:5, vertical, formato de post do Instagram)**, JPG ou WebP até 1 MB. A mesma arte serve pro site e pras redes. O cadastro avisa (sem bloquear) quando a imagem sai dessa proporção, porque aí as bordas são cortadas. (Trocado do antigo 1920 x 640 horizontal em 2026-10-18.)
 - A home mostra o banner logo abaixo do hero. Clicar leva para `/torneios/[slug]`.
 - Aparece só se o torneio não for rascunho nem cancelado e estiver dentro do prazo de destaque (`destaqueAte`, ou o último dia do torneio se vazio). Depois disso some sozinho.
-- Mais de um torneio destacado vira carrossel, ordenado pela data do torneio.
+- Os destacados aparecem como fileira de pôsteres (rolagem lateral no celular, grade no desktop), ordenados pela data do torneio.
 - O mesmo banner aparece no topo da página do torneio.
 - A imagem vai para um armazenamento de arquivos (Vercel Blob ou Supabase Storage), e o banco guarda só a URL.
 
@@ -81,7 +81,7 @@ model Torneio {
   nome                String
   descricao           String?       // regulamento, premiação, kit
   doacao              String?       // ex.: "1 kg de alimento não perecível"
-  bannerUrl           String?       // banner horizontal (home e topo da página do torneio)
+  bannerUrl           String?       // banner vertical 1080x1350 (home, lista, página do torneio e modal de novidades)
   destaqueHome        Boolean       @default(false) // mostrar o banner na home
   destaqueAte         DateTime?     // some da home depois disso; vazio = até dataFim
   dataInicio          DateTime      @db.Date
@@ -164,7 +164,7 @@ Mudanças nos modelos existentes:
 | Cliente | Inscrição | Categoria, atletas (e nome do time), valor e instruções de pagamento |
 | Cliente | Minhas inscrições | Status de cada inscrição e pagamento |
 | Admin | Torneios | Criar/editar torneio, banner e destaque na home, categorias, horários, quadras bloqueadas |
-| Público | Home | Banner dos torneios destacados abaixo do hero (carrossel se houver mais de um) |
+| Público | Home | Pôsteres dos torneios destacados abaixo do hero |
 | Admin | Inscritos | Lista por categoria, marcar pago, cancelar, exportar |
 
 ## Depois (fase seguinte)

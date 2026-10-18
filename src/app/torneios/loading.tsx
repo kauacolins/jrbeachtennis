@@ -8,10 +8,10 @@ export default function TorneiosLoading() {
         <Skeleton className="h-8 w-28 rounded-lg" />
         <Skeleton className="h-8 w-28 rounded-lg" />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex flex-col overflow-hidden rounded-xl border">
-            <Skeleton className="aspect-[16/9] w-full rounded-none" />
+            <Skeleton className="aspect-[4/5] w-full rounded-none" />
             <div className="flex flex-col gap-2 p-4">
               <Skeleton className="h-5 w-3/4" />
               <Skeleton className="h-4 w-1/2" />

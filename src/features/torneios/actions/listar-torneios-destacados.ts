@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // Banner da home (docs/TORNEIOS.md): só torneio não-rascunho/cancelado, com
 // destaqueHome marcado e banner, dentro do prazo (destaqueAte, ou o fim do
 // torneio se vazio — soma 1 dia porque dataFim é só a data, sem hora).
-// Mais de um vira carrossel, ordenado pela data do torneio.
+// Ordenado pela data do torneio.
 export async function listarTorneiosDestacados() {
   const agora = new Date();
   const candidatos = await prisma.torneio.findMany({

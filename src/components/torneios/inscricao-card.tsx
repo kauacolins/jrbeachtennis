@@ -23,7 +23,7 @@ export function InscricaoCard({ inscricao }: { inscricao: MinhaInscricao }) {
     <div className="flex gap-3 rounded-xl border p-4">
       <Link
         href={`/torneios/${torneio.slug}`}
-        className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="relative aspect-[4/5] w-16 shrink-0 overflow-hidden rounded-lg bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         {torneio.bannerUrl ? (
           <Image

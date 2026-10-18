@@ -20,7 +20,12 @@ import { cn } from "@/lib/utils";
 import { dataParaDatetimeLocal, dataParaISO } from "@/lib/format";
 import { slugify } from "@/lib/slug";
 import { STATUS_TORNEIO } from "@/lib/torneio";
-import { BANNER_TAMANHO_MAXIMO, BANNER_TIPOS_ACEITOS } from "@/lib/banner-torneio";
+import {
+  BANNER_ALTURA,
+  BANNER_LARGURA,
+  BANNER_TAMANHO_MAXIMO,
+  BANNER_TIPOS_ACEITOS,
+} from "@/lib/banner-torneio";
 import { SeletorData } from "@/components/gerenciamento/seletor-data";
 import { salvarTorneio } from "@/features/torneios/actions/salvar-torneio";
 import type { TorneioDetalhe } from "@/features/torneios/actions/obter-torneio";
@@ -81,8 +86,25 @@ export function TorneioDadosForm({
       toast.error("Banner grande demais. Máximo 1 MB.");
       return;
     }
+    const url = URL.createObjectURL(arquivo);
     setNovoBanner(arquivo);
-    setPrevia(URL.createObjectURL(arquivo));
+    setPrevia(url);
+    avisarSeForaDaProporcao(url);
+  }
+
+  // Não bloqueia: arte em outra proporção ainda funciona, só sai cortada
+  // pelo object-cover — o aviso é pro admin saber antes de publicar.
+  function avisarSeForaDaProporcao(url: string) {
+    const img = new window.Image();
+    img.onload = () => {
+      const esperada = BANNER_LARGURA / BANNER_ALTURA;
+      if (Math.abs(img.naturalWidth / img.naturalHeight - esperada) / esperada > 0.02) {
+        toast.warning(
+          `A imagem tem ${img.naturalWidth}×${img.naturalHeight}. O ideal é ${BANNER_LARGURA}×${BANNER_ALTURA} (vertical, 4:5) — fora disso as bordas são cortadas.`
+        );
+      }
+    };
+    img.src = url;
   }
 
   function removerBanner() {
@@ -143,7 +165,9 @@ export function TorneioDadosForm({
       <h2 className="font-heading text-lg font-bold">Dados do torneio</h2>
 
       <div className="flex flex-col gap-1.5">
-        <Label>Banner da home (1920×640, JPG ou WebP até 1 MB)</Label>
+        <Label>
+          Banner ({BANNER_LARGURA}×{BANNER_ALTURA}, vertical, JPG ou WebP até 1 MB)
+        </Label>
         <div
           role="button"
           tabIndex={bannerUploadHabilitado ? 0 : -1}
@@ -156,13 +180,13 @@ export function TorneioDadosForm({
             inputBanner.current?.click();
           }}
           className={cn(
-            "group relative aspect-[3/1] w-full max-w-xl overflow-hidden rounded-lg border bg-muted",
+            "group relative aspect-[4/5] w-full max-w-48 overflow-hidden rounded-lg border bg-muted",
             bannerUploadHabilitado ? "cursor-pointer" : "cursor-not-allowed opacity-70",
             "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           )}
         >
           {previa ? (
-            <Image src={previa} alt="Banner do torneio" fill sizes="700px" unoptimized className="object-cover" />
+            <Image src={previa} alt="Banner do torneio" fill sizes="192px" unoptimized className="object-cover" />
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
               <ImageIcon className="size-6" aria-hidden />

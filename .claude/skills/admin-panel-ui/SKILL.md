@@ -67,7 +67,7 @@ Referência visual em `design/referencias-painel/`: `01-dashboard-tela-final.png
 - **Comandas** (`docs/CONSUMO.md`): cards das comandas abertas (nome grande, hora, total parcial). Comanda aberta: produtos em botões grandes à esquerda (mais vendidos primeiro), itens com tipo (Bar, Day use, Reserva) e total à direita; "Fechar e receber" escolhe o método e marca tudo pago.
 - **Day use:** lista do dia com check-in em um toque, contador presentes/limite em bloco `accent`, marca "Mensal" quando o passe saiu por R$ 0.
 - **Mensalistas:** tabela com vencimento e dias restantes; Ativo `accent`, Vence em até 7 dias `warning`, Vencido `destructive`.
-- **Torneios** (`docs/CAMPEONATOS.md`): status Rascunho, Inscrições abertas, Em andamento, Encerrado; abas Dados, Banner e destaque na home (preview 1920x640), Categorias, Inscritos, Quadras bloqueadas.
+- **Torneios** (`docs/CAMPEONATOS.md`): status Rascunho, Inscrições abertas, Em andamento, Encerrado; abas Dados, Banner e destaque na home (banner vertical 1080x1350, preview em `aspect-[4/5]`; constantes em `src/lib/banner-torneio.ts`), Categorias, Inscritos, Quadras bloqueadas.
 - **Pagamentos** (`docs/PAGAMENTOS.md`): tabela com origem, método, status do gateway e link para o item pago; totais por método no topo.
 
 ## Regras gerais

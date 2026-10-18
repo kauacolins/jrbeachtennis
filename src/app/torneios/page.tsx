@@ -15,10 +15,9 @@ export const metadata: Metadata = {
 
 // Card do torneio (skill catalog-ui): foto em proporção fixa com fallback,
 // badge da situação sobre a foto, nome e data abaixo — o card inteiro é o
-// link pra página do torneio. bannerUrl é um banner horizontal (mesma arte
-// da home e do topo da página do torneio, aspect-[3/1]) — por isso o card
-// usa aspect-[16/9] e só 2 colunas no desktop, em vez do 4/3 genérico de
-// foto de produto, que cortava muito a lateral do banner.
+// link pra página do torneio. bannerUrl é o banner vertical 1080x1350 (mesma
+// arte da home e da página do torneio), então a foto do card usa aspect-[4/5]
+// pra mostrar a arte inteira, sem corte.
 function TorneioCard({ torneio, agora }: { torneio: TorneioPublico; agora: Date }) {
   const info = infoStatusTorneioPublico(torneio, agora);
   const aberto = estaComInscricoesAbertas(torneio, agora);
@@ -28,13 +27,13 @@ function TorneioCard({ torneio, agora }: { torneio: TorneioPublico; agora: Date 
       href={`/torneios/${torneio.slug}`}
       className="group flex flex-col overflow-hidden rounded-xl border outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <div className="relative aspect-[16/9] w-full bg-muted">
+      <div className="relative aspect-[4/5] w-full bg-muted">
         {torneio.bannerUrl ? (
           <Image
             src={torneio.bannerUrl}
             alt={torneio.nome}
             fill
-            sizes="(min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-200 group-hover:scale-105"
           />
         ) : (
@@ -64,7 +63,7 @@ function TorneioCard({ torneio, agora }: { torneio: TorneioPublico; agora: Date 
 
 function ListaTorneios({ torneios, agora }: { torneios: TorneioPublico[]; agora: Date }) {
   return (
-    <ul className="grid gap-4 sm:grid-cols-2">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {torneios.map((torneio) => (
         <li key={torneio.id}>
           <TorneioCard torneio={torneio} agora={agora} />

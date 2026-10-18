@@ -46,7 +46,7 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-14">
+                  <TableHead className="w-12">
                     <span className="sr-only">Banner</span>
                   </TableHead>
                   <TableHead>Nome</TableHead>
@@ -65,13 +65,13 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
                     onClick={() => router.push(`/gerenciamento/torneios/${torneio.id}`)}
                   >
                     <TableCell className="py-2">
-                      <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">
+                      <div className="relative aspect-[4/5] w-8 shrink-0 overflow-hidden rounded-md bg-muted">
                         {torneio.bannerUrl ? (
                           <Image
                             src={torneio.bannerUrl}
                             alt={torneio.nome}
                             fill
-                            sizes="40px"
+                            sizes="32px"
                             className="object-cover"
                           />
                         ) : (

@@ -46,9 +46,9 @@ function infoTipo(chave: string) {
 }
 
 // Modal que abre ao entrar no site com avisos ativos e torneios de inscrição
-// aberta (ver listarEventosAtivos, montado em layout.tsx). Visual de banner
-// (igual ao carrossel de torneios da home) pra chamar mais atenção que uma
-// lista simples. "Visto" é guardado por item no localStorage, não por
+// aberta (ver listarEventosAtivos, montado em layout.tsx). Visual de pôster
+// vertical 4:5 (o formato do banner do torneio, 1080x1350) pra chamar mais
+// atenção que uma lista simples. "Visto" é guardado por item no localStorage, não por
 // sessão — um evento novo sempre aparece de novo, mesmo que o visitante já
 // tenha fechado o modal de outro evento antes.
 export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
@@ -89,7 +89,7 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
     <Dialog open={aberto} onOpenChange={fechar}>
       <DialogContent
         showCloseButton={false}
-        className="gap-0 overflow-hidden p-0 sm:max-w-md"
+        className="gap-0 overflow-hidden p-0 sm:max-w-sm"
       >
         <DialogTitle className="sr-only">Novidades da Arena JR</DialogTitle>
         <DialogClose
@@ -115,14 +115,14 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
                   <Link
                     href={item.href}
                     onClick={() => fechar(false)}
-                    className="relative block aspect-[16/10] w-full overflow-hidden bg-muted outline-none"
+                    className="relative block aspect-[4/5] w-full overflow-hidden bg-muted outline-none"
                   >
                     {item.imagemUrl ? (
                       <Image
                         src={item.imagemUrl}
                         alt={item.titulo}
                         fill
-                        sizes="(min-width: 640px) 448px, 100vw"
+                        sizes="(min-width: 640px) 384px, 100vw"
                         unoptimized
                         className="object-cover"
                       />

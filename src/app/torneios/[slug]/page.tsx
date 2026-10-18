@@ -46,21 +46,23 @@ export default async function TorneioPublicoPage({
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-10">
+    // Banner vertical (4:5): em cima no celular, coluna fixa à esquerda no
+    // desktop — fica à vista enquanto a pessoa rola as categorias.
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pt-6 pb-10 md:flex-row md:items-start md:gap-10 md:pt-10">
       {torneio.bannerUrl && (
-        <div className="relative aspect-[3/1] w-full overflow-hidden bg-muted">
+        <div className="relative mx-auto aspect-[4/5] w-full max-w-sm shrink-0 overflow-hidden rounded-xl bg-muted md:sticky md:top-20 md:mx-0 md:w-72">
           <Image
             src={torneio.bannerUrl}
             alt={torneio.nome}
             fill
             priority
-            sizes="100vw"
+            sizes="(min-width: 768px) 288px, (min-width: 384px) 384px, 100vw"
             className="object-cover"
           />
         </div>
       )}
 
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-6">
         <div className="flex flex-col gap-2">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
