@@ -14,7 +14,7 @@ export default async function InscritosPage({ params }: { params: Promise<{ id: 
   if (!torneio) notFound();
 
   return (
-    <div className="px-4 py-6">
+    <div>
       <InscritosLista torneio={torneio} inscricoes={inscricoes} />
     </div>
   );

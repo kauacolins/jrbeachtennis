@@ -16,7 +16,7 @@ export default async function PlanosPage({
   const mensal = produtos.find((p) => p.tipo === "MENSAL");
 
   return (
-    <div className="px-4 py-6">
+    <div>
       <PlanosLista planos={planos} filtro={filtro} precoCentavos={mensal?.precoCentavos ?? null} />
     </div>
   );

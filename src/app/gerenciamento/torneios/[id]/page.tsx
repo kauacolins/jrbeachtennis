@@ -12,7 +12,7 @@ export default async function TorneioPage({ params }: { params: Promise<{ id: st
   if (!torneio) notFound();
 
   return (
-    <div className="px-4 py-6">
+    <div>
       <TorneioVisaoGeral torneio={torneio} inscricoes={inscricoes} />
     </div>
   );

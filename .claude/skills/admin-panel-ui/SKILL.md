@@ -12,8 +12,9 @@ Referência visual em `design/referencias-painel/`: `01-dashboard-tela-final.png
 ## Tradução da referência para a marca
 | Na referência | Na Arena JR |
 |---|---|
-| Sidebar verde escura | Sidebar preta: envolva o `<Sidebar>` em `className="dark"` para usar os tokens `sidebar` do modo escuro (`#0A0D10`, ativo limão) em qualquer tema |
-| Item ativo com marca verde | Barra limão de 3 px à esquerda + ícone limão; fundo `sidebar-accent` |
+| Sidebar verde escura | Sidebar que **segue o tema do site** pelos tokens `sidebar` (claro `#F8FAF6`, escuro `#0A0D10` preto Arena). Nunca force `className="dark"` (nem cor fixa como `bg-black`) no `<Sidebar>` ou num ancestral: ela ficaria escura no tema claro. Logo com par claro/escuro: `/logo.png` com `dark:hidden` e `/logo_branca.png` com `hidden dark:block` |
+| Itens do menu com cantos arredondados | Cantos retos: `rounded-none` em `SidebarMenuButton` e `SidebarMenuSubButton`, aplicado no uso (não em `components/ui/sidebar.tsx`) |
+| Item ativo com marca verde | Barra de 3 px à esquerda (`border-sidebar-primary`) + ícone `text-sidebar-primary`; fundo `sidebar-accent`. O token já resolve a cor certa: preto no claro, limão no escuro (limão sobre fundo claro não tem contraste) |
 | Botão escuro "Quick Sale" na topbar | Botão `primary` (limão, texto preto) "Venda rápida". É o único limão da topbar |
 | Botões cheios no rodapé dos widgets ("See all bookings", "Create Quick Sale") | `variant="secondary"` largura total; se for a ação principal da tela, `primary` |
 | Blocos de estatística verde-claro | `bg-accent text-accent-foreground`, número grande em Archivo |
@@ -26,13 +27,16 @@ Referência visual em `design/referencias-painel/`: `01-dashboard-tela-final.png
 - Grupo `app/(admin)/painel/` com `layout.tsx` que checa o perfil Admin no servidor (RNF03).
 - Sidebar (`SidebarProvider` do shadcn) com dois modos: aberta `w-64` (wireframe 03) e trilho de ícones `w-14` (tela 01), alternados pelo botão no topo e lembrados em cookie. No topo: logo Arena JR. Itens com subitens usam `Collapsible` com chevron.
 - Menu agrupado com rótulos em `text-[11px] uppercase tracking-wide text-muted-foreground`:
-  - **Principal:** Dashboard, Agenda, Reservas (Lista de reservas, Bloqueios), Comandas, Day use
+  - **Principal:** Dashboard, Agenda, Reservas (Lista de reservas, quando existir), Comandas, Day use
   - **Clientes:** Clientes, Mensalistas
   - **Eventos:** Torneios
   - **Financeiro:** Pagamentos, Relatórios
-  - **Configuração:** Quadras e horários, Produtos e preços, Produtos do bar, Equipe
+  - **Configuração:** Quadras e horários (Quadras, Horários, Bloqueios), Produtos e preços, Produtos do bar, Equipe
+- Seções com várias telas viram subitens `Collapsible` na própria sidebar. Não crie submenu lateral dentro da página (`layout.tsx` com nav ao lado do conteúdo).
+- Padding padrão das telas (`px-4 py-6 md:px-6`) fica só no `app/gerenciamento/layout.tsx`, em volta do `children` dentro do `SidebarInset`. `page.tsx` e `loading.tsx` não repetem `px-*`/`py-*` no wrapper externo; só controlam `gap`, `max-w` etc.
+- Cada tela do menu tem rota própria e só o item mais específico fica ativo. Não aninhe uma seção dentro da rota de outra (ex.: Clientes em `/gerenciamento/clientes`, não em `/equipe/clientes`).
 - Badge de contagem só quando pede ação (comandas abertas, mensais vencendo, inscrições sem pagamento).
-- Topbar `h-14 sticky top-0 border-b bg-background`: título da página em Archivo à esquerda; ao centro busca `Command` (Ctrl K) por cliente, comanda ou reserva; à direita "Venda rápida" (`primary`), "Nova reserva" (`outline`), ícones de configurações e notificações, e avatar com nome.
+- Topbar `h-14 sticky top-0 border-b bg-background`: título da página em Archivo à esquerda; ao centro busca `Command` (Ctrl K) por cliente, comanda ou reserva; à direita "Venda rápida" (`primary`), "Nova reserva" (`outline`), alternador de tema (`ThemeToggle` de `@/components/theme-toggle`, o mesmo do site), ícones de configurações e notificações, e avatar com nome.
 - Mobile: sidebar vira `Sheet`; Dashboard, Agenda, Comandas e Day use também numa barra inferior fixa.
 
 ## Dashboard (tela 01)
@@ -76,7 +80,7 @@ Referência visual em `design/referencias-painel/`: `01-dashboard-tela-final.png
 
 ## Checklist
 - [ ] Rota protegida no servidor
-- [ ] Sidebar preta nos dois temas, ativo com barra limão; aberta e em trilho funcionando
+- [ ] Sidebar acompanha o tema (troque claro/escuro e confira fundo, texto, item ativo e logo); só tokens `sidebar-*`, sem `dark` forçado; aberta, em trilho e no `Sheet` mobile funcionando
 - [ ] Um só botão `primary` por área; status em `accent`/`warning`/`muted`, nunca limão
 - [ ] Widgets com cabeçalho, filtros, lista e rodapé no mesmo padrão
 - [ ] Agenda com painel de detalhe à direita sem cobrir a grade

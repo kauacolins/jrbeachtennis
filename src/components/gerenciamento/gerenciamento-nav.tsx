@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  CalendarClock,
   CalendarDays,
   ChevronRight,
   LandPlot,
@@ -55,21 +54,15 @@ interface LinkNav {
 }
 
 // Agrupamento do admin-panel-ui: Principal (operação do dia), Clientes,
-// Eventos (torneios) e Configuração (baixa frequência). "Reservas" tem só
-// Bloqueios por enquanto — Lista de reservas ainda não existe como tela
-// própria (hoje mora dentro da Agenda).
+// Eventos (torneios) e Configuração (baixa frequência). Quadras, horários e
+// bloqueios ficam juntos como subitens: são as três facetas de como uma
+// quadra fica disponível pra reserva (RF10/RF11/RF12).
 const GRUPOS: { titulo?: string; links: LinkNav[] }[] = [
   {
     titulo: "Principal",
     links: [
       { href: "/gerenciamento", label: "Dashboard", icon: LayoutDashboard },
       { href: "/gerenciamento/agenda", label: "Agenda", icon: CalendarDays },
-      {
-        href: "/gerenciamento/quadras/bloqueios",
-        label: "Reservas",
-        icon: CalendarClock,
-        subitens: [{ href: "/gerenciamento/quadras/bloqueios", label: "Bloqueios" }],
-      },
       { href: "/gerenciamento/comandas", label: "Comandas", icon: Receipt },
       { href: "/gerenciamento/day-use", label: "Day use", icon: Ticket },
     ],
@@ -77,7 +70,7 @@ const GRUPOS: { titulo?: string; links: LinkNav[] }[] = [
   {
     titulo: "Clientes",
     links: [
-      { href: "/gerenciamento/equipe/clientes", label: "Clientes", icon: Users },
+      { href: "/gerenciamento/clientes", label: "Clientes", icon: Users },
       { href: "/gerenciamento/planos", label: "Mensalistas", icon: UserRound },
     ],
   },
@@ -88,7 +81,16 @@ const GRUPOS: { titulo?: string; links: LinkNav[] }[] = [
   {
     titulo: "Configuração",
     links: [
-      { href: "/gerenciamento/quadras", label: "Quadras e horários", icon: LandPlot },
+      {
+        href: "/gerenciamento/quadras",
+        label: "Quadras e horários",
+        icon: LandPlot,
+        subitens: [
+          { href: "/gerenciamento/quadras", label: "Quadras" },
+          { href: "/gerenciamento/quadras/horarios", label: "Horários" },
+          { href: "/gerenciamento/quadras/bloqueios", label: "Bloqueios" },
+        ],
+      },
       { href: "/gerenciamento/produtos", label: "Produtos e preços", icon: Package, somenteAdmin: true },
       { href: "/gerenciamento/eventos", label: "Eventos", icon: Megaphone },
       { href: "/gerenciamento/equipe", label: "Equipe", icon: UsersRound },
@@ -96,8 +98,20 @@ const GRUPOS: { titulo?: string; links: LinkNav[] }[] = [
   },
 ];
 
+// Páginas de verdade do menu — um pai com subitens não é página própria (o
+// href dele só serve pra destacar a seção na sidebar), só os subitens contam.
+const PAGINAS = GRUPOS.flatMap((g) => g.links.flatMap((l) => (l.subitens?.length ? l.subitens : [l])));
+
+// Só a página mais específica que casa com a rota fica ativa — senão
+// /quadras/bloqueios acenderia também "Quadras e horários" (/quadras).
+function paginaAtual(pathname: string) {
+  return PAGINAS.filter((p) =>
+    p.href === "/gerenciamento" ? pathname === p.href : pathname === p.href || pathname.startsWith(`${p.href}/`)
+  ).sort((a, b) => b.href.length - a.href.length)[0];
+}
+
 function ehLinkAtivo(pathname: string, href: string) {
-  return href === "/gerenciamento" ? pathname === href : pathname.startsWith(href);
+  return paginaAtual(pathname)?.href === href;
 }
 
 function useGrupos(ehAdmin: boolean) {
@@ -119,35 +133,29 @@ function useGrupos(ehAdmin: boolean) {
 
 /** Título da página atual, pra topbar — procura nos links (e subitens) o que casa com a rota. */
 function useTituloPagina() {
-  const pathname = usePathname();
-  // Um pai com subitens não é página própria (o href dele só serve pra
-  // destacar a seção na sidebar) — pro título, só os subitens contam.
-  const todos = GRUPOS.flatMap((g) => g.links.flatMap((l) => (l.subitens?.length ? l.subitens : [l])));
-  const match = todos
-    .filter((l) => ehLinkAtivo(pathname, l.href))
-    .sort((a, b) => b.href.length - a.href.length)[0];
-  return match?.label ?? "Gerenciamento";
+  return paginaAtual(usePathname())?.label ?? "Gerenciamento";
 }
 
 export function TituloPagina() {
   return <h1 className="font-heading text-lg font-semibold">{useTituloPagina()}</h1>;
 }
 
-// Estilo do item ativo (admin-panel-ui): barra limão de 3px à esquerda +
-// ícone limão, fundo sidebar-accent (já vem do data-active do botão).
-function classeAtiva(ativo: boolean) {
-  return cn(ativo && "border-l-[3px] border-sidebar-primary pl-[5px]");
+// Estilo dos itens (admin-panel-ui): cantos retos; o ativo ganha barra de
+// 3px à esquerda + ícone na cor sidebar-primary (preto no tema claro, limão
+// no escuro), fundo sidebar-accent (já vem do data-active do botão).
+function classeItem(ativo: boolean) {
+  return cn("rounded-none", ativo && "border-l-[3px] border-sidebar-primary pl-[5px]");
 }
 
-// Sidebar do admin: sempre no tema escuro (preto Arena), independente do
-// tema do site — por isso o `className="dark"` aqui, não no layout. Dois
-// modos (aberta/trilho de ícones) vêm de graça do collapsible="icon" do
-// shadcn, com o estado lembrado em cookie pelo próprio SidebarProvider.
+// Sidebar do admin: segue o tema do site pelos tokens `sidebar` (claro
+// #F8FAF6, escuro #0A0D10 preto Arena). Dois modos (aberta/trilho de
+// ícones) vêm de graça do collapsible="icon" do shadcn, com o estado
+// lembrado em cookie pelo próprio SidebarProvider.
 export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
   const grupos = useGrupos(ehAdmin);
 
   return (
-    <Sidebar collapsible="icon" className="dark" style={{ top: "3.5rem", height: "calc(100svh - 3.5rem)" }}>
+    <Sidebar collapsible="icon" style={{ top: "3.5rem", height: "calc(100svh - 3.5rem)" }}>
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex h-10 items-center justify-between gap-2 px-1">
           <Link
@@ -155,12 +163,20 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
             className="flex min-w-0 items-center gap-2 overflow-hidden group-data-[collapsible=icon]:hidden"
           >
             <Image
+              src="/logo.png"
+              alt="Arena JR"
+              width={160}
+              height={53}
+              priority
+              className="h-6 w-auto shrink-0 dark:hidden"
+            />
+            <Image
               src="/logo_branca.png"
               alt="Arena JR"
               width={160}
               height={53}
               priority
-              className="h-6 w-auto shrink-0"
+              className="hidden h-6 w-auto shrink-0 dark:block"
             />
           </Link>
           <SidebarTrigger className="hidden shrink-0 md:flex" />
@@ -185,7 +201,7 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
                       <SidebarMenuItem key={link.href}>
                         <Collapsible defaultOpen={link.ativo} className="group/collapsible">
                           <CollapsibleTrigger
-                            render={<SidebarMenuButton isActive={link.ativo} className={classeAtiva(link.ativo)} />}
+                            render={<SidebarMenuButton isActive={link.ativo} className={classeItem(link.ativo)} />}
                           >
                             <Icone className={cn(link.ativo && "text-sidebar-primary")} />
                             <span>{link.label}</span>
@@ -195,7 +211,7 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
                             <SidebarMenuSub>
                               {link.subitens.map((sub) => (
                                 <SidebarMenuSubItem key={sub.href}>
-                                  <SidebarMenuSubButton isActive={sub.ativo} render={<Link href={sub.href} />}>
+                                  <SidebarMenuSubButton isActive={sub.ativo} className="rounded-none" render={<Link href={sub.href} />}>
                                     {sub.label}
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
@@ -212,7 +228,7 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
                       <SidebarMenuButton
                         isActive={link.ativo}
                         tooltip={link.label}
-                        className={classeAtiva(link.ativo)}
+                        className={classeItem(link.ativo)}
                         render={<Link href={link.href} />}
                       >
                         <Icone className={cn(link.ativo && "text-sidebar-primary")} />

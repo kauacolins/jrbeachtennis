@@ -55,7 +55,7 @@ export default async function InicioPage({
   const vendasHoje = historicoHoje?.comandas.filter((c) => c.status === "FECHADA").length ?? 0;
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-6">
+    <div className="flex flex-col gap-6">
       <h2 className="font-heading text-xl font-semibold">
         {saudacao(agora)}, {usuario.name.split(" ")[0]}!
       </h2>

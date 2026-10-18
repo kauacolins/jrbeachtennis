@@ -11,7 +11,7 @@ export default async function TorneiosPage() {
   const torneios = await listarTorneios();
 
   return (
-    <div className="px-4 py-6">
+    <div>
       <TorneioLista torneios={torneios} />
     </div>
   );

@@ -21,7 +21,7 @@ export default async function ComandaPage({ params }: { params: Promise<{ id: st
   const categoriasProduto = ehAdmin ? await listarOpcoes(GRUPO_CATEGORIA_PRODUTO) : undefined;
 
   return (
-    <div className="px-4 py-6">
+    <div>
       <ComandaDetalhe
         comanda={comanda}
         produtos={produtos}

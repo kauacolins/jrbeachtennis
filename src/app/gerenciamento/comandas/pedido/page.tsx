@@ -19,7 +19,7 @@ export default async function PedidoPage() {
   const categoriasProduto = ehAdmin ? await listarOpcoes(GRUPO_CATEGORIA_PRODUTO) : undefined;
 
   return (
-    <div className="flex flex-col gap-4 px-4 py-6">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-xl font-bold">Comandas</h1>
         <ComandasNav />

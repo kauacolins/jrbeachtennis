@@ -40,6 +40,6 @@ export async function atualizarCliente(
     data: { name: nome, email, telefone: telefone || null },
   });
 
-  revalidatePath("/gerenciamento/equipe/clientes");
+  revalidatePath("/gerenciamento/clientes");
   return { ok: true };
 }

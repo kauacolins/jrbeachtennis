@@ -11,7 +11,7 @@ export default async function EventosPage() {
   const eventos = await listarEventosAdmin();
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-6">
+    <div className="flex flex-col gap-6">
       <EventosLista eventos={eventos} />
     </div>
   );

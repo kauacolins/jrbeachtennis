@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { GerenciamentoSidebar, TituloPagina } from "@/components/gerenciamento/gerenciamento-nav";
 import { SairEquipe } from "@/components/auth/sair-equipe";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // RNF03: toda rota de admin checa o perfil no servidor. O middleware só
 // garante que existe sessão (ver src/middleware.ts); aqui é onde o papel
@@ -64,13 +65,17 @@ export default async function GerenciamentoLayout({
             <ShoppingBag aria-hidden />
             Venda rápida
           </Button>
+          <ThemeToggle />
           <SairEquipe nome={admin.name} />
         </div>
       </header>
 
       <GerenciamentoSidebar ehAdmin={admin.role === "ADMIN"} />
 
-      <SidebarInset className="bg-muted/30 pt-14">{children}</SidebarInset>
+      {/* Padding padrão de toda tela do painel fica aqui, não em cada page.tsx. */}
+      <SidebarInset className="bg-muted/30 pt-14">
+        <div className="px-4 py-6 md:px-6">{children}</div>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
