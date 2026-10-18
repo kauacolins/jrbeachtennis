@@ -31,6 +31,7 @@ export function TorneioDetalhe({
         <Button
           variant="ghost"
           size="icon"
+          nativeButton={false}
           render={<Link href={`/gerenciamento/torneios/${torneio.id}`} />}
         >
           <ArrowLeft aria-hidden />
@@ -40,6 +41,7 @@ export function TorneioDetalhe({
         <Button
           variant="outline"
           size="sm"
+          nativeButton={false}
           render={<Link href={`/gerenciamento/torneios/${torneio.id}/inscritos`} />}
         >
           <Users aria-hidden />

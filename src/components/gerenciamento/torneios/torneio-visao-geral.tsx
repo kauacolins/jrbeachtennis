@@ -48,7 +48,7 @@ export function TorneioVisaoGeral({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" render={<Link href="/gerenciamento/torneios" />}>
+        <Button variant="ghost" size="icon" nativeButton={false} render={<Link href="/gerenciamento/torneios" />}>
           <ArrowLeft aria-hidden />
           <span className="sr-only">Voltar</span>
         </Button>
@@ -56,12 +56,13 @@ export function TorneioVisaoGeral({
         <Button
           variant="outline"
           size="sm"
+          nativeButton={false}
           render={<Link href={`/gerenciamento/torneios/${torneio.id}/inscritos`} />}
         >
           <Users aria-hidden />
           Inscritos
         </Button>
-        <Button size="sm" render={<Link href={`/gerenciamento/torneios/${torneio.id}/edicao`} />}>
+        <Button size="sm" nativeButton={false} render={<Link href={`/gerenciamento/torneios/${torneio.id}/edicao`} />}>
           <Pencil aria-hidden />
           Editar
         </Button>

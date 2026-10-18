@@ -60,7 +60,7 @@ export function TorneioCriarForm() {
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-6">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" render={<Link href="/gerenciamento/torneios" />}>
+        <Button variant="ghost" size="icon" nativeButton={false} render={<Link href="/gerenciamento/torneios" />}>
           <ArrowLeft aria-hidden />
           <span className="sr-only">Voltar</span>
         </Button>

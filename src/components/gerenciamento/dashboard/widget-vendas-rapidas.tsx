@@ -50,7 +50,11 @@ export function WidgetVendasRapidas({
         </div>
       }
       footer={
-        <Button className="w-full" render={<Link href="/gerenciamento/comandas/pedido" />}>
+        <Button
+          className="w-full"
+          nativeButton={false}
+          render={<Link href="/gerenciamento/comandas/pedido" />}
+        >
           Nova venda rápida
         </Button>
       }

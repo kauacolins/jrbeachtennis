@@ -54,12 +54,13 @@ export default async function GerenciamentoLayout({
             variant="outline"
             size="sm"
             className="hidden sm:flex"
+            nativeButton={false}
             render={<Link href="/gerenciamento/agenda" />}
           >
             <CalendarPlus aria-hidden />
             Nova reserva
           </Button>
-          <Button size="sm" render={<Link href="/gerenciamento/comandas/pedido" />}>
+          <Button size="sm" nativeButton={false} render={<Link href="/gerenciamento/comandas/pedido" />}>
             <ShoppingBag aria-hidden />
             Venda rápida
           </Button>

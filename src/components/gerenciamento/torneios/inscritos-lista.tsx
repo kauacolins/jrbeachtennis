@@ -113,7 +113,7 @@ export function InscritosLista({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" render={<Link href={`/gerenciamento/torneios/${torneio.id}`} />}>
+        <Button variant="ghost" size="icon" nativeButton={false} render={<Link href={`/gerenciamento/torneios/${torneio.id}`} />}>
           <ArrowLeft aria-hidden />
           <span className="sr-only">Voltar</span>
         </Button>
