@@ -57,6 +57,63 @@ O pedido fica só no navegador até ser lançado. Day use e reserva continuam se
 - **Cancelar** encerra o plano vigente a partir de agora; passes já usados continuam valendo.
 - Filtros: ativos, vencendo (até 7 dias) e vencidos.
 
+## Cliente vê a própria comanda (proposta, aguardando o Kaua)
+
+Pedido de 2026-10-19: o cliente quer acompanhar a própria comanda em tempo real. O Kaua pensou em associar por nome + celular.
+
+### Por que não só nome + celular
+
+- Nome sozinho não identifica (dois "João" na arena).
+- Celular identifica bem e o `Cliente` já guarda `telefone` único, então ele entra **para ligar a comanda à pessoa**.
+- Mas usar nome + celular **como senha** numa página pública deixa qualquer um que saiba o celular de alguém ver o consumo dela (o celular não é verificado e é fácil de descobrir). Por isso a chave de acesso é outra: um **link secreto da comanda**.
+
+### Como fica
+
+1. **Ligar a comanda ao cliente (opcional).** Ao abrir a comanda, o operador pode buscar o cliente por nome ou celular (a mesma busca do day use) ou cadastrar na hora (nome, sobrenome, celular opcional). Sem cliente, a comanda continua funcionando só com o nome, como hoje. Venda avulsa nunca tem cliente nem link.
+2. **Link + QR Code.** Toda comanda nasce com um código secreto aleatório (`tokenAcesso`, 128 bits). A tela da comanda no painel mostra um QR Code; o cliente aponta a câmera e abre `/comanda/<código>`, sem login e sem app.
+3. **Enviar por WhatsApp (sem custo).** Se a comanda tem cliente com celular, o botão "Enviar link" abre o WhatsApp do operador com a mensagem pronta (`wa.me/55<celular>?text=...`). Não usa API paga: o operador só aperta enviar.
+4. **Cliente com conta.** Se o `Cliente` está ligado a uma conta (`userId`, pelo mesmo celular), a comanda aberta aparece também em "Minhas reservas" / perfil, sem precisar do link.
+5. **Trocar o link.** Se o link foi parar com outra pessoa, o operador toca em "Gerar novo link" e o antigo para de funcionar.
+
+### O que o cliente vê (`/comanda/<código>`)
+
+- Nome da comanda, situação (aberta, paga, cancelada), itens (descrição, quantidade, valor), total e a hora da última atualização.
+- Só leitura: o cliente não lança, não remove e não paga pelo site (continua pagando no balcão, sem cobrança online).
+- Depois de paga ou cancelada, a página mostra o resumo até o fim do dia (America/Sao_Paulo); depois disso o link responde "comanda não encontrada".
+
+### Tempo real
+
+A página consulta `GET /api/comanda/<código>` a cada 5 segundos (sem cache) e para enquanto a aba está em segundo plano. Com o movimento de uma arena, isso é leve e funciona na Vercel sem servidor de WebSocket. Se um dia precisar de mais, troca-se a consulta por SSE sem mudar a tela.
+
+### Modelo de dados
+
+```prisma
+model Comanda {
+  // ...campos atuais
+  clienteId   String?  // opcional; ligado pela busca de cliente
+  cliente     Cliente? @relation(fields: [clienteId], references: [id])
+  tokenAcesso String   @unique // aleatório, gerado ao abrir; trocado em "Gerar novo link"
+
+  @@index([clienteId, status])
+}
+
+model Cliente {
+  // ...campos atuais
+  comandas Comanda[]
+}
+```
+
+A migration preenche `tokenAcesso` das comandas que já existem (`gen_random_uuid()`). O token novo é gerado no servidor com `crypto.randomBytes(16).toString("base64url")`. A rota `/comanda` fica fora do `middleware.ts` (é pública); a segurança vem do código ser impossível de adivinhar.
+
+### Requisitos novos
+
+| ID | Requisito | Perfil | Prioridade |
+| --- | --- | --- | --- |
+| RF40 | Cliente acompanha a comanda pelo link/QR Code, só leitura, atualizando sozinha | Cliente | Essencial |
+| RF41 | Ligar a comanda a um cliente (busca por nome ou celular, ou cadastro rápido) | Admin, Operador | Essencial |
+| RF42 | Mostrar QR Code, enviar o link pelo WhatsApp e gerar novo link | Admin, Operador | Essencial |
+| RF43 | Cliente logado vê a comanda aberta na conta dele, sem link | Cliente | Desejável |
+
 ## Regras
 
 1. O nome é texto livre. Se já houver comanda aberta com o mesmo nome (sem diferenciar maiúsculas e espaços), o sistema não cria outra: o operador acrescenta algo que diferencie (sobrenome, apelido: "João Paulo", "João do vôlei").
@@ -90,6 +147,7 @@ O pedido fica só no navegador até ser lançado. Day use e reserva continuam se
 | `/gerenciamento/comandas` | Comandas abertas, busca e "Nova comanda" |
 | `/gerenciamento/comandas/pedido` | Monta o pedido na grade e lança numa comanda aberta ou nova |
 | `/gerenciamento/comandas/[id]` | Lançar (bar, day use, reserva), consumo, receber e fechar |
+| `/comanda/[token]` | Público: o cliente acompanha a comanda (RF40) — proposta |
 | `/gerenciamento/comandas/historico` | Fechadas/canceladas do dia, total e por forma de pagamento |
 | `/gerenciamento/day-use` | Lista de day use do dia, vagas restantes (RF18) |
 | `/gerenciamento/planos` | Ativar, renovar e cancelar mensal (RF20) |
