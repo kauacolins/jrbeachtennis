@@ -79,11 +79,16 @@ export function AgendaDoDia({
           </Button>
         </div>
 
-        <AgendaGrid
-          agenda={agendaAtual}
-          hojeISO={hojeISO}
-          onSelecionarReserva={selecionarReserva}
-        />
+        {/* No celular a grade visual (uma coluna por quadra) fica larga e alta
+            demais pra tela — vira só a lista abaixo, que já é compacta e tem
+            os mesmos dados e ações. */}
+        <div className="hidden md:block">
+          <AgendaGrid
+            agenda={agendaAtual}
+            hojeISO={hojeISO}
+            onSelecionarReserva={selecionarReserva}
+          />
+        </div>
 
         <h2 className="mt-6 mb-2 text-sm font-semibold text-muted-foreground">
           Reservas do dia
