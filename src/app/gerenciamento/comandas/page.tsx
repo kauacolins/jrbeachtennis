@@ -1,5 +1,6 @@
 import { listarComandasAbertas } from "@/features/comandas/actions/listar-comandas";
-import { dataParaISO } from "@/lib/format";
+import { dataParaISO, contagem } from "@/lib/format";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { ComandasNav } from "@/components/gerenciamento/comandas/comandas-nav";
 import { ComandasPainel } from "@/components/gerenciamento/comandas/comandas-painel";
 
@@ -9,10 +10,11 @@ export default async function ComandasPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Comandas</h1>
-        <ComandasNav />
-      </div>
+      <CabecalhoLista
+        titulo="Comandas"
+        contagem={comandas.length > 0 ? contagem(comandas.length, "comanda aberta", "comandas abertas") : "Nenhuma comanda aberta"}
+        acao={<ComandasNav />}
+      />
       <ComandasPainel comandas={comandas} hojeISO={dataParaISO(new Date())} />
     </div>
   );

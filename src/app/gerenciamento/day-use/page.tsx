@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listarPassesDoDia } from "@/features/day-use/actions/listar-passes-dia";
 import { dataParaISO } from "@/lib/format";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { NavegacaoDia } from "@/components/gerenciamento/balcao/navegacao-dia";
 import { DayUseLista } from "@/components/gerenciamento/balcao/day-use-lista";
 
@@ -19,32 +20,27 @@ export default async function DayUsePage({
 
   const vagas = dia.limiteDiario !== null ? dia.limiteDiario - dia.totalAtivos : null;
 
+  const contagemPessoas = `${dia.totalAtivos} ${dia.totalAtivos === 1 ? "pessoa" : "pessoas"}${
+    dia.limiteDiario !== null ? ` de ${dia.limiteDiario}` : ""
+  }${
+    vagas !== null ? ` · ${vagas > 0 ? `${vagas} ${vagas === 1 ? "vaga" : "vagas"}` : "lotado"}` : ""
+  }`;
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Day use</h1>
-        <NavegacaoDia basePath="/gerenciamento/day-use" dataISO={dataISO} hojeISO={hojeISO} />
-      </div>
+      <CabecalhoLista
+        titulo="Day use"
+        contagem={contagemPessoas}
+        acao={<NavegacaoDia basePath="/gerenciamento/day-use" dataISO={dataISO} hojeISO={hojeISO} />}
+      />
 
-      <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
-        <span className="font-medium">
-          {dia.totalAtivos} {dia.totalAtivos === 1 ? "pessoa" : "pessoas"}
-          {dia.limiteDiario !== null && ` de ${dia.limiteDiario}`}
-          {vagas !== null && (
-            <span className="text-muted-foreground">
-              {" "}
-              · {vagas > 0 ? `${vagas} ${vagas === 1 ? "vaga" : "vagas"}` : "lotado"}
-            </span>
-          )}
-        </span>
-        <span className="text-muted-foreground">
-          Para lançar, abra a{" "}
-          <Link href="/gerenciamento/comandas" className="font-medium text-primary underline-offset-4 hover:underline">
-            comanda
-          </Link>{" "}
-          da pessoa e toque em Day use.
-        </span>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Para lançar, abra a{" "}
+        <Link href="/gerenciamento/comandas" className="font-medium text-primary underline-offset-4 hover:underline">
+          comanda
+        </Link>{" "}
+        da pessoa e toque em Day use.
+      </p>
 
       <DayUseLista key={dataISO} passes={dia.passes} />
     </div>

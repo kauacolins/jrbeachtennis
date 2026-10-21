@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { QuadraForm } from "@/components/gerenciamento/quadras/quadra-form";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
 import { filtrarPorBusca } from "@/lib/busca";
-import { formatarPreco } from "@/lib/format";
+import { contagem, formatarPreco } from "@/lib/format";
 import { removerQuadra } from "@/features/quadras/actions/remover-quadra";
 import type { QuadraAdmin } from "@/features/quadras/actions/listar-quadras-admin";
 import type { Modalidade } from "@/features/modalidades/actions/listar-modalidades";
@@ -55,13 +56,16 @@ export function QuadraLista({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Quadras</h1>
-        <Button size="sm" onClick={abrirNova}>
-          <Plus className="size-4" aria-hidden />
-          Nova quadra
-        </Button>
-      </div>
+      <CabecalhoLista
+        titulo="Quadras"
+        contagem={quadras.length > 0 ? contagem(quadras.length, "quadra cadastrada", "quadras cadastradas") : undefined}
+        acao={
+          <Button size="sm" onClick={abrirNova}>
+            <Plus className="size-4" aria-hidden />
+            Nova quadra
+          </Button>
+        }
+      />
 
       {quadras.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">

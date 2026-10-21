@@ -6,9 +6,10 @@ import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
 import { filtrarPorBusca } from "@/lib/busca";
-import { formatarPreco } from "@/lib/format";
+import { contagem, formatarPreco } from "@/lib/format";
 import { FotoProduto } from "@/components/gerenciamento/produtos/foto-produto";
 import { ProdutoFormDialog } from "@/components/gerenciamento/produtos/produto-form-dialog";
 import type { ProdutoBarAdmin } from "@/features/produtos/actions/listar-produtos";
@@ -34,16 +35,18 @@ export function ProdutosBarLista({
   }
 
   return (
-    <section aria-labelledby="bar-titulo" className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="bar-titulo" className="font-heading text-xl font-bold">
-          Bar
-        </h2>
-        <Button size="sm" onClick={() => abrir(null)}>
-          <Plus aria-hidden />
-          Novo produto
-        </Button>
-      </div>
+    <section aria-label="Bar" className="flex flex-col gap-3">
+      <CabecalhoLista
+        secao
+        titulo="Bar"
+        contagem={produtos.length > 0 ? contagem(produtos.length, "produto no cardápio", "produtos no cardápio") : undefined}
+        acao={
+          <Button size="sm" onClick={() => abrir(null)}>
+            <Plus aria-hidden />
+            Novo produto
+          </Button>
+        }
+      />
 
       {produtos.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">

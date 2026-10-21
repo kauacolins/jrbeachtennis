@@ -7,9 +7,10 @@ import { ImageIcon, Plus, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
 import { filtrarPorBusca } from "@/lib/busca";
-import { formatarDataCurta } from "@/lib/format";
+import { contagem, formatarDataCurta } from "@/lib/format";
 import { rotuloStatusTorneio, variantePorStatusTorneio } from "@/lib/torneio";
 import type { TorneioAdmin } from "@/features/torneios/actions/listar-torneios";
 
@@ -20,13 +21,16 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Torneios</h1>
-        <Button size="sm" onClick={() => router.push("/gerenciamento/torneios/novo")}>
-          <Plus aria-hidden />
-          Novo torneio
-        </Button>
-      </div>
+      <CabecalhoLista
+        titulo="Torneios"
+        contagem={torneios.length > 0 ? contagem(torneios.length, "torneio cadastrado", "torneios cadastrados") : undefined}
+        acao={
+          <Button size="sm" onClick={() => router.push("/gerenciamento/torneios/novo")}>
+            <Plus aria-hidden />
+            Novo torneio
+          </Button>
+        }
+      />
 
       {torneios.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">

@@ -72,3 +72,8 @@ export function formatarCpf(valor: string): string {
   }
   return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
 }
+
+/** "1 quadra" / "3 quadras" — contagem com singular/plural para os cabeçalhos de lista do admin. */
+export function contagem(total: number, singular: string, plural: string): string {
+  return `${total} ${total === 1 ? singular : plural}`;
+}

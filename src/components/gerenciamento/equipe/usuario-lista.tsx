@@ -14,9 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { UsuarioForm } from "@/components/gerenciamento/equipe/usuario-form";
-import { formatarTelefone } from "@/lib/format";
+import { contagem, formatarTelefone } from "@/lib/format";
 import { removerUsuario } from "@/features/usuarios/actions/remover-usuario";
 import { PAPEIS_EQUIPE } from "@/features/usuarios/schema";
 import type { UsuarioAdmin } from "@/features/usuarios/actions/listar-usuarios";
@@ -84,44 +85,48 @@ export function UsuarioLista({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative w-full max-w-sm">
-            <Search
-              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
-              type="search"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar por nome ou e-mail…"
-              aria-label="Buscar usuários"
-              className="h-9 pl-8"
-            />
-          </div>
+      <CabecalhoLista
+        titulo="Equipe"
+        contagem={contagem(usuarios.length, "pessoa na equipe", "pessoas na equipe")}
+        acao={
+          <Button size="sm" onClick={abrirNovo}>
+            <Plus className="size-4" aria-hidden />
+            Novo usuário
+          </Button>
+        }
+      />
 
-          <Select value={filtroPapel} onValueChange={(valor) => setFiltroPapel(valor as FiltroPapel)}>
-            <SelectTrigger aria-label="Filtrar por papel" className="h-9! w-40">
-              <SelectValue>
-                {(valor: FiltroPapel) => (valor === FILTRO_TODOS ? "Todos os papéis" : LABEL_PAPEL[valor])}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={FILTRO_TODOS}>Todos os papéis</SelectItem>
-              {PAPEIS_EQUIPE.map((papel) => (
-                <SelectItem key={papel} value={papel}>
-                  {LABEL_PAPEL[papel]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-sm">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome ou e-mail…"
+            aria-label="Buscar usuários"
+            className="h-9 pl-8"
+          />
         </div>
 
-        <Button size="sm" onClick={abrirNovo}>
-          <Plus className="size-4" aria-hidden />
-          Novo usuário
-        </Button>
+        <Select value={filtroPapel} onValueChange={(valor) => setFiltroPapel(valor as FiltroPapel)}>
+          <SelectTrigger aria-label="Filtrar por papel" className="h-9! w-40">
+            <SelectValue>
+              {(valor: FiltroPapel) => (valor === FILTRO_TODOS ? "Todos os papéis" : LABEL_PAPEL[valor])}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTRO_TODOS}>Todos os papéis</SelectItem>
+            {PAPEIS_EQUIPE.map((papel) => (
+              <SelectItem key={papel} value={papel}>
+                {LABEL_PAPEL[papel]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {usuariosFiltrados.length === 0 ? (

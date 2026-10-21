@@ -1,6 +1,7 @@
 import { listarHistoricoComandas } from "@/features/comandas/actions/listar-comandas";
 import { dataParaISO, formatarPreco } from "@/lib/format";
 import { rotuloMetodo } from "@/lib/pagamento";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { ComandasNav } from "@/components/gerenciamento/comandas/comandas-nav";
 import { HistoricoComandasLista } from "@/components/gerenciamento/comandas/historico-comandas-lista";
 import { NavegacaoDia } from "@/components/gerenciamento/balcao/navegacao-dia";
@@ -20,10 +21,7 @@ export default async function HistoricoComandasPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Comandas</h1>
-        <ComandasNav />
-      </div>
+      <CabecalhoLista titulo="Comandas" acao={<ComandasNav />} />
 
       <NavegacaoDia basePath="/gerenciamento/comandas/historico" dataISO={dataISO} hojeISO={hojeISO} />
 

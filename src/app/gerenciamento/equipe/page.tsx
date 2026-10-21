@@ -7,10 +7,5 @@ import { UsuarioLista } from "@/components/gerenciamento/equipe/usuario-lista";
 export default async function EquipePage() {
   const [usuarios, admin] = await Promise.all([listarUsuarios(), exigirAdmin()]);
 
-  return (
-    <div className="flex flex-col gap-3">
-      <h1 className="font-heading text-xl font-bold">Equipe</h1>
-      <UsuarioLista usuarios={usuarios} usuarioAtualId={admin?.id ?? ""} />
-    </div>
-  );
+  return <UsuarioLista usuarios={usuarios} usuarioAtualId={admin?.id ?? ""} />;
 }

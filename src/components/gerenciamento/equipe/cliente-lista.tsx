@@ -6,8 +6,9 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { ClienteForm } from "@/components/gerenciamento/equipe/cliente-form";
-import { formatarDataCurta, formatarTelefone } from "@/lib/format";
+import { contagem, formatarDataCurta, formatarTelefone } from "@/lib/format";
 import type { ClienteAdmin } from "@/features/usuarios/actions/listar-clientes";
 import { normalizarBusca } from "@/lib/busca";
 
@@ -32,23 +33,26 @@ export function ClienteLista({ clientes }: { clientes: ClienteAdmin[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Clientes</h1>
-        <div className="relative w-full max-w-sm">
-          <Search
-            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            type="search"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome, e-mail ou telefone…"
-            aria-label="Buscar clientes"
-            className="h-9 pl-8"
-          />
-        </div>
-      </div>
+      <CabecalhoLista
+        titulo="Clientes"
+        contagem={clientes.length > 0 ? contagem(clientes.length, "cliente cadastrado", "clientes cadastrados") : undefined}
+        acao={
+          <div className="relative w-full max-w-sm">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              type="search"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por nome, e-mail ou telefone…"
+              aria-label="Buscar clientes"
+              className="h-9 pl-8"
+            />
+          </div>
+        }
+      />
 
       {clientesFiltrados.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">

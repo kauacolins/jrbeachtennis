@@ -19,10 +19,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { BuscarCliente } from "@/components/gerenciamento/balcao/buscar-cliente";
 import { SeletorMetodo } from "@/components/gerenciamento/balcao/seletor-metodo";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
 import { filtrarPorBusca } from "@/lib/busca";
 import { cn } from "@/lib/utils";
-import { formatarDataCurta, formatarPreco, formatarTelefone } from "@/lib/format";
+import { contagem, formatarDataCurta, formatarPreco, formatarTelefone } from "@/lib/format";
 import { ativarPlano, cancelarPlano, type FiltroPlano, type PlanoLinha } from "@/features/planos/actions/planos";
 import type { MetodoPagamento } from "@/app/generated/prisma/enums";
 
@@ -36,6 +37,18 @@ const VAZIO: Record<FiltroPlano, string> = {
   ativos: "Nenhum plano mensal ativo.",
   vencendo: "Nenhum plano vence nos próximos 7 dias.",
   vencidos: "Ninguém com plano vencido.",
+};
+
+const CONTAGEM_SINGULAR: Record<FiltroPlano, string> = {
+  ativos: "plano ativo",
+  vencendo: "plano vencendo",
+  vencidos: "plano vencido",
+};
+
+const CONTAGEM_PLURAL: Record<FiltroPlano, string> = {
+  ativos: "planos ativos",
+  vencendo: "planos vencendo",
+  vencidos: "planos vencidos",
 };
 
 // RF20: o mensal é vendido no balcão e já entra pago. Renovar começa no fim
@@ -91,13 +104,20 @@ export function PlanosLista({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Planos mensais</h1>
-        <Button size="sm" onClick={() => abrir(null)}>
-          <Plus aria-hidden />
-          Ativar plano
-        </Button>
-      </div>
+      <CabecalhoLista
+        titulo="Planos mensais"
+        contagem={
+          planos.length > 0
+            ? contagem(planos.length, CONTAGEM_SINGULAR[filtro], CONTAGEM_PLURAL[filtro])
+            : undefined
+        }
+        acao={
+          <Button size="sm" onClick={() => abrir(null)}>
+            <Plus aria-hidden />
+            Ativar plano
+          </Button>
+        }
+      />
 
       <nav aria-label="Situação do plano" className="flex gap-1">
         {ABAS.map((aba) => (

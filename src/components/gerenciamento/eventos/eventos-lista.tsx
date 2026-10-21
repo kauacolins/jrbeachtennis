@@ -7,10 +7,11 @@ import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { filtrarPorBusca } from "@/lib/busca";
-import { formatarDataCurta, formatarHora } from "@/lib/format";
+import { contagem, formatarDataCurta, formatarHora } from "@/lib/format";
 import { ImagemEvento } from "@/components/gerenciamento/eventos/imagem-evento";
 import { EventoFormDialog } from "@/components/gerenciamento/eventos/evento-form-dialog";
 import { removerEvento } from "@/features/eventos/actions/remover-evento";
@@ -41,16 +42,17 @@ export function EventosLista({ eventos }: { eventos: EventoAdmin[] }) {
   }
 
   return (
-    <section aria-labelledby="eventos-titulo" className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <h1 id="eventos-titulo" className="font-heading text-xl font-bold">
-          Eventos
-        </h1>
-        <Button size="sm" onClick={() => abrir(null)}>
-          <Plus aria-hidden />
-          Novo evento
-        </Button>
-      </div>
+    <section aria-label="Eventos" className="flex flex-col gap-3">
+      <CabecalhoLista
+        titulo="Eventos"
+        contagem={eventos.length > 0 ? contagem(eventos.length, "evento cadastrado", "eventos cadastrados") : undefined}
+        acao={
+          <Button size="sm" onClick={() => abrir(null)}>
+            <Plus aria-hidden />
+            Novo evento
+          </Button>
+        }
+      />
 
       {eventos.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
