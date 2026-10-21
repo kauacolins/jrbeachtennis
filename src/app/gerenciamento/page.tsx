@@ -10,6 +10,7 @@ import { listarInscricoesPendentes } from "@/features/torneios/actions/listar-in
 import { WidgetReservas } from "@/components/gerenciamento/dashboard/widget-reservas";
 import { WidgetVendasRapidas } from "@/components/gerenciamento/dashboard/widget-vendas-rapidas";
 import { WidgetPendencias } from "@/components/gerenciamento/dashboard/widget-pendencias";
+import { ResumoDia } from "@/components/gerenciamento/dashboard/resumo-dia";
 
 function saudacao(agora: Date) {
   const hora = Number(formatInTimeZone(agora, TIME_ZONE, "H"));
@@ -54,15 +55,44 @@ export default async function InicioPage({
   ).length;
   const vendasHoje = historicoHoje?.comandas.filter((c) => c.status === "FECHADA").length ?? 0;
 
+  const reservasHoje = agenda.quadras.reduce(
+    (soma, q) => soma + q.blocos.filter((b) => b.tipo === "reserva" && b.status !== "CANCELADA").length,
+    0
+  );
+
+  // Ocupação do dia: minutos reservados / minutos de grade abertos, só nas
+  // quadras com horário cadastrado pra esse dia da semana.
+  const quadrasAbertas = agenda.quadras.filter(
+    (q): q is typeof q & { abreMin: number; fechaMin: number } => q.abreMin !== null && q.fechaMin !== null
+  );
+  const minutosDisponiveis = quadrasAbertas.reduce((soma, q) => soma + (q.fechaMin - q.abreMin), 0);
+  const minutosReservados = quadrasAbertas.reduce(
+    (soma, q) =>
+      soma +
+      q.blocos
+        .filter((b) => b.tipo === "reserva" && b.status !== "CANCELADA")
+        .reduce((s, b) => s + (b.fimMin - b.inicioMin), 0),
+    0
+  );
+  const ocupacaoPercentual = minutosDisponiveis > 0 ? Math.round((minutosReservados / minutosDisponiveis) * 100) : null;
+
   return (
     <div className="flex flex-col gap-6">
       <h2 className="font-heading text-xl font-semibold">
         {saudacao(agora)}, {usuario.name.split(" ")[0]}!
       </h2>
 
+      <ResumoDia
+        faturadoHojeCentavos={historicoHoje?.totalCentavos ?? 0}
+        reservasHoje={reservasHoje}
+        ocupacaoPercentual={ocupacaoPercentual}
+        comandasAbertas={comandasAbertas.length}
+      />
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <WidgetReservas agendaInicial={agenda} />
         <WidgetVendasRapidas
+          className="order-first md:order-none"
           comandasAbertas={comandasAbertas}
           faturadoHojeCentavos={historicoHoje?.totalCentavos ?? 0}
           vendasHoje={vendasHoje}

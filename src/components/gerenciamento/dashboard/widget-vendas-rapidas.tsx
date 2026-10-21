@@ -19,10 +19,12 @@ export function WidgetVendasRapidas({
   comandasAbertas,
   faturadoHojeCentavos,
   vendasHoje,
+  className,
 }: {
   comandasAbertas: ComandaResumo[];
   faturadoHojeCentavos: number;
   vendasHoje: number;
+  className?: string;
 }) {
   const [busca, setBusca] = useState("");
 
@@ -35,6 +37,7 @@ export function WidgetVendasRapidas({
     <WidgetCard
       titulo="Vendas rápidas"
       href="/gerenciamento/comandas"
+      className={className}
       acoes={
         <div className="flex flex-col gap-2">
           <Input
@@ -51,6 +54,7 @@ export function WidgetVendasRapidas({
       }
       footer={
         <Button
+          size="lg"
           className="w-full"
           nativeButton={false}
           render={<Link href="/gerenciamento/comandas/pedido" />}
