@@ -159,7 +159,7 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex h-10 items-center justify-between gap-2 px-1">
           <Link
-            href="/gerenciamento"
+            href="/"
             className="flex min-w-0 items-center gap-2 overflow-hidden group-data-[collapsible=icon]:hidden"
           >
             <Image

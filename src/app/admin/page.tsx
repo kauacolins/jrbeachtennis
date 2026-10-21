@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { exigirAdmin } from "@/lib/require-admin";
 import { AdminEntrarForm } from "@/components/auth/admin-entrar-form";
@@ -24,7 +25,10 @@ export default async function AdminEntrarPage({
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-10 px-4 py-12">
-      <span className="flex self-center items-center rounded-md bg-white p-1.5 dark:bg-transparent dark:p-0">
+      <Link
+        href="/"
+        className="flex self-center items-center rounded-md bg-white p-1.5 dark:bg-transparent dark:p-0"
+      >
         <Image
           src="/logo.png"
           alt="Arena JR"
@@ -41,7 +45,7 @@ export default async function AdminEntrarPage({
           priority
           className="hidden h-10 w-auto dark:block"
         />
-      </span>
+      </Link>
       <AdminEntrarForm redirectPara={redirectPara} />
     </div>
   );

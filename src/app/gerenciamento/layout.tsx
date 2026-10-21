@@ -27,7 +27,10 @@ export default async function GerenciamentoLayout({
       <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between gap-2 border-b bg-background px-4">
         <div className="flex min-w-0 items-center gap-2">
           <SidebarTrigger className="md:hidden" />
-          <span className="flex items-center rounded-md bg-white p-1 md:hidden dark:bg-transparent dark:p-0">
+          <Link
+            href="/"
+            className="flex items-center rounded-md bg-white p-1 md:hidden dark:bg-transparent dark:p-0"
+          >
             <Image
               src="/logo.png"
               alt="Arena JR"
@@ -44,7 +47,7 @@ export default async function GerenciamentoLayout({
               priority
               className="hidden h-7 w-auto dark:block"
             />
-          </span>
+          </Link>
           <div className="hidden md:block">
             <TituloPagina />
           </div>

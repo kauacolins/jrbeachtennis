@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "@/lib/auth-client";
+import { sessaoEhDaEquipe } from "@/features/auth/actions/acesso-equipe";
 
 // O client do better-auth pode resolver a sessão a partir de um cache de
 // cookie já na primeira renderização do cliente — antes do efeito rodar.
@@ -18,10 +19,29 @@ function useMontado() {
   return montado;
 }
 
+// O papel (ADMIN/OPERATOR) não vem na sessão do Better Auth, só o servidor
+// sabe. Alguém da equipe pode navegar pelo site público logado — nesse caso
+// os links de conta aqui têm que ir pro /gerenciamento, nunca pra área do
+// cliente comum (/minhas-reservas).
+function useEhContaDaEquipe(temUsuario: boolean) {
+  const [ehEquipe, setEhEquipe] = useState(false);
+
+  useEffect(() => {
+    if (!temUsuario) {
+      setEhEquipe(false);
+      return;
+    }
+    sessaoEhDaEquipe().then(setEhEquipe);
+  }, [temUsuario]);
+
+  return ehEquipe;
+}
+
 export function AuthStatus() {
   const router = useRouter();
   const session = useSession();
   const montado = useMontado();
+  const ehEquipe = useEhContaDaEquipe(montado && Boolean(session.data?.user));
 
   if (!montado || session.isPending) {
     return <div className="h-11 w-16" aria-hidden />;
@@ -32,7 +52,7 @@ export function AuthStatus() {
     return (
       <div className="flex items-center gap-1">
         <Link
-          href="/minhas-reservas"
+          href={ehEquipe ? "/gerenciamento" : "/minhas-reservas"}
           className="text-sm font-medium transition-colors hover:text-brand-text"
         >
           Olá, {primeiroNome}
@@ -65,16 +85,19 @@ export function AuthStatus() {
 }
 
 // Versão enxuta pra landing page: nada de "Olá, {nome}"/"Sair" ali, só um
-// botão "Entrar" de cliente. A equipe entra por /admin (login separado).
+// botão "Entrar". A equipe normalmente entra por /admin (login separado),
+// mas se já estiver logada e passar pela home, o botão tem que levar pro
+// /gerenciamento — nunca pra área do cliente comum.
 export function AuthEntrarButton() {
   const session = useSession();
   const montado = useMontado();
+  const ehEquipe = useEhContaDaEquipe(montado && Boolean(session.data?.user));
 
   if (!montado || session.isPending) {
     return <div className="h-11 w-20" aria-hidden />;
   }
 
-  const destino = session.data?.user ? "/minhas-reservas" : "/entrar";
+  const destino = session.data?.user ? (ehEquipe ? "/gerenciamento" : "/minhas-reservas") : "/entrar";
 
   return (
     <Button
