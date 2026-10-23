@@ -45,3 +45,11 @@ export function formatarDataExtensaISO(dataISO: string) {
   const diaSemana = diaSemanaDaData(dataISO);
   return `${DIAS_SEMANA_EXTENSO[diaSemana]}, ${dia} de ${MESES[mes - 1]}`;
 }
+
+const DIAS_SEMANA_CURTO = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+
+/** "sáb, 11 de out" — versão curta de formatarDataExtensaISO pra telas estreitas. */
+export function formatarDataCurtaISO(dataISO: string) {
+  const [, mes, dia] = dataISO.split("-").map(Number);
+  return `${DIAS_SEMANA_CURTO[diaSemanaDaData(dataISO)]}, ${dia} de ${MESES[mes - 1].slice(0, 3)}`;
+}

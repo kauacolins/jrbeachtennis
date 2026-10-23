@@ -172,6 +172,44 @@ export function ReservasDoDiaLista({
     });
   }
 
+  // Marcar pago + cancelar, iguais no card (celular) e na linha da tabela.
+  function acoes(reserva: ReservaComQuadra, className?: string) {
+    const emAndamento = pendenteId === reserva.id && isPending;
+    return (
+      <>
+        <ConfirmarBotao
+          size="sm"
+          variant="outline"
+          className={className}
+          label={reserva.pago ? "Marcar não pago" : "Marcar pago"}
+          titulo={reserva.pago ? "Marcar como não pago?" : "Marcar como pago?"}
+          descricao={
+            reserva.pago
+              ? "O pagamento volta a aparecer como pendente."
+              : "Confirma que o pagamento dessa reserva foi recebido."
+          }
+          textoConfirmar="Confirmar"
+          textoConfirmando="Salvando…"
+          disabled={emAndamento}
+          onConfirmar={() => marcarPago(reserva.id, !reserva.pago)}
+        />
+        <ConfirmarBotao
+          size="sm"
+          variant="destructive"
+          actionVariant="destructive"
+          className={className}
+          label="Cancelar"
+          titulo="Cancelar essa reserva?"
+          descricao="Libera o horário na agenda. Essa ação não pode ser desfeita."
+          textoConfirmar="Cancelar reserva"
+          textoConfirmando="Cancelando…"
+          disabled={emAndamento}
+          onConfirmar={() => cancelar(reserva.id)}
+        />
+      </>
+    );
+  }
+
   if (reservas.length === 0) {
     return (
       <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
@@ -184,9 +222,13 @@ export function ReservasDoDiaLista({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="flex flex-1 flex-col gap-1.5">
-          <Label htmlFor="busca-reservas">Buscar</Label>
+      {/* Celular: busca na linha inteira e os dois filtros lado a lado embaixo,
+          sem rótulo visível (o próprio valor "Todos os status" já diz o que é)
+          — empilhar três campos rotulados comia meia tela antes da lista.
+          A partir de sm: tudo numa linha, com rótulo. */}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-end sm:gap-3">
+        <div className="col-span-2 flex flex-1 flex-col gap-1.5">
+          <Label htmlFor="busca-reservas" className="sr-only sm:not-sr-only">Buscar</Label>
           <div className="relative">
             <Search
               className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
@@ -198,18 +240,18 @@ export function ReservasDoDiaLista({
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por nome, telefone ou quadra…"
-              className="h-9 pl-8"
+              className="h-10 pl-8 sm:h-9"
             />
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="filtro-pago">Pagamento</Label>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <Label htmlFor="filtro-pago" className="sr-only sm:not-sr-only">Pagamento</Label>
           <Select
             value={filtroPago}
             onValueChange={(valor) => atualizarParam("pago", valor as string)}
           >
-            <SelectTrigger id="filtro-pago" className="h-9! w-full sm:w-40">
+            <SelectTrigger id="filtro-pago" className="h-10! w-full sm:h-9! sm:w-40">
               <SelectValue>{(valor: FiltroPago) => labelFiltroPago(valor)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -222,13 +264,13 @@ export function ReservasDoDiaLista({
           </Select>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="filtro-status">Status</Label>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <Label htmlFor="filtro-status" className="sr-only sm:not-sr-only">Status</Label>
           <Select
             value={filtroStatus}
             onValueChange={(valor) => atualizarParam("status", valor as string)}
           >
-            <SelectTrigger id="filtro-status" className="h-9! w-full sm:w-44">
+            <SelectTrigger id="filtro-status" className="h-10! w-full sm:h-9! sm:w-44">
               <SelectValue>{(valor: FiltroStatus) => labelFiltroStatus(valor)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -249,105 +291,145 @@ export function ReservasDoDiaLista({
             : "Nenhuma reserva nesse dia."}
         </p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Horário</TableHead>
-              <TableHead className="hidden sm:table-cell">Quadra</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead className="hidden text-right md:table-cell">Valor</TableHead>
-              <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead>Pagamento</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          {/* Celular: um card por reserva — a tabela, com 4+ colunas e dois
+              botões por linha, espremia o nome do cliente e cortava as ações. */}
+          <ul className="flex flex-col gap-2 md:hidden">
             {reservasFiltradas.map((reserva) => {
-              const info =
-                STATUS_INFO[reserva.status ?? "CONFIRMADA"] ?? STATUS_INFO.CONFIRMADA;
-              const cancelada = reserva.status === "CANCELADA";
-              const emAndamento = pendenteId === reserva.id && isPending;
+              const status = reserva.status ?? "CONFIRMADA";
+              const info = STATUS_INFO[status] ?? STATUS_INFO.CONFIRMADA;
+              const cancelada = status === "CANCELADA";
+              const mostrarStatus = status !== "CONFIRMADA" && !cancelada;
+              const temValor = typeof reserva.valorCentavos === "number";
 
               return (
-                <TableRow key={reserva.id}>
-                  <TableCell className="font-medium whitespace-nowrap tabular-nums">
-                    <button
-                      type="button"
-                      onClick={() => onSelecionarReserva(reserva, reserva.quadraNome)}
-                      className="text-left underline-offset-4 outline-none hover:underline focus-visible:underline"
-                      aria-label={`Ver reserva das ${minutosParaHora(reserva.inicioMin)} na ${reserva.quadraNome}`}
-                    >
-                      {minutosParaHora(reserva.inicioMin)}–{minutosParaHora(reserva.fimMin)}
-                    </button>
-                  </TableCell>
-                  <TableCell className="hidden text-muted-foreground sm:table-cell">
-                    {reserva.quadraNome}
-                  </TableCell>
-                  <TableCell className={cn("max-w-56", cancelada && "line-through")}>
-                    <span className="block truncate">{reserva.titulo}</span>
-                    {reserva.subtitulo && (
-                      <span className="block truncate text-xs text-muted-foreground">{reserva.subtitulo}</span>
+                <li
+                  key={reserva.id}
+                  className={cn("rounded-xl border bg-background", cancelada && "opacity-70")}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onSelecionarReserva(reserva, reserva.quadraNome)}
+                    className="flex w-full flex-col gap-1.5 rounded-xl p-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                    aria-label={`Ver reserva das ${minutosParaHora(reserva.inicioMin)} na ${reserva.quadraNome}`}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-sm">
+                        <span className="font-semibold tabular-nums">
+                          {minutosParaHora(reserva.inicioMin)}–{minutosParaHora(reserva.fimMin)}
+                        </span>
+                        <span className="text-muted-foreground"> · {reserva.quadraNome}</span>
+                      </span>
+                      {cancelada ? (
+                        <Badge className={info.className}>{info.label}</Badge>
+                      ) : (
+                        <BadgePagamento pago={!!reserva.pago} />
+                      )}
+                    </span>
+                    <span className={cn("min-w-0", cancelada && "line-through")}>
+                      <span className="block truncate font-medium">{reserva.titulo}</span>
+                      {reserva.subtitulo && (
+                        <span className="block truncate text-sm text-muted-foreground">
+                          {reserva.subtitulo}
+                        </span>
+                      )}
+                    </span>
+                    {(mostrarStatus || temValor) && (
+                      <span className="flex items-center gap-2">
+                        {mostrarStatus && <Badge className={info.className}>{info.label}</Badge>}
+                        {temValor && (
+                          <span className="ml-auto text-sm font-medium tabular-nums">
+                            {formatarPreco(reserva.valorCentavos as number)}
+                          </span>
+                        )}
+                      </span>
                     )}
-                  </TableCell>
-                  <TableCell className="hidden text-right whitespace-nowrap tabular-nums md:table-cell">
-                    {typeof reserva.valorCentavos === "number" ? formatarPreco(reserva.valorCentavos) : "—"}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <Badge className={info.className}>{info.label}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {cancelada ? (
-                      <Badge className={cn(info.className, "md:hidden")}>{info.label}</Badge>
-                    ) : (
-                      <Badge
-                        variant={reserva.pago ? "outline" : "default"}
-                        className={reserva.pago ? "" : "bg-warning text-warning-foreground"}
-                      >
-                        {reserva.pago ? "Pago" : "A pagar"}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {!cancelada && (
-                      <div className="flex justify-end gap-2">
-                        <ConfirmarBotao
-                          size="sm"
-                          variant="outline"
-                          label={reserva.pago ? "Marcar não pago" : "Marcar pago"}
-                          titulo={
-                            reserva.pago ? "Marcar como não pago?" : "Marcar como pago?"
-                          }
-                          descricao={
-                            reserva.pago
-                              ? "O pagamento volta a aparecer como pendente."
-                              : "Confirma que o pagamento dessa reserva foi recebido."
-                          }
-                          textoConfirmar="Confirmar"
-                          textoConfirmando="Salvando…"
-                          disabled={emAndamento}
-                          onConfirmar={() => marcarPago(reserva.id, !reserva.pago)}
-                        />
-                        <ConfirmarBotao
-                          size="sm"
-                          variant="destructive"
-                          actionVariant="destructive"
-                          label="Cancelar"
-                          titulo="Cancelar essa reserva?"
-                          descricao="Libera o horário na agenda. Essa ação não pode ser desfeita."
-                          textoConfirmar="Cancelar reserva"
-                          textoConfirmando="Cancelando…"
-                          disabled={emAndamento}
-                          onConfirmar={() => cancelar(reserva.id)}
-                        />
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
+                  </button>
+                  {!cancelada && (
+                    <div className="grid grid-cols-2 gap-2 border-t p-2">
+                      {acoes(reserva, "h-10 w-full")}
+                    </div>
+                  )}
+                </li>
               );
             })}
-          </TableBody>
-        </Table>
+          </ul>
+
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Horário</TableHead>
+                  <TableHead>Quadra</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Pagamento</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reservasFiltradas.map((reserva) => {
+                  const info =
+                    STATUS_INFO[reserva.status ?? "CONFIRMADA"] ?? STATUS_INFO.CONFIRMADA;
+                  const cancelada = reserva.status === "CANCELADA";
+
+                  return (
+                    <TableRow key={reserva.id}>
+                      <TableCell className="font-medium whitespace-nowrap tabular-nums">
+                        <button
+                          type="button"
+                          onClick={() => onSelecionarReserva(reserva, reserva.quadraNome)}
+                          className="text-left underline-offset-4 outline-none hover:underline focus-visible:underline"
+                          aria-label={`Ver reserva das ${minutosParaHora(reserva.inicioMin)} na ${reserva.quadraNome}`}
+                        >
+                          {minutosParaHora(reserva.inicioMin)}–{minutosParaHora(reserva.fimMin)}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{reserva.quadraNome}</TableCell>
+                      <TableCell className={cn("max-w-56", cancelada && "line-through")}>
+                        <span className="block truncate">{reserva.titulo}</span>
+                        {reserva.subtitulo && (
+                          <span className="block truncate text-xs text-muted-foreground">{reserva.subtitulo}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap tabular-nums">
+                        {typeof reserva.valorCentavos === "number" ? formatarPreco(reserva.valorCentavos) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={info.className}>{info.label}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {cancelada ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <BadgePagamento pago={!!reserva.pago} />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {!cancelada && (
+                          <div className="flex justify-end gap-2">{acoes(reserva)}</div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+function BadgePagamento({ pago }: { pago: boolean }) {
+  return (
+    <Badge
+      variant={pago ? "outline" : "default"}
+      className={pago ? "" : "bg-warning text-warning-foreground"}
+    >
+      {pago ? "Pago" : "A pagar"}
+    </Badge>
   );
 }

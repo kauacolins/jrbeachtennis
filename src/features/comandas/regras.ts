@@ -22,15 +22,20 @@ async function comandaAberta(tx: Tx, comandaId: string) {
   return { ok: true as const };
 }
 
-// Regra 2: total = soma de quantidade × preço congelado.
+// Regra 2: total = soma de quantidade × preço congelado. Soma e grava numa
+// consulta só — toda ação de comanda termina aqui, e cada ida ao banco pesa
+// dentro da transação (ver transactionOptions em lib/prisma).
 async function recalcularTotal(tx: Tx, comandaId: string) {
-  const itens = await tx.itemComanda.findMany({
-    where: { comandaId },
-    select: { quantidade: true, precoUnitarioCentavos: true },
-  });
-  const total = itens.reduce((soma, i) => soma + i.quantidade * i.precoUnitarioCentavos, 0);
-  await tx.comanda.update({ where: { id: comandaId }, data: { totalCentavos: total } });
-  return total;
+  const [comanda] = await tx.$queryRaw<{ totalCentavos: number }[]>`
+    UPDATE "Comanda"
+    SET "totalCentavos" = COALESCE(
+      (SELECT SUM("quantidade" * "precoUnitarioCentavos")
+       FROM "ItemComanda" WHERE "comandaId" = ${comandaId}),
+      0
+    )
+    WHERE "id" = ${comandaId}
+    RETURNING "totalCentavos"`;
+  return comanda.totalCentavos;
 }
 
 // Regra 1: o nome é livre, mas não pode repetir o de outra comanda aberta —

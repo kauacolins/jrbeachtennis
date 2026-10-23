@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { formatarDataExtensaISO } from "@/lib/datas";
+import { formatarDataCurtaISO, formatarDataExtensaISO } from "@/lib/datas";
 
 // basePath: a página que recebe ?data= (agenda, day use, histórico de comandas).
 export function SeletorDataAdmin({
@@ -29,12 +29,20 @@ export function SeletorDataAdmin({
   return (
     <Popover open={aberto} onOpenChange={setAberto}>
       <PopoverTrigger
-        render={<Button variant="outline" size="sm" className="gap-1.5" />}
+        render={
+          <Button
+            variant="ghost"
+            className="h-full min-w-0 flex-1 gap-2 rounded-none border-x border-x-border px-3 dark:border-x-input"
+            aria-label={`Escolher data: ${formatarDataExtensaISO(dataISO)}`}
+          />
+        }
       >
-        <CalendarIcon className="size-3.5" aria-hidden />
-        <span className="capitalize">{formatarDataExtensaISO(dataISO)}</span>
+        <CalendarIcon aria-hidden />
+        {/* Por extenso não cabe ao lado das setas e do "Hoje" num celular. */}
+        <span className="truncate capitalize sm:hidden">{formatarDataCurtaISO(dataISO)}</span>
+        <span className="hidden capitalize sm:inline">{formatarDataExtensaISO(dataISO)}</span>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0" align="center">
         <Calendar
           mode="single"
           selected={selecionada}

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AgendaGrid } from "@/components/gerenciamento/agenda-grid";
 import { ReservasDoDiaLista } from "@/components/gerenciamento/reservas-dia-lista";
 import {
   ReservaDetalhePainel,
+  type PixArena,
   type SelecaoAgenda,
 } from "@/components/gerenciamento/reserva-detalhe-painel";
 import { NovaReservaDialog } from "@/components/gerenciamento/nova-reserva-dialog";
@@ -22,10 +23,15 @@ export function AgendaDoDia({
   agenda,
   hojeISO,
   quadrasAdmin,
+  navegacao,
+  pix,
 }: {
   agenda: AgendaDia;
   hojeISO: string;
   quadrasAdmin: QuadraAdmin[];
+  /** Controle de dia (vem do servidor) — entra no cabeçalho junto do título. */
+  navegacao: ReactNode;
+  pix?: PixArena | null;
 }) {
   const [quadras, setQuadras] = useState(agenda.quadras);
   const [selecao, setSelecao] = useState<SelecaoAgenda | null>(null);
@@ -72,8 +78,18 @@ export function AgendaDoDia({
   return (
     <div className="flex gap-4">
       <div className="min-w-0 flex-1">
-        <div className="mb-3 flex justify-end">
-          <Button className="h-11" onClick={() => setNovaReservaAberta(true)}>
+        {/* Celular: título + "Nova reserva" na mesma linha (ação ao alcance do
+            polegar, sem empurrar a lista pra baixo) e a navegação de dia
+            ocupando a linha de baixo inteira. Desktop: tudo numa linha,
+            título | dia | ação. A ordem é feita com `order` pra não duplicar
+            o botão. */}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <h1 className="order-1 mr-auto font-heading text-xl font-bold">Agenda do dia</h1>
+          {navegacao}
+          <Button
+            className="order-2 h-10 md:order-3 md:h-9"
+            onClick={() => setNovaReservaAberta(true)}
+          >
             <Plus aria-hidden />
             Nova reserva
           </Button>
@@ -103,6 +119,7 @@ export function AgendaDoDia({
       <ReservaDetalhePainel
         selecao={selecao}
         dataISO={agenda.dataISO}
+        pix={pix}
         onOpenChange={(aberto) => !aberto && setSelecao(null)}
         onAtualizado={atualizarBloco}
       />

@@ -38,6 +38,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 interface SubLinkNav {
@@ -143,8 +144,14 @@ export function TituloPagina() {
 // Estilo dos itens (admin-panel-ui): cantos retos; o ativo ganha barra de
 // 3px à esquerda + ícone na cor sidebar-primary (preto no tema claro, limão
 // no escuro), fundo sidebar-accent (já vem do data-active do botão).
-function classeItem(ativo: boolean) {
-  return cn("rounded-none", ativo && "border-l-[3px] border-sidebar-primary pl-[5px]");
+// No celular (gaveta) os itens crescem pra 44px — os 32px do desktop são
+// pequenos demais pro dedo.
+function classeItem(ativo: boolean, mobile: boolean) {
+  return cn(
+    "rounded-none",
+    mobile && "h-11 gap-3 px-3 text-[15px] [&_svg]:size-5",
+    ativo && (mobile ? "border-l-[3px] border-sidebar-primary pl-[9px]" : "border-l-[3px] border-sidebar-primary pl-[5px]")
+  );
 }
 
 // Sidebar do admin: segue o tema do site pelos tokens `sidebar` (claro
@@ -153,6 +160,12 @@ function classeItem(ativo: boolean) {
 // lembrado em cookie pelo próprio SidebarProvider.
 export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
   const grupos = useGrupos(ehAdmin);
+  const { isMobile, setOpenMobile } = useSidebar();
+  // Na gaveta do celular, tocar num link fecha o menu — senão a página nova
+  // carrega escondida atrás dele.
+  const fecharNoMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
     <Sidebar collapsible="icon" style={{ top: "3.5rem", height: "calc(100svh - 3.5rem)" }}>
@@ -185,14 +198,14 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
 
       <SidebarContent>
         {grupos.map((grupo, indice) => (
-          <SidebarGroup key={indice}>
+          <SidebarGroup key={indice} className={cn(isMobile && "py-1")}>
             {grupo.titulo && (
               <SidebarGroupLabel className="font-semibold text-sidebar-primary">
                 {grupo.titulo}
               </SidebarGroupLabel>
             )}
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className={cn(isMobile && "gap-1")}>
                 {grupo.links.map((link) => {
                   const Icone = link.icon;
 
@@ -201,17 +214,23 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
                       <SidebarMenuItem key={link.href}>
                         <Collapsible defaultOpen={link.ativo} className="group/collapsible">
                           <CollapsibleTrigger
-                            render={<SidebarMenuButton isActive={link.ativo} className={classeItem(link.ativo)} />}
+                            render={
+                              <SidebarMenuButton isActive={link.ativo} className={classeItem(link.ativo, isMobile)} />
+                            }
                           >
                             <Icone className={cn(link.ativo && "text-sidebar-primary")} />
                             <span>{link.label}</span>
-                            <ChevronRight className="ml-auto size-4 shrink-0 transition-transform group-aria-expanded/collapsible:rotate-90" />
+                            <ChevronRight className="ml-auto size-4! shrink-0 transition-transform group-aria-expanded/collapsible:rotate-90" />
                           </CollapsibleTrigger>
                           <CollapsibleContent>
-                            <SidebarMenuSub>
+                            <SidebarMenuSub className={cn(isMobile && "mx-5 gap-1 py-1")}>
                               {link.subitens.map((sub) => (
                                 <SidebarMenuSubItem key={sub.href}>
-                                  <SidebarMenuSubButton isActive={sub.ativo} className="rounded-none" render={<Link href={sub.href} />}>
+                                  <SidebarMenuSubButton
+                                    isActive={sub.ativo}
+                                    className={cn("rounded-none", isMobile && "h-10 px-3 text-[15px]")}
+                                    render={<Link href={sub.href} onClick={fecharNoMobile} />}
+                                  >
                                     {sub.label}
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
@@ -228,8 +247,8 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
                       <SidebarMenuButton
                         isActive={link.ativo}
                         tooltip={link.label}
-                        className={classeItem(link.ativo)}
-                        render={<Link href={link.href} />}
+                        className={classeItem(link.ativo, isMobile)}
+                        render={<Link href={link.href} onClick={fecharNoMobile} />}
                       >
                         <Icone className={cn(link.ativo && "text-sidebar-primary")} />
                         <span>{link.label}</span>

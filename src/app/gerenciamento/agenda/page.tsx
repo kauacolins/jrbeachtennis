@@ -1,12 +1,9 @@
-import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { obterAgendaDia } from "@/features/gerenciamento/actions/obter-agenda-dia";
 import { listarQuadrasAdmin } from "@/features/quadras/actions/listar-quadras-admin";
-import { adicionarDias } from "@/lib/datas";
 import { dataParaISO } from "@/lib/format";
+import { PIX_CHAVE_ARENA, PIX_TITULAR_ARENA } from "@/lib/constants";
 import { AgendaDoDia } from "@/components/gerenciamento/agenda-do-dia";
-import { SeletorDataAdmin } from "@/components/gerenciamento/seletor-data-admin";
+import { NavegacaoDia } from "@/components/gerenciamento/balcao/navegacao-dia";
 
 // RF13: agenda geral do dia, com todas as quadras.
 export default async function AgendaPage({
@@ -23,49 +20,26 @@ export default async function AgendaPage({
     listarQuadrasAdmin(),
   ]);
 
-  const anteriorISO = adicionarDias(dataISO, -1);
-  const proximaISO = adicionarDias(dataISO, 1);
-
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold">Agenda do dia</h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            render={<Link href={`/gerenciamento/agenda?data=${anteriorISO}`} aria-label="Dia anterior" />}
-            nativeButton={false}
-          >
-            <ChevronLeft aria-hidden />
-          </Button>
-          <SeletorDataAdmin dataISO={dataISO} />
-          {dataISO !== hojeISO && (
-            <Button
-              variant="outline"
-              size="sm"
-              render={<Link href="/gerenciamento/agenda" />}
-              nativeButton={false}
-            >
-              Hoje
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="icon"
-            render={<Link href={`/gerenciamento/agenda?data=${proximaISO}`} aria-label="Próximo dia" />}
-            nativeButton={false}
-          >
-            <ChevronRight aria-hidden />
-          </Button>
-        </div>
-      </div>
-
       <AgendaDoDia
         key={dataISO}
         agenda={agenda}
         hojeISO={hojeISO}
         quadrasAdmin={quadrasAdmin}
+        pix={
+          PIX_CHAVE_ARENA && PIX_TITULAR_ARENA
+            ? { chave: PIX_CHAVE_ARENA, titular: PIX_TITULAR_ARENA }
+            : null
+        }
+        navegacao={
+          <NavegacaoDia
+            basePath="/gerenciamento/agenda"
+            dataISO={dataISO}
+            hojeISO={hojeISO}
+            className="order-3 md:order-2"
+          />
+        }
       />
     </div>
   );
