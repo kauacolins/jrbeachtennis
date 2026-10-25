@@ -57,13 +57,13 @@ export function WidgetVendasRapidas({
         <div className="flex flex-col gap-2">
           <Button
             size="lg"
-            className="h-12 w-full text-base font-semibold md:h-11"
+            className="h-11 w-full max-md:h-12 max-md:text-base max-md:font-semibold"
             nativeButton={false}
             render={<Link href="/gerenciamento/comandas/pedido" />}
           >
             Nova venda rápida
           </Button>
-          <ComandaDayUseBotao className="h-12 w-full md:h-10" />
+          <ComandaDayUseBotao className="w-full max-md:h-12" />
         </div>
       }
     >
@@ -75,7 +75,7 @@ export function WidgetVendasRapidas({
             <li key={c.id}>
               <Link
                 href={`/gerenciamento/comandas/${c.id}`}
-                className="flex min-h-12 items-center gap-2 rounded-lg py-2 text-sm hover:bg-muted"
+                className="flex items-center gap-2 rounded-lg py-2 text-sm hover:bg-muted max-md:min-h-12"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{c.nome}</p>

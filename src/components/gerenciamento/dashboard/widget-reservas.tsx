@@ -112,7 +112,7 @@ export function WidgetReservas({ agendaInicial, className }: { agendaInicial: Ag
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-10 px-3"
+                    className="h-9 px-3 max-md:h-10"
                     disabled={emAndamento}
                     onClick={() => marcarPago(r.id)}
                   >

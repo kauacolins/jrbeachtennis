@@ -17,7 +17,7 @@ export function SugestoesEvento({ compacto = false }: { compacto?: boolean }) {
               href={hrefModeloEvento(modelo)}
               className={cn(
                 "flex items-center gap-3 rounded-lg text-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                compacto ? "min-h-12 py-2 pr-1" : "h-full border bg-background p-3"
+                compacto ? "py-2 pr-1 max-md:min-h-12" : "h-full border bg-background p-3"
               )}
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

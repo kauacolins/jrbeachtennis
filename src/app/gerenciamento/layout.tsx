@@ -5,7 +5,8 @@ import { CalendarPlus, ShoppingBag } from "lucide-react";
 import { exigirAdmin } from "@/lib/require-admin";
 import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { GerenciamentoSidebar, TituloPagina } from "@/components/gerenciamento/gerenciamento-nav";
+import { BarraInferiorMobile, GerenciamentoSidebar, TituloPagina } from "@/components/gerenciamento/gerenciamento-nav";
+import { obterContagensMenu } from "@/features/gerenciamento/actions/contagens-menu";
 import { SairEquipe } from "@/components/auth/sair-equipe";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -19,12 +20,13 @@ export default async function GerenciamentoLayout({
 }) {
   const admin = await exigirAdmin();
   if (!admin) redirect("/admin");
+  const contagens = await obterContagensMenu();
 
   return (
     <SidebarProvider>
       {/* Fixo e por cima da sidebar (z-40 > z-10 dela) — por isso ela some
           atrás dele no topo em vez de começar do zero junto. */}
-      <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between gap-2 border-b bg-background px-3 sm:px-4">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between gap-2 border-b bg-background px-3 sm:px-4 md:h-14">
         <div className="flex min-w-0 items-center gap-2">
           <SidebarTrigger className="size-10 md:hidden" />
           <Link
@@ -56,17 +58,19 @@ export default async function GerenciamentoLayout({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="lg"
-            className="hidden h-11 px-4 sm:flex"
+            size="sm"
+            className="hidden sm:flex"
             nativeButton={false}
             render={<Link href="/gerenciamento/agenda" />}
           >
             <CalendarPlus aria-hidden />
             Nova reserva
           </Button>
+          {/* Grande só no celular (alvo de toque); no desktop segue o tamanho
+              padrão da topbar. */}
           <Button
-            size="lg"
-            className="h-11 px-4 text-base font-semibold sm:px-5 [&_svg]:size-5!"
+            size="sm"
+            className="max-md:h-11 max-md:px-4 max-md:text-base max-md:font-semibold max-md:[&_svg]:size-5!"
             nativeButton={false}
             render={<Link href="/gerenciamento/comandas/pedido" />}
           >
@@ -80,12 +84,15 @@ export default async function GerenciamentoLayout({
         </div>
       </header>
 
-      <GerenciamentoSidebar ehAdmin={admin.role === "ADMIN"} nome={admin.name} />
+      <GerenciamentoSidebar ehAdmin={admin.role === "ADMIN"} nome={admin.name} contagens={contagens} />
 
       {/* Padding padrão de toda tela do painel fica aqui, não em cada page.tsx. */}
-      <SidebarInset className="min-w-0 bg-muted/30 pt-16">
-        <div className="px-4 py-4 md:px-6 md:py-6">{children}</div>
+      <SidebarInset className="min-w-0 bg-muted/30 pt-16 md:pt-14">
+        {/* pb-24 no celular: espaço pra barra inferior fixa não cobrir o fim da tela. */}
+        <div className="px-4 pt-4 pb-24 md:px-6 md:py-6">{children}</div>
       </SidebarInset>
+
+      <BarraInferiorMobile contagens={contagens} />
     </SidebarProvider>
   );
 }

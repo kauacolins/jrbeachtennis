@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarPlus, Sun } from "lucide-react";
+import { CalendarPlus } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { exigirAdmin } from "@/lib/require-admin";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { WidgetReservas } from "@/components/gerenciamento/dashboard/widget-rese
 import { WidgetVendasRapidas } from "@/components/gerenciamento/dashboard/widget-vendas-rapidas";
 import { WidgetPendencias } from "@/components/gerenciamento/dashboard/widget-pendencias";
 import { WidgetAvisos } from "@/components/gerenciamento/dashboard/widget-avisos";
+import { ComandaDayUseBotao } from "@/components/gerenciamento/balcao/comanda-day-use-botao";
 import { ResumoDia } from "@/components/gerenciamento/dashboard/resumo-dia";
 
 function saudacao(agora: Date) {
@@ -28,9 +29,10 @@ function saudacao(agora: Date) {
 // atalhos de navegação já moraram pra sidebar (ver GerenciamentoSidebar).
 //
 // No celular (operador no balcão) a ordem muda pro que é mais usado de pé:
-// atalhos grandes de reserva e day use (o header só tem espaço pra Venda
-// rápida), KPIs em 2x2, Vendas rápidas, Pendências, Reservas e Avisos. A
-// partir de md: volta a grade com Reservas primeiro.
+// atalhos grandes de nova reserva e comanda com day use (o header só tem
+// espaço pra Venda rápida; Day use em si está na barra inferior), KPIs em
+// 2x2, Vendas rápidas, Pendências, Reservas e Avisos. A partir de md: volta
+// a grade com Reservas primeiro.
 export default async function InicioPage({
   searchParams,
 }: {
@@ -101,15 +103,7 @@ export default async function InicioPage({
           <CalendarPlus aria-hidden />
           Nova reserva
         </Button>
-        <Button
-          variant="outline"
-          className="h-14 flex-col gap-1 bg-card text-sm font-semibold [&_svg]:size-5!"
-          nativeButton={false}
-          render={<Link href="/gerenciamento/day-use" />}
-        >
-          <Sun aria-hidden />
-          Day use
-        </Button>
+        <ComandaDayUseBotao className="h-14 flex-col gap-1 bg-card text-sm font-semibold max-md:h-14 [&_svg]:size-5!" />
       </div>
 
       <ResumoDia

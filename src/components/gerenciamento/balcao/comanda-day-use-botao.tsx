@@ -50,7 +50,7 @@ export function ComandaDayUseBotao({
       <Button
         type="button"
         variant={variant}
-        className={cn("h-11", className)}
+        className={cn("max-md:h-11", className)}
         onClick={() => {
           setErro(null);
           setAberto(true);
