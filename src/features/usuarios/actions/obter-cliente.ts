@@ -25,7 +25,8 @@ export interface ConsumoCliente {
 
 // Gerenciamento > Clientes > detalhe: cadastro + tudo que o cliente
 // consumiu na arena. Junta as fontes que não se falam direto:
-// - reservas da conta (Reserva.userId);
+// - reservas da conta (Reserva.userId) e as feitas no balcão pro cadastro
+//   dele (Reserva.clienteId);
 // - day use e mensal do cadastro de balcão (Cliente), ligado pela conta ou
 //   pelo mesmo telefone;
 // - inscrições em torneio que ele fez (quem paga);
@@ -57,7 +58,7 @@ export async function obterCliente(id: string) {
 
   const [reservas, passes, assinaturas, inscricoes, comandas] = await Promise.all([
     prisma.reserva.findMany({
-      where: { userId: id },
+      where: { OR: [{ userId: id }, { clienteId: { in: clienteIds } }] },
       select: {
         id: true,
         inicio: true,
@@ -111,7 +112,10 @@ export async function obterCliente(id: string) {
         status: { not: StatusComanda.CANCELADA },
         itens: {
           some: {
-            OR: [{ reserva: { userId: id } }, { passe: { clienteId: { in: clienteIds } } }],
+            OR: [
+              { reserva: { OR: [{ userId: id }, { clienteId: { in: clienteIds } }] } },
+              { passe: { clienteId: { in: clienteIds } } },
+            ],
           },
         },
       },

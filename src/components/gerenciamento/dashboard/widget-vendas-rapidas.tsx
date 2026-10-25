@@ -42,7 +42,7 @@ export function WidgetVendasRapidas({
         <div className="flex flex-col gap-2">
           <Input
             placeholder="Buscar comanda…"
-            className="h-8 text-xs"
+            className="h-11 text-base md:h-8 md:text-xs"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
@@ -55,7 +55,7 @@ export function WidgetVendasRapidas({
       footer={
         <Button
           size="lg"
-          className="h-11 w-full"
+          className="h-12 w-full text-base font-semibold md:h-11"
           nativeButton={false}
           render={<Link href="/gerenciamento/comandas/pedido" />}
         >
@@ -71,7 +71,7 @@ export function WidgetVendasRapidas({
             <li key={c.id}>
               <Link
                 href={`/gerenciamento/comandas/${c.id}`}
-                className="flex items-center gap-2 rounded-lg py-2 text-sm hover:bg-muted"
+                className="flex min-h-12 items-center gap-2 rounded-lg py-2 text-sm hover:bg-muted"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{c.nome}</p>

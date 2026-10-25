@@ -11,16 +11,20 @@ import { buscarClientes, type ClienteBalcao } from "@/features/clientes/actions/
 import { criarCliente } from "@/features/clientes/actions/criar-cliente";
 
 // Busca no cadastro do balcão por nome ou telefone; não achou, cadastra na
-// hora com nome, sobrenome e telefone (opcional). Usado no day use da comanda e nos planos.
+// hora com nome, sobrenome e telefone (opcional). Usado no day use da
+// comanda, nos planos e na Nova reserva da agenda.
 export function BuscarCliente({
   termoInicial = "",
   acaoLabel,
   pendente = false,
+  autoFocus = true,
   onSelecionar,
 }: {
   termoInicial?: string;
   acaoLabel: string;
   pendente?: boolean;
+  /** Desligar quando a busca não é o primeiro campo da tela (ex.: Nova reserva). */
+  autoFocus?: boolean;
   onSelecionar: (cliente: ClienteBalcao) => void;
 }) {
   const [termo, setTermo] = useState(termoInicial);
@@ -158,7 +162,7 @@ export function BuscarCliente({
         <Input
           aria-label="Buscar cliente por nome ou telefone"
           placeholder="Nome ou telefone"
-          autoFocus
+          autoFocus={autoFocus}
           value={termo}
           onChange={(e) => setTermo(e.target.value)}
           className="h-11 pl-9"

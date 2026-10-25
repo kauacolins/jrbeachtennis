@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CalendarPlus, Sun } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { exigirAdmin } from "@/lib/require-admin";
+import { Button } from "@/components/ui/button";
 import { dataParaISO } from "@/lib/format";
 import { TIME_ZONE } from "@/lib/constants";
 import { obterAgendaDia } from "@/features/gerenciamento/actions/obter-agenda-dia";
@@ -23,6 +26,11 @@ function saudacao(agora: Date) {
 // Dashboard do gerenciamento (admin-panel-ui): grade de widgets com o que o
 // operador precisa decidir agora, em vez de uma lista de atalhos — os
 // atalhos de navegação já moraram pra sidebar (ver GerenciamentoSidebar).
+//
+// No celular (operador no balcão) a ordem muda pro que é mais usado de pé:
+// atalhos grandes de reserva e day use (o header só tem espaço pra Venda
+// rápida), KPIs em 2x2, Vendas rápidas, Pendências, Reservas e Avisos. A
+// partir de md: volta a grade com Reservas primeiro.
 export default async function InicioPage({
   searchParams,
 }: {
@@ -78,10 +86,31 @@ export default async function InicioPage({
   const ocupacaoPercentual = minutosDisponiveis > 0 ? Math.round((minutosReservados / minutosDisponiveis) * 100) : null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="font-heading text-xl font-semibold">
+    <div className="flex flex-col gap-4 md:gap-6">
+      <h2 className="font-heading text-lg font-semibold md:text-xl">
         {saudacao(agora)}, {usuario.name.split(" ")[0]}!
       </h2>
+
+      <div className="grid grid-cols-2 gap-2 sm:hidden">
+        <Button
+          variant="outline"
+          className="h-14 flex-col gap-1 bg-card text-sm font-semibold [&_svg]:size-5!"
+          nativeButton={false}
+          render={<Link href="/gerenciamento/agenda" />}
+        >
+          <CalendarPlus aria-hidden />
+          Nova reserva
+        </Button>
+        <Button
+          variant="outline"
+          className="h-14 flex-col gap-1 bg-card text-sm font-semibold [&_svg]:size-5!"
+          nativeButton={false}
+          render={<Link href="/gerenciamento/day-use" />}
+        >
+          <Sun aria-hidden />
+          Day use
+        </Button>
+      </div>
 
       <ResumoDia
         faturadoHojeCentavos={historicoHoje?.totalCentavos ?? 0}
@@ -91,20 +120,21 @@ export default async function InicioPage({
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <WidgetReservas agendaInicial={agenda} />
         <WidgetVendasRapidas
-          className="order-first md:order-none"
+          className="md:order-2"
           comandasAbertas={comandasAbertas}
           faturadoHojeCentavos={historicoHoje?.totalCentavos ?? 0}
           vendasHoje={vendasHoje}
         />
         <WidgetPendencias
+          className="md:order-3"
           mensaisVencendo={mensaisVencendo.length}
           reservasNaoPagas={reservasNaoPagas}
           comandasAbertasDeOntem={comandasAbertasDeOutroDia}
           inscricoesPendentes={inscricoesPendentes.length}
         />
-        <WidgetAvisos />
+        <WidgetReservas agendaInicial={agenda} className="md:order-1" />
+        <WidgetAvisos className="md:order-4" />
       </div>
     </div>
   );

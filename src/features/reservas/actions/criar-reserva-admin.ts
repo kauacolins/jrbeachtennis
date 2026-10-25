@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { JANELA_MAXIMA_DIAS, TIME_ZONE } from "@/lib/constants";
 import { diaSemanaDaData } from "@/lib/datas";
 import { exigirAdmin } from "@/lib/require-admin";
-import { criarReservaSchema, type CriarReservaInput } from "../schema";
+import { criarReservaAdminSchema, type CriarReservaAdminInput } from "../schema";
 
 export type CriarReservaAdminResultado =
   | { ok: true; reservaId: string; valorCentavos: number }
@@ -17,19 +17,20 @@ function minutosDoDia(horaMin: string) {
   return horas * 60 + minutos;
 }
 
-// RF14: admin cria a reserva em nome de um cliente sem conta (nome +
-// telefone), pra quem agenda por telefone/presencial em vez de reservar
+// RF14: admin cria a reserva em nome de um cliente do cadastro do balcão
+// (Cliente), pra quem agenda por telefone/presencial em vez de reservar
 // online. Mesmas regras de negócio de criarReserva (RNF04), mas sem ligar a
-// reserva à conta de quem está logado — ela nasce sem userId, só com o
-// contato informado, igual a uma reserva feita por um visitante.
+// reserva à conta de quem está logado — ela nasce sem userId, com clienteId
+// e o contato (nome/telefone) copiado do cadastro, pra agenda continuar
+// mostrando quem é mesmo se o cadastro mudar depois.
 export async function criarReservaAdmin(
-  input: CriarReservaInput
+  input: CriarReservaAdminInput
 ): Promise<CriarReservaAdminResultado> {
   if (!(await exigirAdmin())) {
     return { ok: false, erro: "Sem permissão." };
   }
 
-  const parsed = criarReservaSchema.safeParse(input);
+  const parsed = criarReservaAdminSchema.safeParse(input);
   if (!parsed.success) {
     return {
       ok: false,
@@ -37,8 +38,7 @@ export async function criarReservaAdmin(
     };
   }
 
-  const { quadraId, modalidadeId, inicioISO, duracaoHoras, nomeContato, telefoneContato } =
-    parsed.data;
+  const { quadraId, modalidadeId, inicioISO, duracaoHoras, clienteId } = parsed.data;
 
   const inicio = new Date(inicioISO);
   if (Number.isNaN(inicio.getTime())) {
@@ -73,6 +73,14 @@ export async function criarReservaAdmin(
   const horaFimMin = horaInicioMin + duracaoHoras * 60;
 
   const resultado = await prisma.$transaction(async (tx): Promise<CriarReservaAdminResultado> => {
+    const cliente = await tx.cliente.findUnique({
+      where: { id: clienteId },
+      select: { nome: true, telefone: true },
+    });
+    if (!cliente) {
+      return { ok: false, erro: "Cliente não encontrado." };
+    }
+
     const quadra = await tx.quadra.findFirst({
       where: { id: quadraId, ativa: true },
       include: { modalidades: true, horarios: true },
@@ -119,8 +127,9 @@ export async function criarReservaAdmin(
       data: {
         quadraId,
         modalidadeId,
-        nomeContato,
-        telefoneContato,
+        clienteId,
+        nomeContato: cliente.nome,
+        telefoneContato: cliente.telefone,
         inicio,
         fim,
         valorCentavos,

@@ -28,11 +28,13 @@ export function WidgetPendencias({
   reservasNaoPagas,
   comandasAbertasDeOntem,
   inscricoesPendentes,
+  className,
 }: {
   mensaisVencendo: number;
   reservasNaoPagas: number;
   comandasAbertasDeOntem: number;
   inscricoesPendentes: number;
+  className?: string;
 }) {
   const [soDeHoje, setSoDeHoje] = useState(false);
 
@@ -76,6 +78,7 @@ export function WidgetPendencias({
   return (
     <WidgetCard
       titulo="Pendências"
+      className={className}
       acoes={
         <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
           <label htmlFor="pendencias-so-hoje">Só de hoje</label>
@@ -96,7 +99,7 @@ export function WidgetPendencias({
                 </span>
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
                 <Badge className="bg-warning text-warning-foreground">{item.quantidade}</Badge>
-                <Button size="sm" variant="ghost" className="h-9 px-3" nativeButton={false} render={<Link href={item.href} />}>
+                <Button size="sm" variant="ghost" className="h-10 px-3" nativeButton={false} render={<Link href={item.href} />}>
                   Ver
                 </Button>
               </li>

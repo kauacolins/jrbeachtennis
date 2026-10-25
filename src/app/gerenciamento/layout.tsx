@@ -24,9 +24,9 @@ export default async function GerenciamentoLayout({
     <SidebarProvider>
       {/* Fixo e por cima da sidebar (z-40 > z-10 dela) — por isso ela some
           atrás dele no topo em vez de começar do zero junto. */}
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between gap-2 border-b bg-background px-4">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between gap-2 border-b bg-background px-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-2">
-          <SidebarTrigger className="md:hidden" />
+          <SidebarTrigger className="size-10 md:hidden" />
           <Link
             href="/"
             className="flex items-center rounded-md bg-white p-1 md:hidden dark:bg-transparent dark:p-0"
@@ -56,28 +56,35 @@ export default async function GerenciamentoLayout({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
-            className="hidden sm:flex"
+            size="lg"
+            className="hidden h-11 px-4 sm:flex"
             nativeButton={false}
             render={<Link href="/gerenciamento/agenda" />}
           >
             <CalendarPlus aria-hidden />
             Nova reserva
           </Button>
-          <Button size="sm" nativeButton={false} render={<Link href="/gerenciamento/comandas/pedido" />}>
+          <Button
+            size="lg"
+            className="h-11 px-4 text-base font-semibold sm:px-5 [&_svg]:size-5!"
+            nativeButton={false}
+            render={<Link href="/gerenciamento/comandas/pedido" />}
+          >
             <ShoppingBag aria-hidden />
             Venda rápida
           </Button>
-          <ThemeToggle />
-          <SairEquipe nome={admin.name} />
+          <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle />
+            <SairEquipe nome={admin.name} />
+          </div>
         </div>
       </header>
 
-      <GerenciamentoSidebar ehAdmin={admin.role === "ADMIN"} />
+      <GerenciamentoSidebar ehAdmin={admin.role === "ADMIN"} nome={admin.name} />
 
       {/* Padding padrão de toda tela do painel fica aqui, não em cada page.tsx. */}
-      <SidebarInset className="bg-muted/30 pt-14">
-        <div className="px-4 py-6 md:px-6">{children}</div>
+      <SidebarInset className="bg-muted/30 pt-16">
+        <div className="px-4 py-4 md:px-6 md:py-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

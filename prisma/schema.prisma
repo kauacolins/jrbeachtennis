@@ -84,6 +84,8 @@ model Reserva {
   modalidade      Modalidade    @relation(fields: [modalidadeId], references: [id])
   userId          String? // nulo em reserva manual sem conta
   user            User?         @relation(fields: [userId], references: [id])
+  clienteId       String? // reserva manual: cadastro do balcão escolhido na Nova reserva
+  cliente         Cliente?      @relation(fields: [clienteId], references: [id])
   nomeContato     String? // reserva manual
   telefoneContato String?
   inicio          DateTime // UTC
@@ -99,6 +101,7 @@ model Reserva {
 
   @@index([quadraId, inicio])
   @@index([userId])
+  @@index([clienteId])
 }
 
 // Modelos de autenticação no formato que o Better Auth espera
@@ -189,6 +192,7 @@ model Cliente {
   user        User?         @relation(fields: [userId], references: [id])
   passes      PasseDayUse[]
   assinaturas Assinatura[]
+  reservas    Reserva[]
   createdAt   DateTime      @default(now())
 
   @@index([nome])

@@ -27,6 +27,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -40,6 +41,8 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { SairEquipe } from "@/components/auth/sair-equipe";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface SubLinkNav {
   href: string;
@@ -158,7 +161,7 @@ function classeItem(ativo: boolean, mobile: boolean) {
 // #F8FAF6, escuro #0A0D10 preto Arena). Dois modos (aberta/trilho de
 // ícones) vêm de graça do collapsible="icon" do shadcn, com o estado
 // lembrado em cookie pelo próprio SidebarProvider.
-export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
+export function GerenciamentoSidebar({ ehAdmin, nome }: { ehAdmin: boolean; nome: string }) {
   const grupos = useGrupos(ehAdmin);
   const { isMobile, setOpenMobile } = useSidebar();
   // Na gaveta do celular, tocar num link fecha o menu — senão a página nova
@@ -168,7 +171,7 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
   };
 
   return (
-    <Sidebar collapsible="icon" style={{ top: "3.5rem", height: "calc(100svh - 3.5rem)" }}>
+    <Sidebar collapsible="icon" style={{ top: "4rem", height: "calc(100svh - 4rem)" }}>
       {/* No celular a gaveta abre abaixo do header fixo, que já mostra a
           logo e o botão do menu — repetir aqui duplicava a logo. */}
       {!isMobile && (
@@ -265,6 +268,15 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
           </SidebarGroup>
         ))}
       </SidebarContent>
+
+      {/* No celular o header só tem espaço pro menu, logo e Venda rápida —
+          tema e sair moram aqui no rodapé da gaveta. */}
+      {isMobile && (
+        <SidebarFooter className="flex-row items-center justify-between border-t border-sidebar-border">
+          <SairEquipe nome={nome} />
+          <ThemeToggle />
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }

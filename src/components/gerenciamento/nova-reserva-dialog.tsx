@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -21,10 +20,12 @@ import {
 } from "@/components/ui/select";
 import { GradeHorarios } from "@/components/reservas/grade-horarios";
 import { SeletorDuracao } from "@/components/reservas/seletor-duracao";
+import { BuscarCliente } from "@/components/gerenciamento/balcao/buscar-cliente";
 import { formatarDataExtensaISO } from "@/lib/datas";
 import { formatarTelefone } from "@/lib/format";
 import { listarHorariosDisponiveis, type Slot } from "@/features/reservas/actions/listar-horarios-disponiveis";
 import { criarReservaAdmin } from "@/features/reservas/actions/criar-reserva-admin";
+import type { ClienteBalcao } from "@/features/clientes/actions/buscar-clientes";
 import type { QuadraAdmin } from "@/features/quadras/actions/listar-quadras-admin";
 import type { AgendaBloco } from "@/features/gerenciamento/actions/obter-agenda-dia";
 
@@ -33,9 +34,9 @@ function minutosDoLabel(horaLabel: string) {
   return h * 60 + m;
 }
 
-// RF14: admin cria uma reserva em nome de um cliente sem conta — quem
-// agenda por telefone ou presencial, sem passar pelo fluxo público de
-// reserva. Reaproveita a mesma grade de horários e seletor de duração do
+// RF14: admin cria uma reserva em nome de um cliente do cadastro do balcão
+// (busca ou cadastra na hora, ver BuscarCliente) — quem agenda por telefone
+// ou presencial, sem passar pelo fluxo público de reserva. Reaproveita a mesma grade de horários e seletor de duração do
 // fluxo do cliente (ver BookingWidget), só trocando "qual quadra" por uma
 // escolha explícita em vez de ser atribuída automaticamente.
 export function NovaReservaDialog({
@@ -59,8 +60,7 @@ export function NovaReservaDialog({
   const [carregandoSlots, setCarregandoSlots] = useState(false);
   const [slotSelecionado, setSlotSelecionado] = useState<Slot | null>(null);
   const [duracao, setDuracao] = useState(1);
-  const [nome, setNome] = useState("");
-  const [telefone, setTelefone] = useState("");
+  const [cliente, setCliente] = useState<ClienteBalcao | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, startTransition] = useTransition();
 
@@ -73,8 +73,7 @@ export function NovaReservaDialog({
     setQuadraId(quadrasAtivas[0]?.id ?? "");
     setSlotSelecionado(null);
     setDuracao(1);
-    setNome("");
-    setTelefone("");
+    setCliente(null);
     setErro(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto]);
@@ -119,12 +118,17 @@ export function NovaReservaDialog({
     setDuracao(1);
   }
 
-  function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
+  // Não é um <form>: o cadastro rápido do BuscarCliente já é um form, e
+  // form dentro de form não vale no HTML.
+  function criar() {
     setErro(null);
 
     if (!quadra || !modalidadeId || !slotSelecionado) {
       setErro("Escolha quadra, modalidade e horário.");
+      return;
+    }
+    if (!cliente) {
+      setErro("Escolha ou cadastre o cliente.");
       return;
     }
 
@@ -134,8 +138,7 @@ export function NovaReservaDialog({
         modalidadeId,
         inicioISO: slotSelecionado.inicio,
         duracaoHoras: duracao,
-        nomeContato: nome,
-        telefoneContato: telefone,
+        clienteId: cliente.id,
       });
 
       if (!resultado.ok) {
@@ -152,8 +155,8 @@ export function NovaReservaDialog({
         id: resultado.reservaId,
         inicioMin,
         fimMin: inicioMin + duracao * 60,
-        titulo: nome,
-        subtitulo: formatarTelefone(telefone),
+        titulo: cliente.nome,
+        subtitulo: cliente.telefone ? formatarTelefone(cliente.telefone) : "",
         status: "CONFIRMADA",
         pago: false,
         valorCentavos: resultado.valorCentavos,
@@ -167,7 +170,7 @@ export function NovaReservaDialog({
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <DialogHeader>
             <DialogTitle>Nova reserva</DialogTitle>
             <p className="text-sm text-muted-foreground capitalize">
@@ -254,32 +257,37 @@ export function NovaReservaDialog({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="nova-reserva-nome">Nome</Label>
-                  <Input
-                    id="nova-reserva-nome"
-                    required
-                    minLength={2}
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    className="h-11"
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                  Cliente
+                </p>
+                {cliente ? (
+                  <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{cliente.nome}</span>
+                      {cliente.telefone && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatarTelefone(cliente.telefone)}
+                        </span>
+                      )}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-9"
+                      onClick={() => setCliente(null)}
+                    >
+                      Trocar
+                    </Button>
+                  </div>
+                ) : (
+                  <BuscarCliente
+                    acaoLabel="Escolher"
+                    autoFocus={false}
+                    onSelecionar={setCliente}
                   />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="nova-reserva-telefone">Telefone</Label>
-                  <Input
-                    id="nova-reserva-telefone"
-                    type="tel"
-                    required
-                    minLength={8}
-                    value={formatarTelefone(telefone)}
-                    onChange={(e) =>
-                      setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))
-                    }
-                    className="h-11"
-                  />
-                </div>
+                )}
               </div>
 
               {erro && (
@@ -290,16 +298,17 @@ export function NovaReservaDialog({
 
               <DialogFooter>
                 <Button
-                  type="submit"
+                  type="button"
                   className="h-11 w-full"
-                  disabled={enviando || !slotSelecionado}
+                  disabled={enviando || !slotSelecionado || !cliente}
+                  onClick={criar}
                 >
                   {enviando ? "Criando…" : "Criar reserva"}
                 </Button>
               </DialogFooter>
             </>
           )}
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

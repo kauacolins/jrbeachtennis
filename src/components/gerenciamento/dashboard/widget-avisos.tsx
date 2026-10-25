@@ -7,11 +7,12 @@ import { SugestoesEvento } from "@/components/gerenciamento/eventos/sugestoes-ev
 // Dashboard, widget "Avisos no site": atalho pra publicar no modal de
 // entrada do site um aviso do dia (day use, aula, manutenção...) sem
 // precisar escrever do zero.
-export function WidgetAvisos() {
+export function WidgetAvisos({ className }: { className?: string }) {
   return (
     <WidgetCard
       titulo="Avisos no site"
       href="/gerenciamento/eventos"
+      className={className}
       footer={
         <Button
           variant="outline"

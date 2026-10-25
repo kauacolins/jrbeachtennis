@@ -43,7 +43,7 @@ function achatarReservas(agenda: AgendaDia): ReservaFeed[] {
 // Dashboard, widget "Reservas" (admin-panel-ui, Booking Log): feed das
 // reservas de hoje com ação direta de marcar pago. Reaproveita a mesma
 // AgendaDia da agenda do dia, só que achatada numa lista só.
-export function WidgetReservas({ agendaInicial }: { agendaInicial: AgendaDia }) {
+export function WidgetReservas({ agendaInicial, className }: { agendaInicial: AgendaDia; className?: string }) {
   const [reservas, setReservas] = useState(() => achatarReservas(agendaInicial));
   const [aba, setAba] = useState<"hoje" | "a_pagar">("hoje");
   const [emAndamento, startTransition] = useTransition();
@@ -69,6 +69,7 @@ export function WidgetReservas({ agendaInicial }: { agendaInicial: AgendaDia }) 
     <WidgetCard
       titulo="Reservas"
       href="/gerenciamento/agenda"
+      className={className}
       acoes={
         <Tabs value={aba} onValueChange={(v) => setAba(v as typeof aba)}>
           <TabsList variant="line">
@@ -76,7 +77,8 @@ export function WidgetReservas({ agendaInicial }: { agendaInicial: AgendaDia }) 
               Hoje ({reservas.length})
             </TabsTrigger>
             <TabsTrigger value="a_pagar" className="data-active:after:bg-primary">
-              Aguardando pagamento ({reservas.filter((r) => !r.pago).length})
+              <span className="sm:hidden">A pagar</span>
+              <span className="hidden sm:inline">Aguardando pagamento</span> ({reservas.filter((r) => !r.pago).length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -110,7 +112,7 @@ export function WidgetReservas({ agendaInicial }: { agendaInicial: AgendaDia }) 
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-9 px-3"
+                    className="h-10 px-3"
                     disabled={emAndamento}
                     onClick={() => marcarPago(r.id)}
                   >

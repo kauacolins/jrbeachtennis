@@ -16,6 +16,14 @@ export const criarReservaSchema = z.object({
 
 export type CriarReservaInput = z.infer<typeof criarReservaSchema>;
 
+// Reserva feita pelo admin (Nova reserva na agenda): o contato vem do
+// cadastro de clientes do balcão, não de campos digitados.
+export const criarReservaAdminSchema = criarReservaSchema
+  .omit({ nomeContato: true, telefoneContato: true })
+  .extend({ clienteId: z.string().min(1, "Escolha o cliente.") });
+
+export type CriarReservaAdminInput = z.infer<typeof criarReservaAdminSchema>;
+
 // Sem quadraId: o cliente escolhe modalidade + horário, a quadra é
 // atribuída pelo servidor entre as que oferecem aquela modalidade.
 export const criarReservaModalidadeSchema = criarReservaSchema.omit({
