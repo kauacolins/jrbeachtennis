@@ -41,5 +41,6 @@ export async function atualizarCliente(
   });
 
   revalidatePath("/gerenciamento/clientes");
+  revalidatePath(`/gerenciamento/clientes/${usuarioId}`);
   return { ok: true };
 }

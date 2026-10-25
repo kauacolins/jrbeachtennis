@@ -24,3 +24,7 @@ export const LIMITE_RESERVAS_ABERTAS = 2;
 // num texto genérico (ver PixInstrucoes).
 export const PIX_CHAVE_ARENA = process.env.PIX_CHAVE_ARENA || "";
 export const PIX_TITULAR_ARENA = process.env.PIX_TITULAR_ARENA || "";
+
+// Endereço público do site, pros links que vão em mensagem de WhatsApp
+// (ex.: "reserve pelo site"). Vazio = a mensagem sai sem link.
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.BETTER_AUTH_URL || "";

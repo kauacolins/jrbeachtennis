@@ -169,32 +169,36 @@ export function GerenciamentoSidebar({ ehAdmin }: { ehAdmin: boolean }) {
 
   return (
     <Sidebar collapsible="icon" style={{ top: "3.5rem", height: "calc(100svh - 3.5rem)" }}>
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex h-10 items-center justify-between gap-2 px-1">
-          <Link
-            href="/"
-            className="flex min-w-0 items-center gap-2 overflow-hidden group-data-[collapsible=icon]:hidden"
-          >
-            <Image
-              src="/logo.png"
-              alt="Arena JR"
-              width={160}
-              height={53}
-              priority
-              className="h-6 w-auto shrink-0 dark:hidden"
-            />
-            <Image
-              src="/logo_branca.png"
-              alt="Arena JR"
-              width={160}
-              height={53}
-              priority
-              className="hidden h-6 w-auto shrink-0 dark:block"
-            />
-          </Link>
-          <SidebarTrigger className="hidden shrink-0 md:flex" />
-        </div>
-      </SidebarHeader>
+      {/* No celular a gaveta abre abaixo do header fixo, que já mostra a
+          logo e o botão do menu — repetir aqui duplicava a logo. */}
+      {!isMobile && (
+        <SidebarHeader className="border-b border-sidebar-border">
+          <div className="flex h-10 items-center justify-between gap-2 px-1">
+            <Link
+              href="/"
+              className="flex min-w-0 items-center gap-2 overflow-hidden group-data-[collapsible=icon]:hidden"
+            >
+              <Image
+                src="/logo.png"
+                alt="Arena JR"
+                width={160}
+                height={53}
+                priority
+                className="h-6 w-auto shrink-0 dark:hidden"
+              />
+              <Image
+                src="/logo_branca.png"
+                alt="Arena JR"
+                width={160}
+                height={53}
+                priority
+                className="hidden h-6 w-auto shrink-0 dark:block"
+              />
+            </Link>
+            <SidebarTrigger className="hidden shrink-0 md:flex" />
+          </div>
+        </SidebarHeader>
+      )}
 
       <SidebarContent>
         {grupos.map((grupo, indice) => (

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { exigirAdmin } from "@/lib/require-admin";
-import { Role } from "@/app/generated/prisma/enums";
+import { Role, StatusReserva } from "@/app/generated/prisma/enums";
 
 // Gerenciamento > Equipe > Clientes: quem fez cadastro público em /entrar.
 // Só visualização + edição de dados de contato pelo admin (ver
@@ -21,6 +21,7 @@ export async function listarClientes() {
       email: true,
       telefone: true,
       createdAt: true,
+      _count: { select: { reservas: { where: { status: { not: StatusReserva.CANCELADA } } } } },
     },
     orderBy: { createdAt: "desc" },
   });

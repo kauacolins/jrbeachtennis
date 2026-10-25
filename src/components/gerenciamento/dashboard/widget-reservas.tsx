@@ -82,7 +82,7 @@ export function WidgetReservas({ agendaInicial }: { agendaInicial: AgendaDia }) 
         </Tabs>
       }
       footer={
-        <Button size="lg" variant="secondary" className="w-full" nativeButton={false} render={<a href="/gerenciamento/agenda" />}>
+        <Button size="lg" variant="secondary" className="h-11 w-full" nativeButton={false} render={<a href="/gerenciamento/agenda" />}>
           Ver todas as reservas
         </Button>
       }
@@ -110,6 +110,7 @@ export function WidgetReservas({ agendaInicial }: { agendaInicial: AgendaDia }) 
                   <Button
                     size="sm"
                     variant="outline"
+                    className="h-9 px-3"
                     disabled={emAndamento}
                     onClick={() => marcarPago(r.id)}
                   >

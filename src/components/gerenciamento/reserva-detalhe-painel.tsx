@@ -29,6 +29,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { formatarDataCurtaISO, formatarDataExtensaISO } from "@/lib/datas";
 import { formatarPreco, minutosParaHora } from "@/lib/format";
+import { linkWhatsapp } from "@/lib/whatsapp";
 import { cancelarReservaAdmin } from "@/features/reservas/actions/cancelar-reserva-admin";
 import { marcarReservaPago } from "@/features/reservas/actions/marcar-reserva-pago";
 import { marcarNaoCompareceu } from "@/features/reservas/actions/marcar-nao-compareceu";
@@ -44,15 +45,6 @@ export interface SelecaoAgenda {
 export interface PixArena {
   chave: string;
   titular: string;
-}
-
-// Telefone já vem formatado (ver obterAgendaDia); limpa de volta pra dígitos
-// e monta o link do WhatsApp com DDI 55.
-function linkWhatsapp(telefoneFormatado: string, mensagem: string) {
-  const digitos = telefoneFormatado.replace(/\D/g, "");
-  if (!digitos) return null;
-  const numero = digitos.startsWith("55") ? digitos : `55${digitos}`;
-  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
 }
 
 interface MensagemWhatsapp {

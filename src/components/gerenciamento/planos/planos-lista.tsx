@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, Plus } from "lucide-react";
+import { CalendarCheck, MessageCircle, Phone, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,52 +15,85 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { BuscarCliente } from "@/components/gerenciamento/balcao/buscar-cliente";
 import { SeletorMetodo } from "@/components/gerenciamento/balcao/seletor-metodo";
 import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
+import { mensagemRenovacaoPlano } from "@/components/gerenciamento/clientes/mensagens-cliente";
+import type { PixArena } from "@/components/gerenciamento/reserva-detalhe-painel";
 import { filtrarPorBusca } from "@/lib/busca";
 import { cn } from "@/lib/utils";
+import { linkWhatsapp } from "@/lib/whatsapp";
 import { contagem, formatarDataCurta, formatarPreco, formatarTelefone } from "@/lib/format";
 import { ativarPlano, cancelarPlano, type FiltroPlano, type PlanoLinha } from "@/features/planos/actions/planos";
 import type { MetodoPagamento } from "@/app/generated/prisma/enums";
 
 const ABAS: { valor: FiltroPlano; label: string }[] = [
+  { valor: "todos", label: "Todos" },
   { valor: "ativos", label: "Ativos" },
   { valor: "vencendo", label: "Vencendo" },
   { valor: "vencidos", label: "Vencidos" },
 ];
 
 const VAZIO: Record<FiltroPlano, string> = {
+  todos: "Ninguém teve plano mensal ainda.",
   ativos: "Nenhum plano mensal ativo.",
   vencendo: "Nenhum plano vence nos próximos 7 dias.",
   vencidos: "Ninguém com plano vencido.",
 };
 
 const CONTAGEM_SINGULAR: Record<FiltroPlano, string> = {
+  todos: "plano",
   ativos: "plano ativo",
   vencendo: "plano vencendo",
   vencidos: "plano vencido",
 };
 
 const CONTAGEM_PLURAL: Record<FiltroPlano, string> = {
+  todos: "planos",
   ativos: "planos ativos",
   vencendo: "planos vencendo",
   vencidos: "planos vencidos",
 };
 
+// Sinalizador do card: verde = em dia, laranja = vence em até 7 dias,
+// vermelho = não renovado (venceu ou foi cancelado). A bolinha ao lado do
+// nome dá pra varrer a grade de relance; o badge diz a situação por extenso.
+function situacaoPlano(plano: PlanoLinha) {
+  if (plano.vencendo) {
+    return {
+      label: "Vence em breve",
+      ponto: "bg-warning",
+      badge: "bg-warning/15 text-foreground",
+    };
+  }
+  if (plano.ativo) {
+    return {
+      label: "Em dia",
+      ponto: "bg-primary",
+      badge: "bg-accent text-accent-foreground",
+    };
+  }
+  return {
+    label: plano.cancelado ? "Cancelado" : "Não renovado",
+    ponto: "bg-destructive",
+    badge: "bg-destructive/10 text-destructive",
+  };
+}
+
 // RF20: o mensal é vendido no balcão e já entra pago. Renovar começa no fim
 // do plano atual, então dá pra renovar antes de vencer sem perder dias.
 export function PlanosLista({
-  planos,
+  planos: todos,
   filtro,
   precoCentavos,
+  pix,
 }: {
   planos: PlanoLinha[];
   filtro: FiltroPlano;
   precoCentavos: number | null;
+  pix: PixArena | null;
 }) {
   const router = useRouter();
   const [dialogAberto, setDialogAberto] = useState(false);
@@ -68,6 +101,14 @@ export function PlanosLista({
   const [metodo, setMetodo] = useState<MetodoPagamento | null>(null);
   const [pendente, startTransition] = useTransition();
   const [busca, setBusca] = useState("");
+  const porFiltro: Record<FiltroPlano, PlanoLinha[]> = {
+    todos,
+    ativos: todos.filter((p) => p.ativo),
+    vencendo: todos.filter((p) => p.vencendo),
+    // Vencidos: o mais recente primeiro (o resto vem do mais perto de vencer).
+    vencidos: todos.filter((p) => !p.ativo).reverse(),
+  };
+  const planos = porFiltro[filtro];
   const visiveis = filtrarPorBusca(planos, busca, (p) => [p.nome, p.telefone]);
 
   function abrir(paraCliente: { id: string; nome: string } | null) {
@@ -112,27 +153,35 @@ export function PlanosLista({
             : undefined
         }
         acao={
-          <Button size="sm" onClick={() => abrir(null)}>
-            <Plus aria-hidden />
+          <Button size="lg" className="h-11 px-5 text-base" onClick={() => abrir(null)}>
+            <Plus className="size-5" aria-hidden />
             Ativar plano
           </Button>
         }
       />
 
-      <nav aria-label="Situação do plano" className="flex gap-1">
+      <nav aria-label="Situação do plano" className="flex gap-1 overflow-x-auto">
         {ABAS.map((aba) => (
           <Link
             key={aba.valor}
             href={`/gerenciamento/planos?filtro=${aba.valor}`}
             aria-current={aba.valor === filtro ? "page" : undefined}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
               aba.valor === filtro
                 ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             {aba.label}
+            <span
+              className={cn(
+                "min-w-5 rounded-full px-1.5 text-center text-xs tabular-nums",
+                aba.valor === filtro ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+              )}
+            >
+              {porFiltro[aba.valor].length}
+            </span>
           </Link>
         ))}
       </nav>
@@ -153,70 +202,108 @@ export function PlanosLista({
           {visiveis.length === 0 ? (
             <SemResultadoBusca busca={busca} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="hidden sm:table-cell">Telefone</TableHead>
-                  <TableHead>Validade</TableHead>
-                  <TableHead className="hidden sm:table-cell">Situação</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visiveis.map((plano) => (
-                  <TableRow key={plano.id}>
-                    <TableCell className="font-medium">{plano.nome}</TableCell>
-                    <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
-                      {plano.telefone ? formatarTelefone(plano.telefone) : "—"}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {plano.ativo
-                        ? `até ${formatarDataCurta(plano.fim)}`
-                        : plano.cancelado
-                          ? `ia até ${formatarDataCurta(plano.fim)}`
-                          : `venceu ${formatarDataCurta(plano.fim)}`}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {plano.vencendo ? (
-                        <Badge className="bg-warning text-warning-foreground">Vence em breve</Badge>
-                      ) : plano.ativo ? (
-                        <Badge className="bg-accent text-accent-foreground">Ativo</Badge>
-                      ) : plano.cancelado ? (
-                        <Badge className="bg-muted text-muted-foreground">Cancelado</Badge>
-                      ) : (
-                        <Badge variant="destructive">Vencido</Badge>
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {visiveis.map((plano) => {
+                const situacao = situacaoPlano(plano);
+                const hrefMensagem = plano.telefone
+                  ? linkWhatsapp(
+                      plano.telefone,
+                      mensagemRenovacaoPlano({
+                        nome: plano.nome,
+                        fim: new Date(plano.fim),
+                        vencido: !plano.ativo,
+                        precoCentavos,
+                        pix,
+                      })
+                    )
+                  : null;
+                return (
+                  <li
+                    key={plano.id}
+                    className="flex flex-col gap-3 rounded-xl border bg-card p-4"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 flex-col">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span
+                            className={cn("size-2.5 shrink-0 rounded-full", situacao.ponto)}
+                            aria-hidden
+                          />
+                          <span className="truncate font-semibold">{plano.nome}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5 pl-[18px] text-xs text-muted-foreground tabular-nums">
+                          <Phone className="size-3" aria-hidden />
+                          {plano.telefone ? formatarTelefone(plano.telefone) : "Sem telefone"}
+                        </span>
+                      </div>
+                      <Badge className={cn("shrink-0 rounded-full text-[11px]", situacao.badge)}>
+                        {situacao.label}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-baseline justify-between gap-2 text-sm">
+                      <span className="text-muted-foreground">
+                        {plano.ativo
+                          ? `Vale até ${formatarDataCurta(plano.fim)}`
+                          : plano.cancelado
+                            ? `Cancelado (ia até ${formatarDataCurta(plano.fim)})`
+                            : `Venceu ${formatarDataCurta(plano.fim)}`}
+                      </span>
+                      {plano.ativo && (
+                        <span className="font-heading text-lg font-bold tabular-nums">
+                          {contagem(plano.diasRestantes, "dia", "dias")}
+                        </span>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
+                    </div>
+
+                    <div className="mt-auto grid grid-cols-2 gap-2">
+                      <Button
+                        variant="secondary"
+                        size="lg"
+                        className="h-10"
+                        onClick={() => abrir({ id: plano.clienteId, nome: plano.nome })}
+                      >
+                        <RefreshCw aria-hidden />
+                        Renovar
+                      </Button>
+                      {hrefMensagem ? (
                         <Button
                           variant="outline"
-                          size="sm"
-                          onClick={() => abrir({ id: plano.clienteId, nome: plano.nome })}
+                          size="lg"
+                          className="h-10"
+                          nativeButton={false}
+                          render={<a href={hrefMensagem} target="_blank" rel="noopener noreferrer" />}
+                          aria-label={`Mandar mensagem de renovação para ${plano.nome}`}
                         >
-                          Renovar
+                          <MessageCircle aria-hidden />
+                          Mensagem
                         </Button>
-                        {plano.ativo && (
-                          <ConfirmarBotao
-                            size="sm"
-                            variant="ghost"
-                            actionVariant="destructive"
-                            label="Cancelar"
-                            titulo={`Cancelar o mensal de ${plano.nome}?`}
-                            descricao="O day use deixa de sair por R$ 0 a partir de agora. Não há estorno automático."
-                            textoConfirmar="Cancelar plano"
-                            textoConfirmando="Cancelando…"
-                            disabled={pendente}
-                            onConfirmar={() => cancelar(plano.clienteId)}
-                          />
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      ) : (
+                        <Button variant="outline" size="lg" className="h-10" disabled title="Cliente sem telefone">
+                          <MessageCircle aria-hidden />
+                          Mensagem
+                        </Button>
+                      )}
+                    </div>
+                    {plano.ativo && (
+                      <ConfirmarBotao
+                        size="sm"
+                        variant="ghost"
+                        actionVariant="destructive"
+                        className="-mt-1 self-center text-muted-foreground"
+                        label="Cancelar plano"
+                        titulo={`Cancelar o mensal de ${plano.nome}?`}
+                        descricao="O day use deixa de sair por R$ 0 a partir de agora. Não há estorno automático."
+                        textoConfirmar="Cancelar plano"
+                        textoConfirmando="Cancelando…"
+                        disabled={pendente}
+                        onConfirmar={() => cancelar(plano.clienteId)}
+                      />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </>
       )}

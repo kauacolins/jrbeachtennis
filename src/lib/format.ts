@@ -23,6 +23,10 @@ export function formatarDataCurta(data: Date | string): string {
   return formatInTimeZone(data, TIME_ZONE, "dd/MM");
 }
 
+export function formatarDataComAno(data: Date | string): string {
+  return formatInTimeZone(data, TIME_ZONE, "dd/MM/yyyy");
+}
+
 /** "yyyy-MM-dd" em America/Sao_Paulo — formato usado nos parâmetros de URL. */
 export function dataParaISO(data: Date | string): string {
   return formatInTimeZone(data, TIME_ZONE, "yyyy-MM-dd");

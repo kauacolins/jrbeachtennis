@@ -16,13 +16,15 @@ import { atualizarCliente } from "@/features/usuarios/actions/atualizar-cliente"
 import { formatarTelefone } from "@/lib/format";
 import type { ClienteAdmin } from "@/features/usuarios/actions/listar-clientes";
 
+type ClienteEditavel = Pick<ClienteAdmin, "id" | "name" | "email" | "telefone">;
+
 interface ClienteFormValues {
   nome: string;
   email: string;
   telefone: string;
 }
 
-function valoresIniciais(cliente: ClienteAdmin | null): ClienteFormValues {
+function valoresIniciais(cliente: ClienteEditavel | null): ClienteFormValues {
   if (!cliente) return { nome: "", email: "", telefone: "" };
   return {
     nome: cliente.name,
@@ -42,7 +44,7 @@ export function ClienteForm({
 }: {
   aberto: boolean;
   onOpenChange: (aberto: boolean) => void;
-  cliente: ClienteAdmin | null;
+  cliente: ClienteEditavel | null;
   onSalvo: () => void;
 }) {
   const [valores, setValores] = useState<ClienteFormValues>(() => valoresIniciais(cliente));

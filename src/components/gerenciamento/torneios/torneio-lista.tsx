@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ImageIcon, Plus, Star } from "lucide-react";
+import Link from "next/link";
+import { CalendarDays, ImageIcon, Pencil, Plus, Star, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
 import { filtrarPorBusca } from "@/lib/busca";
@@ -14,6 +14,9 @@ import { contagem, formatarDataCurta } from "@/lib/format";
 import { rotuloStatusTorneio, variantePorStatusTorneio } from "@/lib/torneio";
 import type { TorneioAdmin } from "@/features/torneios/actions/listar-torneios";
 
+// Torneios em cards: banner 4:5 à esquerda, situação, período e números do
+// torneio. O card inteiro abre a visão geral; "Editar" fica por cima do
+// link (relative z-10) e vai direto pra edição.
 export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
   const router = useRouter();
   const [busca, setBusca] = useState("");
@@ -33,9 +36,10 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
       />
 
       {torneios.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+          <Trophy className="size-6" aria-hidden />
           Nenhum torneio cadastrado ainda.
-        </p>
+        </div>
       ) : (
         <>
           <CampoBusca
@@ -47,86 +51,77 @@ export function TorneioLista({ torneios }: { torneios: TorneioAdmin[] }) {
           {visiveis.length === 0 ? (
             <SemResultadoBusca busca={busca} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <span className="sr-only">Banner</span>
-                  </TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead className="hidden sm:table-cell">Período</TableHead>
-                  <TableHead className="hidden sm:table-cell">Categorias</TableHead>
-                  <TableHead className="hidden sm:table-cell">Inscritos</TableHead>
-                  <TableHead>Situação</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visiveis.map((torneio) => (
-                  <TableRow
-                    key={torneio.id}
-                    className="cursor-pointer"
-                    onClick={() => router.push(`/gerenciamento/torneios/${torneio.id}`)}
-                  >
-                    <TableCell className="py-2">
-                      <div className="relative aspect-[4/5] w-8 shrink-0 overflow-hidden rounded-md bg-muted">
-                        {torneio.bannerUrl ? (
-                          <Image
-                            src={torneio.bannerUrl}
-                            alt={torneio.nome}
-                            fill
-                            sizes="32px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex size-full items-center justify-center text-muted-foreground/60">
-                            <ImageIcon className="size-4" aria-hidden />
-                          </div>
-                        )}
+            <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+              {visiveis.map((torneio) => (
+                <li
+                  key={torneio.id}
+                  className="relative flex gap-3 rounded-xl border bg-card p-3 transition-colors focus-within:border-ring hover:border-foreground/30"
+                >
+                  <div className="relative aspect-[4/5] w-20 shrink-0 self-start overflow-hidden rounded-lg bg-muted sm:w-24">
+                    {torneio.bannerUrl ? (
+                      <Image
+                        src={torneio.bannerUrl}
+                        alt=""
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center text-muted-foreground/60">
+                        <ImageIcon className="size-5" aria-hidden />
                       </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <span className="inline-flex items-center gap-1.5">
-                        {torneio.nome}
-                        {torneio.destaqueHome && (
-                          <Star
-                            className="size-3.5 shrink-0 fill-warning text-warning"
-                            aria-hidden
-                          />
-                        )}
-                        {torneio.destaqueHome && <span className="sr-only">(destaque na home)</span>}
-                      </span>
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground sm:table-cell">
-                      {formatarDataCurta(torneio.dataInicio)} – {formatarDataCurta(torneio.dataFim)}
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
-                      {torneio._count.categorias}
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
-                      {torneio.totalInscritos}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={variantePorStatusTorneio(torneio.status)}>
+                    )}
+                  </div>
+
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link
+                        href={`/gerenciamento/torneios/${torneio.id}`}
+                        className="min-w-0 font-semibold leading-snug outline-none after:absolute after:inset-0 after:rounded-xl"
+                      >
+                        <span className="line-clamp-2">{torneio.nome}</span>
+                      </Link>
+                      <Badge variant={variantePorStatusTorneio(torneio.status)} className="shrink-0">
                         {rotuloStatusTorneio(torneio.status)}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/gerenciamento/torneios/${torneio.id}/edicao`);
-                        }}
-                      >
-                        Editar
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
+                      <CalendarDays className="size-3.5 shrink-0" aria-hidden />
+                      {formatarDataCurta(torneio.dataInicio)} – {formatarDataCurta(torneio.dataFim)}
+                      {torneio.destaqueHome && (
+                        <span className="ml-1 inline-flex items-center gap-1">
+                          <Star className="size-3.5 shrink-0 fill-warning text-warning" aria-hidden />
+                          Destaque na home
+                        </span>
+                      )}
+                    </p>
+
+                    <dl className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="rounded-lg bg-accent px-2.5 py-1.5 text-accent-foreground">
+                        <dt className="text-[11px]">Categorias</dt>
+                        <dd className="font-heading text-lg font-bold tabular-nums">{torneio._count.categorias}</dd>
+                      </div>
+                      <div className="rounded-lg bg-accent px-2.5 py-1.5 text-accent-foreground">
+                        <dt className="text-[11px]">Inscritos</dt>
+                        <dd className="font-heading text-lg font-bold tabular-nums">{torneio.totalInscritos}</dd>
+                      </div>
+                    </dl>
+
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="relative z-10 mt-auto w-full"
+                      nativeButton={false}
+                      render={<Link href={`/gerenciamento/torneios/${torneio.id}/edicao`} />}
+                    >
+                      <Pencil aria-hidden />
+                      Editar
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </>
       )}

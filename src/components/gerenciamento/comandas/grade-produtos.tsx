@@ -153,7 +153,7 @@ export function GradeProdutos({
                   />
                   {qtd > 0 && (
                     <span
-                      className="absolute top-1.5 right-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular-nums shadow-sm"
+                      className="absolute top-1.5 right-1.5 flex h-9 min-w-9 items-center justify-center rounded-full bg-primary px-2 text-base font-bold text-primary-foreground tabular-nums shadow-sm sm:h-7 sm:min-w-7 sm:px-1.5 sm:text-sm"
                       aria-hidden
                     >
                       {qtd}
@@ -172,9 +172,9 @@ export function GradeProdutos({
                     type="button"
                     onClick={() => onDiminuir(produto)}
                     aria-label={`Tirar um ${produto.nome}`}
-                    className="absolute top-1.5 left-1.5 flex size-6 items-center justify-center rounded-full border bg-background text-foreground shadow-sm transition-transform before:absolute before:-inset-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-90 motion-reduce:active:scale-100"
+                    className="absolute top-1.5 left-1.5 flex size-10 items-center justify-center rounded-full border-2 bg-background text-foreground shadow-md transition-transform before:absolute before:-inset-1.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-90 motion-reduce:active:scale-100 sm:size-8 sm:border"
                   >
-                    <Minus className="size-3.5" aria-hidden />
+                    <Minus className="size-5 sm:size-4" strokeWidth={2.5} aria-hidden />
                   </button>
                 )}
               </li>

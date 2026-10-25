@@ -96,7 +96,7 @@ export function WidgetPendencias({
                 </span>
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
                 <Badge className="bg-warning text-warning-foreground">{item.quantidade}</Badge>
-                <Button size="sm" variant="ghost" nativeButton={false} render={<Link href={item.href} />}>
+                <Button size="sm" variant="ghost" className="h-9 px-3" nativeButton={false} render={<Link href={item.href} />}>
                   Ver
                 </Button>
               </li>

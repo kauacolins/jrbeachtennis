@@ -1,35 +1,32 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Link from "next/link";
+import { CalendarCheck, ChevronRight, Mail, Phone, Users } from "lucide-react";
 import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
-import { ClienteForm } from "@/components/gerenciamento/equipe/cliente-form";
+import { CampoBusca, SemResultadoBusca } from "@/components/gerenciamento/campo-busca";
+import { MensagemClienteMenu } from "@/components/gerenciamento/clientes/mensagem-cliente-menu";
 import { contagem, formatarDataCurta, formatarTelefone } from "@/lib/format";
+import { filtrarPorBusca } from "@/lib/busca";
 import type { ClienteAdmin } from "@/features/usuarios/actions/listar-clientes";
-import { normalizarBusca } from "@/lib/busca";
 
-// Lista de quem fez cadastro público em /entrar — só consulta + correção
-// de nome/e-mail/telefone quando o cliente pede por telefone (ver
-// ClienteForm). Sem criar/excluir aqui: essa conta nasce e morre pelo
-// próprio fluxo de autenticação do cliente.
-export function ClienteLista({ clientes }: { clientes: ClienteAdmin[] }) {
-  const router = useRouter();
+function iniciais(nome: string) {
+  const partes = nome.trim().split(/\s+/);
+  return ((partes[0]?.[0] ?? "") + (partes.length > 1 ? partes.at(-1)![0] : "")).toUpperCase();
+}
+
+// Quem fez cadastro público em /entrar, em cards. O card inteiro leva pro
+// detalhe (consumo + mensagens + edição); o botão de mensagem fica por cima
+// do link (relative z-10) pra mandar WhatsApp direto da lista, sem abrir o
+// cliente. Sem criar/excluir aqui: essa conta nasce e morre pelo próprio
+// fluxo de autenticação do cliente.
+export function ClienteLista({ clientes, siteUrl }: { clientes: ClienteAdmin[]; siteUrl: string }) {
   const [busca, setBusca] = useState("");
-  const [clienteEditando, setClienteEditando] = useState<ClienteAdmin | null>(null);
 
-  const clientesFiltrados = useMemo(() => {
-    const termo = normalizarBusca(busca.trim());
-    if (!termo) return clientes;
-    return clientes.filter((cliente) =>
-      [cliente.name, cliente.email, cliente.telefone ?? ""].some((campo) =>
-        normalizarBusca(campo).includes(termo)
-      )
-    );
-  }, [clientes, busca]);
+  const clientesFiltrados = useMemo(
+    () => filtrarPorBusca(clientes, busca, (c) => [c.name, c.email, c.telefone]),
+    [clientes, busca]
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -37,68 +34,80 @@ export function ClienteLista({ clientes }: { clientes: ClienteAdmin[] }) {
         titulo="Clientes"
         contagem={clientes.length > 0 ? contagem(clientes.length, "cliente cadastrado", "clientes cadastrados") : undefined}
         acao={
-          <div className="relative w-full max-w-sm">
-            <Search
-              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
-              type="search"
+          clientes.length > 0 && (
+            <CampoBusca
               value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              onChange={setBusca}
               placeholder="Buscar por nome, e-mail ou telefone…"
-              aria-label="Buscar clientes"
-              className="h-9 pl-8"
+              ariaLabel="Buscar clientes"
             />
-          </div>
+          )
         }
       />
 
-      {clientesFiltrados.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-          {clientes.length === 0
-            ? "Nenhum cliente cadastrado ainda."
-            : "Nenhum cliente encontrado."}
-        </p>
+      {clientes.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+          <Users className="size-6" aria-hidden />
+          Nenhum cliente cadastrado ainda.
+        </div>
+      ) : clientesFiltrados.length === 0 ? (
+        <SemResultadoBusca busca={busca} />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead className="hidden md:table-cell">E-mail</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead className="hidden sm:table-cell">Cadastro</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clientesFiltrados.map((cliente) => (
-              <TableRow key={cliente.id}>
-                <TableCell className="font-medium">{cliente.name}</TableCell>
-                <TableCell className="hidden text-muted-foreground md:table-cell">{cliente.email}</TableCell>
-                <TableCell className="whitespace-nowrap text-muted-foreground">
-                  {cliente.telefone ? formatarTelefone(cliente.telefone) : "—"}
-                </TableCell>
-                <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
-                  {formatarDataCurta(cliente.createdAt)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="outline" size="sm" onClick={() => setClienteEditando(cliente)}>
-                    Editar
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {clientesFiltrados.map((cliente) => (
+            <li
+              key={cliente.id}
+              className="relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-colors focus-within:border-ring hover:border-foreground/30"
+            >
+              <div className="flex items-start gap-3">
+                <span
+                  className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground"
+                  aria-hidden
+                >
+                  {iniciais(cliente.name)}
+                </span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <Link
+                    href={`/gerenciamento/clientes/${cliente.id}`}
+                    className="truncate font-semibold outline-none after:absolute after:inset-0 after:rounded-xl"
+                  >
+                    {cliente.name}
+                  </Link>
+                  <span className="text-xs text-muted-foreground">
+                    Cliente desde {formatarDataCurta(cliente.createdAt)}
+                  </span>
+                </div>
+                <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+              </div>
 
-      <ClienteForm
-        aberto={clienteEditando !== null}
-        onOpenChange={(aberto) => !aberto && setClienteEditando(null)}
-        cliente={clienteEditando}
-        onSalvo={() => router.refresh()}
-      />
+              <dl className="flex flex-col gap-1.5 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <dt className="sr-only">Telefone</dt>
+                  <Phone className="size-3.5 shrink-0" aria-hidden />
+                  <dd className="tabular-nums">{cliente.telefone ? formatarTelefone(cliente.telefone) : "Sem telefone"}</dd>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <dt className="sr-only">E-mail</dt>
+                  <Mail className="size-3.5 shrink-0" aria-hidden />
+                  <dd className="truncate">{cliente.email}</dd>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <dt className="sr-only">Reservas</dt>
+                  <CalendarCheck className="size-3.5 shrink-0" aria-hidden />
+                  <dd>{contagem(cliente._count.reservas, "reserva", "reservas")}</dd>
+                </div>
+              </dl>
+
+              <MensagemClienteMenu
+                nome={cliente.name}
+                telefone={cliente.telefone}
+                siteUrl={siteUrl}
+                className="relative z-10 mt-auto w-full"
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

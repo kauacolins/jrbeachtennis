@@ -7,11 +7,12 @@ import type { MetodoPagamento } from "@/app/generated/prisma/enums";
 import { ativarPlanoSchema } from "../schema";
 
 const DIA_MS = 24 * 60 * 60_000;
-export type FiltroPlano = "ativos" | "vencendo" | "vencidos";
+export type FiltroPlano = "todos" | "ativos" | "vencendo" | "vencidos";
 const DIAS_AVISO_VENCIMENTO = 7;
 
 // RF20: lista o plano mais recente de cada cliente que já teve mensal,
-// filtrado por situação. "Vencendo" = ativo com até 7 dias de validade.
+// filtrado por situação. "Vencendo" = ativo com até 7 dias de validade;
+// "todos" mostra as três situações juntas (o card sinaliza a cor de cada).
 export async function listarPlanos(filtro: FiltroPlano) {
   if (!(await exigirAdmin())) return [];
 
@@ -42,10 +43,18 @@ export async function listarPlanos(filtro: FiltroPlano) {
         cancelado: Boolean(a.canceladaEm),
         ativo,
         vencendo: ativo && a.fim <= limiteAviso,
+        // Dias inteiros até vencer (negativo = já venceu), pro card.
+        diasRestantes: Math.ceil((a.fim.getTime() - agora.getTime()) / DIA_MS),
       };
     })
     .filter((p) =>
-      filtro === "ativos" ? p.ativo : filtro === "vencendo" ? p.vencendo : !p.ativo
+      filtro === "todos"
+        ? true
+        : filtro === "ativos"
+          ? p.ativo
+          : filtro === "vencendo"
+            ? p.vencendo
+            : !p.ativo
     )
     .sort((a, b) =>
       filtro === "vencidos" ? b.fim.localeCompare(a.fim) : a.fim.localeCompare(b.fim)
