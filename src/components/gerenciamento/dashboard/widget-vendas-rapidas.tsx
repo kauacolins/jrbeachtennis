@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { WidgetCard, WidgetVazio } from "@/components/gerenciamento/dashboard/widget-card";
+import { ComandaDayUseBotao } from "@/components/gerenciamento/balcao/comanda-day-use-botao";
 import { formatarPreco } from "@/lib/format";
 import { filtrarPorBusca } from "@/lib/busca";
 import type { ComandaResumo } from "@/features/comandas/actions/listar-comandas";
@@ -53,14 +54,17 @@ export function WidgetVendasRapidas({
         </div>
       }
       footer={
-        <Button
-          size="lg"
-          className="h-12 w-full text-base font-semibold md:h-11"
-          nativeButton={false}
-          render={<Link href="/gerenciamento/comandas/pedido" />}
-        >
-          Nova venda rápida
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button
+            size="lg"
+            className="h-12 w-full text-base font-semibold md:h-11"
+            nativeButton={false}
+            render={<Link href="/gerenciamento/comandas/pedido" />}
+          >
+            Nova venda rápida
+          </Button>
+          <ComandaDayUseBotao className="h-12 w-full md:h-10" />
+        </div>
       }
     >
       {visiveis.length === 0 ? (

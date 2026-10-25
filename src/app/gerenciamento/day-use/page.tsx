@@ -1,12 +1,13 @@
-import Link from "next/link";
 import { listarPassesDoDia } from "@/features/day-use/actions/listar-passes-dia";
 import { dataParaISO } from "@/lib/format";
 import { CabecalhoLista } from "@/components/gerenciamento/cabecalho-lista";
 import { NavegacaoDia } from "@/components/gerenciamento/balcao/navegacao-dia";
 import { DayUseLista } from "@/components/gerenciamento/balcao/day-use-lista";
+import { ComandaDayUseBotao } from "@/components/gerenciamento/balcao/comanda-day-use-botao";
 
 // RF18: lista de day use do dia. O lançamento é pela comanda (RF36); aqui o
-// operador confere quem entrou, quem já pagou e quantas vagas sobram.
+// operador confere quem entrou, quem já pagou e quantas vagas sobram, e
+// pode abrir uma comanda já com o day use de hoje (ComandaDayUseBotao).
 export default async function DayUsePage({
   searchParams,
 }: {
@@ -34,13 +35,13 @@ export default async function DayUsePage({
         acao={<NavegacaoDia basePath="/gerenciamento/day-use" dataISO={dataISO} hojeISO={hojeISO} />}
       />
 
-      <p className="text-sm text-muted-foreground">
-        Para lançar, abra a{" "}
-        <Link href="/gerenciamento/comandas" className="font-medium text-primary underline-offset-4 hover:underline">
-          comanda
-        </Link>{" "}
-        da pessoa e toque em Day use.
-      </p>
+      <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
+          Abre a comanda no nome do cliente já com o day use de hoje. Se ele já tem comanda aberta, o
+          day use entra nela.
+        </p>
+        <ComandaDayUseBotao variant="default" className="w-full shrink-0 sm:w-auto" />
+      </div>
 
       <DayUseLista key={dataISO} passes={dia.passes} />
     </div>
