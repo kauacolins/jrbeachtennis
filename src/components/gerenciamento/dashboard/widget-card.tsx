@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 // com rolagem própria quando passa da altura, rodapé com um botão de
 // largura total. No celular o card cresce com o conteúdo em vez da altura
 // fixa — rolagem dentro de rolagem é ruim de usar com o dedo.
+// min-w-0: item de grid tem min-width auto, então um nome comprido (mesmo
+// com truncate) alargava a coluna além da linha dos KPIs.
 export function WidgetCard({
   titulo,
   href,
@@ -23,7 +25,7 @@ export function WidgetCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("flex flex-col gap-3 rounded-xl border bg-card p-4 md:h-96", className)}>
+    <div className={cn("flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 md:h-96", className)}>
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-heading font-semibold">{titulo}</h3>
         {href && (

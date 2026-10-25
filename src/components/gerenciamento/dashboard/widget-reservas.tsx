@@ -71,7 +71,7 @@ export function WidgetReservas({ agendaInicial, className }: { agendaInicial: Ag
       href="/gerenciamento/agenda"
       className={className}
       acoes={
-        <Tabs value={aba} onValueChange={(v) => setAba(v as typeof aba)}>
+        <Tabs value={aba} onValueChange={(v) => setAba(v as typeof aba)} className="min-w-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
           <TabsList variant="line">
             <TabsTrigger value="hoje" className="data-active:after:bg-primary">
               Hoje ({reservas.length})

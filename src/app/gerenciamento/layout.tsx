@@ -83,7 +83,7 @@ export default async function GerenciamentoLayout({
       <GerenciamentoSidebar ehAdmin={admin.role === "ADMIN"} nome={admin.name} />
 
       {/* Padding padrão de toda tela do painel fica aqui, não em cada page.tsx. */}
-      <SidebarInset className="bg-muted/30 pt-16">
+      <SidebarInset className="min-w-0 bg-muted/30 pt-16">
         <div className="px-4 py-4 md:px-6 md:py-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
