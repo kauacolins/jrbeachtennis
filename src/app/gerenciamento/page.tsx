@@ -10,6 +10,7 @@ import { listarInscricoesPendentes } from "@/features/torneios/actions/listar-in
 import { WidgetReservas } from "@/components/gerenciamento/dashboard/widget-reservas";
 import { WidgetVendasRapidas } from "@/components/gerenciamento/dashboard/widget-vendas-rapidas";
 import { WidgetPendencias } from "@/components/gerenciamento/dashboard/widget-pendencias";
+import { WidgetAvisos } from "@/components/gerenciamento/dashboard/widget-avisos";
 import { ResumoDia } from "@/components/gerenciamento/dashboard/resumo-dia";
 
 function saudacao(agora: Date) {
@@ -103,6 +104,7 @@ export default async function InicioPage({
           comandasAbertasDeOntem={comandasAbertasDeOutroDia}
           inscricoesPendentes={inscricoesPendentes.length}
         />
+        <WidgetAvisos />
       </div>
     </div>
   );

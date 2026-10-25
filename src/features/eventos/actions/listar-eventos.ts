@@ -28,4 +28,13 @@ export async function listarEventosAdmin() {
   }));
 }
 
+// Um evento pra tela de edição (/gerenciamento/eventos/[id]).
+export async function obterEventoAdmin(eventoId: string) {
+  if (!(await exigirAdmin())) return null;
+  const evento = await prisma.evento.findUnique({ where: { id: eventoId }, select: CAMPOS_EVENTO });
+  if (!evento) return null;
+  const { imagemAtualizadaEm, ...resto } = evento;
+  return { ...resto, imagemUrl: urlImagemEvento(evento.id, imagemAtualizadaEm) };
+}
+
 export type EventoAdmin = Awaited<ReturnType<typeof listarEventosAdmin>>[number];

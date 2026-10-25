@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -13,23 +14,16 @@ import { ConfirmarBotao } from "@/components/gerenciamento/confirmar-botao";
 import { filtrarPorBusca } from "@/lib/busca";
 import { contagem, formatarDataCurta, formatarHora } from "@/lib/format";
 import { ImagemEvento } from "@/components/gerenciamento/eventos/imagem-evento";
-import { EventoFormDialog } from "@/components/gerenciamento/eventos/evento-form-dialog";
 import { removerEvento } from "@/features/eventos/actions/remover-evento";
 import type { EventoAdmin } from "@/features/eventos/actions/listar-eventos";
 
 // Avisos mostrados no modal de entrada do site (ver docs do módulo de
-// eventos). Sem página de detalhe separada no admin — cabe tudo no diálogo.
-export function EventosLista({ eventos }: { eventos: EventoAdmin[] }) {
+// eventos). Cadastro e edição abrem em tela própria (EventoForm);
+// `sugestoes` são os atalhos de modelos prontos (SugestoesEvento).
+export function EventosLista({ eventos, sugestoes }: { eventos: EventoAdmin[]; sugestoes?: ReactNode }) {
   const router = useRouter();
-  const [aberto, setAberto] = useState(false);
-  const [editando, setEditando] = useState<EventoAdmin | null>(null);
   const [busca, setBusca] = useState("");
   const visiveis = filtrarPorBusca(eventos, busca, (e) => [e.titulo, e.resumo]);
-
-  function abrir(evento: EventoAdmin | null) {
-    setEditando(evento);
-    setAberto(true);
-  }
 
   async function excluir(eventoId: string) {
     const resultado = await removerEvento(eventoId);
@@ -47,17 +41,24 @@ export function EventosLista({ eventos }: { eventos: EventoAdmin[] }) {
         titulo="Eventos"
         contagem={eventos.length > 0 ? contagem(eventos.length, "evento cadastrado", "eventos cadastrados") : undefined}
         acao={
-          <Button size="sm" onClick={() => abrir(null)}>
+          <Button size="sm" nativeButton={false} render={<Link href="/gerenciamento/eventos/novo" />}>
             <Plus aria-hidden />
             Novo evento
           </Button>
         }
       />
 
+      {sugestoes && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">Sugestões de aviso</h2>
+          {sugestoes}
+        </div>
+      )}
+
       {eventos.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-          Nenhum evento ainda. Cadastre um aviso (aula, manutenção...) pra mostrar no modal de entrada
-          do site.
+          Nenhum evento ainda. Escolha uma sugestão acima ou cadastre um aviso em branco pra mostrar
+          no modal de entrada do site.
         </p>
       ) : (
         <>
@@ -108,7 +109,12 @@ export function EventosLista({ eventos }: { eventos: EventoAdmin[] }) {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => abrir(evento)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          nativeButton={false}
+                          render={<Link href={`/gerenciamento/eventos/${evento.id}`} />}
+                        >
                           Editar
                         </Button>
                         <ConfirmarBotao
@@ -131,13 +137,6 @@ export function EventosLista({ eventos }: { eventos: EventoAdmin[] }) {
           )}
         </>
       )}
-
-      <EventoFormDialog
-        aberto={aberto}
-        onOpenChange={setAberto}
-        evento={editando}
-        onSalvo={() => router.refresh()}
-      />
     </section>
   );
 }
