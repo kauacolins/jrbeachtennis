@@ -272,6 +272,9 @@ model ProdutoBar {
   nome             String
   categoria        String? // Bebida, Comida...
   precoCentavos    Int
+  // Picolé e afins: valor digitado pelo operador a cada lançamento (até
+  // R$ 100). precoCentavos fica 0 e não é usado na venda.
+  precoDinamico    Boolean       @default(false)
   ativo            Boolean       @default(true)
   // Foto já reduzida no navegador (WebP, até 512 px) e guardada aqui mesmo —
   // o projeto não tem storage de arquivos. Servida por

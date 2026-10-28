@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { MetodoPagamento } from "@/app/generated/prisma/enums";
-import { temNomeESobrenome } from "@/lib/comanda";
+import { PRECO_DINAMICO_MAXIMO_CENTAVOS, temNomeESobrenome } from "@/lib/comanda";
 
 export const metodoPagamentoSchema = z.enum(MetodoPagamento, {
   error: "Escolha a forma de pagamento.",
@@ -40,6 +40,14 @@ const itensPedidoSchema = z
     z.object({
       produtoId: z.string().min(1),
       quantidade: z.number().int().min(1).max(99),
+      // Só vale pra produto de preço dinâmico; nos outros o servidor usa o
+      // preço do cadastro (ver lancarItensBar).
+      precoCentavos: z
+        .number()
+        .int()
+        .min(1, "Informe o valor.")
+        .max(PRECO_DINAMICO_MAXIMO_CENTAVOS, "Valor acima de R$ 100,00.")
+        .optional(),
     })
   )
   .min(1, "Escolha pelo menos um produto.")
@@ -56,6 +64,8 @@ export const lancarPedidoSchema = z
   .refine((d) => Boolean(d.comandaId) !== Boolean(d.novoNome), {
     error: "Escolha a comanda.",
   });
+
+export type ItemPedidoInput = z.input<typeof itensPedidoSchema>[number];
 
 export type LancarPedidoInput = z.input<typeof lancarPedidoSchema>;
 

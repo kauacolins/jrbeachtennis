@@ -27,7 +27,7 @@ export async function salvarProdutoBar(
   if (!parsed.success) {
     return { ok: false, erro: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
-  const { produtoId, nome, categoria, precoCentavos, ativo } = parsed.data;
+  const { produtoId, nome, categoria, precoCentavos, precoDinamico, ativo } = parsed.data;
 
   let dadosFoto = {};
   if (foto === null) {
@@ -64,7 +64,15 @@ export async function salvarProdutoBar(
     if (!opcao) return { ok: false, erro: "Escolha uma categoria da lista." };
   }
 
-  const data = { nome, categoria: categoria || null, precoCentavos, ativo, ...dadosFoto };
+  const data = {
+    nome,
+    categoria: categoria || null,
+    // Preço dinâmico não tem preço fixo — o valor vem em cada lançamento.
+    precoCentavos: precoDinamico ? 0 : precoCentavos,
+    precoDinamico,
+    ativo,
+    ...dadosFoto,
+  };
 
   if (produtoId) {
     await prisma.produtoBar.update({ where: { id: produtoId }, data, select: { id: true } });

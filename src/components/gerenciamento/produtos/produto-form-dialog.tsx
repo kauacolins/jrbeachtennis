@@ -27,6 +27,7 @@ interface Valores {
   nome: string;
   categoria: string;
   precoReais: string;
+  precoDinamico: boolean;
   ativo: boolean;
 }
 
@@ -35,10 +36,11 @@ function valoresIniciais(produto: ProdutoBarAdmin | null): Valores {
     ? {
         nome: produto.nome,
         categoria: produto.categoria ?? "",
-        precoReais: (produto.precoCentavos / 100).toFixed(2),
+        precoReais: produto.precoDinamico ? "" : (produto.precoCentavos / 100).toFixed(2),
+        precoDinamico: produto.precoDinamico,
         ativo: produto.ativo,
       }
-    : { nome: "", categoria: "", precoReais: "", ativo: true };
+    : { nome: "", categoria: "", precoReais: "", precoDinamico: false, ativo: true };
 }
 
 // Cadastro/edição de produto do bar — usado tanto na tela admin de Produtos
@@ -123,7 +125,10 @@ export function ProdutoFormDialog({
 
   function salvar(e: React.FormEvent) {
     e.preventDefault();
-    const precoCentavos = Math.round(Number(valores.precoReais.replace(",", ".")) * 100);
+    // Preço dinâmico não tem preço fixo: o valor é digitado a cada lançamento.
+    const precoCentavos = valores.precoDinamico
+      ? 0
+      : Math.round(Number(valores.precoReais.replace(",", ".")) * 100);
     if (!Number.isFinite(precoCentavos) || precoCentavos < 0) {
       toast.error("Preço inválido.");
       return;
@@ -135,6 +140,7 @@ export function ProdutoFormDialog({
           nome: valores.nome,
           categoria: valores.categoria,
           precoCentavos,
+          precoDinamico: valores.precoDinamico,
           ativo: valores.ativo,
         },
         novaFoto
@@ -269,12 +275,28 @@ export function ProdutoFormDialog({
                 type="number"
                 min="0"
                 step="0.01"
-                required
-                value={valores.precoReais}
+                required={!valores.precoDinamico}
+                disabled={valores.precoDinamico}
+                placeholder={valores.precoDinamico ? "Na venda" : undefined}
+                value={valores.precoDinamico ? "" : valores.precoReais}
                 onChange={(e) => setValores((v) => ({ ...v, precoReais: e.target.value }))}
               />
             </div>
           </div>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={valores.precoDinamico}
+              onChange={(e) => setValores((v) => ({ ...v, precoDinamico: e.target.checked }))}
+              className="mt-0.5 size-4 accent-primary"
+            />
+            <span>
+              Preço dinâmico
+              <span className="block text-muted-foreground">
+                O valor é digitado na hora de lançar (até R$ 100,00). Ex.: picolé.
+              </span>
+            </span>
+          </label>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

@@ -150,9 +150,9 @@ export function ComandaDetalhe({
               produtos={produtos}
               quantidades={quantidades}
               categoriasProduto={categoriasProduto}
-              onLancar={(produto) =>
+              onLancar={(produto, precoCentavos) =>
                 executar(
-                  () => lancarProdutoBar(comanda.id, produto.id),
+                  () => lancarProdutoBar(comanda.id, produto.id, precoCentavos),
                   () => somarOtimista({ produtoId: produto.id, delta: 1 })
                 )
               }
@@ -199,7 +199,13 @@ export function ComandaDetalhe({
                             variant="outline"
                             size="icon"
                             aria-label={`Mais um ${item.descricao}`}
-                            onClick={() => executar(() => lancarProdutoBar(comanda.id, item.produtoId!))}
+                            // Repete o preço da linha: num produto de preço
+                            // dinâmico, "+" é mais um com o mesmo valor.
+                            onClick={() =>
+                              executar(() =>
+                                lancarProdutoBar(comanda.id, item.produtoId!, item.precoUnitarioCentavos)
+                              )
+                            }
                           >
                             <Plus aria-hidden />
                           </Button>

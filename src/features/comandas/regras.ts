@@ -1,7 +1,7 @@
 import type { Prisma } from "@/app/generated/prisma/client";
 import type { MetodoPagamento } from "@/app/generated/prisma/enums";
 import { formatarHora } from "@/lib/format";
-import { normalizarNomeComanda } from "@/lib/comanda";
+import { normalizarNomeComanda, PRECO_DINAMICO_MAXIMO_CENTAVOS } from "@/lib/comanda";
 import { criarPasseDayUse } from "@/features/day-use/regras";
 
 // Regras da comanda (docs/COMANDAS.md) em funções que recebem a transação,
@@ -70,13 +70,33 @@ export async function abrirVendaAvulsa(tx: Tx): Promise<{ comandaId: string }> {
   return { comandaId: comanda.id };
 }
 
+type ItemBar = { produtoId: string; quantidade: number; precoCentavos?: number };
+
 // Toque no produto: soma 1 no item já lançado com o mesmo preço, ou cria um
 // novo (preço congelado no lançamento).
 export async function adicionarItemBar(
   tx: Tx,
-  { comandaId, produtoId }: { comandaId: string; produtoId: string }
+  { comandaId, produtoId, precoCentavos }: { comandaId: string; produtoId: string; precoCentavos?: number }
 ): Promise<Resultado> {
-  return lancarItensBar(tx, { comandaId, itens: [{ produtoId, quantidade: 1 }] });
+  return lancarItensBar(tx, { comandaId, itens: [{ produtoId, quantidade: 1, precoCentavos }] });
+}
+
+// Preço dinâmico (picolé): o valor vem do operador e é obrigatório. Nos
+// outros produtos o preço do navegador é ignorado — vale o do cadastro.
+function precoDoItem(
+  produto: { nome: string; precoCentavos: number; precoDinamico: boolean },
+  precoInformado: number | undefined
+): { ok: true; preco: number } | { ok: false; erro: string } {
+  if (!produto.precoDinamico) return { ok: true, preco: produto.precoCentavos };
+  if (
+    precoInformado === undefined ||
+    !Number.isInteger(precoInformado) ||
+    precoInformado < 1 ||
+    precoInformado > PRECO_DINAMICO_MAXIMO_CENTAVOS
+  ) {
+    return { ok: false, erro: `Informe o valor de ${produto.nome} (até R$ 100,00).` };
+  }
+  return { ok: true, preco: precoInformado };
 }
 
 // Pedido montado antes de escolher a comanda (tela "Pedido"): lança vários
@@ -84,24 +104,33 @@ export async function adicionarItemBar(
 // { ok: false } não desfaz a transação, então nada pode ter sido escrito.
 export async function lancarItensBar(
   tx: Tx,
-  { comandaId, itens }: { comandaId: string; itens: { produtoId: string; quantidade: number }[] }
+  { comandaId, itens }: { comandaId: string; itens: ItemBar[] }
 ): Promise<Resultado> {
   const aberta = await comandaAberta(tx, comandaId);
   if (!aberta.ok) return aberta;
 
   const produtos = await tx.produtoBar.findMany({
     where: { id: { in: itens.map((i) => i.produtoId) }, ativo: true },
-    select: { id: true, nome: true, precoCentavos: true },
+    select: { id: true, nome: true, precoCentavos: true, precoDinamico: true },
   });
   const porId = new Map(produtos.map((p) => [p.id, p]));
   if (itens.some((i) => !porId.has(i.produtoId))) {
     return { ok: false, erro: "Produto não encontrado ou inativo." };
   }
 
-  for (const { produtoId, quantidade } of itens) {
-    const produto = porId.get(produtoId)!;
+  const comPreco = [];
+  for (const item of itens) {
+    const produto = porId.get(item.produtoId)!;
+    const preco = precoDoItem(produto, item.precoCentavos);
+    if (!preco.ok) return preco;
+    comPreco.push({ ...item, produto, preco: preco.preco });
+  }
+
+  // Mesmo produto com preços diferentes (picolé de R$ 5 e de R$ 8) vira
+  // linhas separadas na comanda.
+  for (const { produtoId, quantidade, produto, preco } of comPreco) {
     const existente = await tx.itemComanda.findFirst({
-      where: { comandaId, produtoId, precoUnitarioCentavos: produto.precoCentavos },
+      where: { comandaId, produtoId, precoUnitarioCentavos: preco },
     });
     if (existente) {
       await tx.itemComanda.update({
@@ -116,7 +145,7 @@ export async function lancarItensBar(
           descricao: produto.nome,
           produtoId,
           quantidade,
-          precoUnitarioCentavos: produto.precoCentavos,
+          precoUnitarioCentavos: preco,
         },
       });
     }
