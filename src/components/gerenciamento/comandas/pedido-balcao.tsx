@@ -160,7 +160,7 @@ export function PedidoBalcao({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 md:gap-4">
       {/* Etapa 1 fica montada (só escondida) pra manter busca e categoria ao voltar. */}
       <section
         aria-labelledby="produtos-titulo"
@@ -361,7 +361,7 @@ export function PedidoBalcao({
 
       {/* Barra de ação da etapa: fica no fim da coluna de altura fixa, então
           está sempre visível enquanto só o conteúdo da etapa rola. */}
-      <div className="-mx-4 -mt-1 shrink-0 border-t bg-background px-4 pt-3 pb-3 md:-mx-6 md:px-6">
+      <div className="-mx-4 -mt-1 shrink-0 border-t bg-background px-4 py-2 md:-mx-6 md:px-6 md:py-3">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
           {etapa === "produtos" ? (
             <>
