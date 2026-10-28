@@ -18,15 +18,10 @@ export default async function PedidoPage() {
   // balcão não recebe as categorias e por isso não vê o card de adicionar.
   const categoriasProduto = ehAdmin ? await listarOpcoes(GRUPO_CATEGORIA_PRODUTO) : undefined;
 
-  // Altura da tela menos topbar e paddings do layout: a busca e o rodapé
-  // ficam parados e só a lista de produtos rola. No celular desconta topbar
-  // (4rem), pt-4 e a barra inferior (4rem + safe area), e o -mb-8 come a
-  // sobra do pb-24 do layout pra o rodapé encostar na barra inferior. O
-  // título some no celular (as abas já dizem onde está) pra sobrar lista.
   return (
-    <div className="-mb-8 flex h-[calc(100dvh_-_9rem_-_env(safe-area-inset-bottom))] min-h-[24rem] flex-col gap-3 md:mb-0 md:h-[calc(100dvh-6.5rem)] md:gap-4">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-xl font-bold max-md:sr-only">Comandas</h1>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-heading text-xl font-bold">Comandas</h1>
         <ComandasNav />
       </div>
       <PedidoBalcao produtos={produtos} comandas={comandas} categoriasProduto={categoriasProduto} />
