@@ -92,7 +92,11 @@ export function ProdutosBarLista({
                       {produto.categoria ?? "—"}
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap tabular-nums">
-                      {formatarPreco(produto.precoCentavos)}
+                      {produto.precoDinamico ? (
+                        <Badge variant="outline">Preço livre</Badge>
+                      ) : (
+                        formatarPreco(produto.precoCentavos)
+                      )}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       {produto.ativo ? (

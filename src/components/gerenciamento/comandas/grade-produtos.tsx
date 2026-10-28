@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { formatarPreco } from "@/lib/format";
 import { FotoProduto } from "@/components/gerenciamento/produtos/foto-produto";
 import { ProdutoFormDialog } from "@/components/gerenciamento/produtos/produto-form-dialog";
+import { PrecoDinamicoDialog } from "@/components/gerenciamento/comandas/preco-dinamico-dialog";
 import type { ProdutoParaLancar } from "@/features/produtos/actions/listar-produtos";
 
 const LIMITE_SEM_BUSCA = 12;
@@ -15,7 +16,8 @@ const LIMITE_SEM_BUSCA = 12;
 // RF33: cardápio do bar em cards com foto, nome e preço — um toque lança 1.
 // Os mais vendidos vêm primeiro (ordem de listarProdutosParaLancar); o
 // número no canto mostra quantos daquele produto já estão na comanda, e o
-// "−" no canto oposto tira um.
+// "−" no canto oposto tira um. Produto de preço dinâmico pede o valor antes
+// de lançar (PrecoDinamicoDialog).
 export function GradeProdutos({
   produtos,
   quantidades,
@@ -34,12 +36,13 @@ export function GradeProdutos({
   // Sem isso, a busca só aparece com cardápio grande (LIMITE_SEM_BUSCA).
   sempreMostrarBusca?: boolean;
   categoriasProduto?: string[];
-  onLancar: (produto: ProdutoParaLancar) => void;
+  onLancar: (produto: ProdutoParaLancar, precoCentavos?: number) => void;
   onDiminuir?: (produto: ProdutoParaLancar) => void;
 }) {
   const router = useRouter();
   const [busca, setBusca] = useState("");
   const [criarAberto, setCriarAberto] = useState(false);
+  const [pedindoPreco, setPedindoPreco] = useState<ProdutoParaLancar | null>(null);
   const podeAdicionarProduto = categoriasProduto !== undefined;
   // A ordem de "mais vendidos" muda a cada lançamento (o servidor recalcula);
   // trava a ordem da primeira renderização pra o card não pular de lugar
@@ -137,9 +140,11 @@ export function GradeProdutos({
               <li key={produto.id} className="relative">
                 <button
                   type="button"
-                  onClick={() => onLancar(produto)}
+                  onClick={() =>
+                    produto.precoDinamico ? setPedindoPreco(produto) : onLancar(produto)
+                  }
                   title={produto.nome}
-                  aria-label={`Lançar ${produto.nome}, ${formatarPreco(produto.precoCentavos)}${qtd > 0 ? `. ${qtd} ${textoQuantidade}` : ""}`}
+                  aria-label={`Lançar ${produto.nome}, ${produto.precoDinamico ? "preço livre" : formatarPreco(produto.precoCentavos)}${qtd > 0 ? `. ${qtd} ${textoQuantidade}` : ""}`}
                   className={cn(
                     "group relative flex h-full w-full flex-col overflow-hidden rounded-xl border bg-background text-left transition-[transform,border-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97] motion-reduce:active:scale-100",
                     qtd > 0 && "border-primary"
@@ -162,7 +167,7 @@ export function GradeProdutos({
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5 p-2">
                     <span className="truncate text-sm leading-tight font-medium">{produto.nome}</span>
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {formatarPreco(produto.precoCentavos)}
+                      {produto.precoDinamico ? "Preço livre" : formatarPreco(produto.precoCentavos)}
                     </span>
                   </span>
                 </button>
@@ -194,6 +199,12 @@ export function GradeProdutos({
           )}
         </ul>
       )}
+
+      <PrecoDinamicoDialog
+        produto={pedindoPreco}
+        onOpenChange={(aberto) => !aberto && setPedindoPreco(null)}
+        onConfirmar={(precoCentavos) => pedindoPreco && onLancar(pedindoPreco, precoCentavos)}
+      />
 
       {podeAdicionarProduto && (
         <ProdutoFormDialog

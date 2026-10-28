@@ -13,10 +13,15 @@ function revalidar() {
 }
 
 // RF33: lançar produto do bar com um toque (soma 1 se já estiver lançado).
-export async function lancarProdutoBar(comandaId: string, produtoId: string): Promise<Resultado> {
+// precoCentavos só conta em produto de preço dinâmico (ver lancarItensBar).
+export async function lancarProdutoBar(
+  comandaId: string,
+  produtoId: string,
+  precoCentavos?: number
+): Promise<Resultado> {
   if (!(await exigirAdmin())) return { ok: false, erro: "Sem permissão." };
   const resultado = await prisma.$transaction((tx) =>
-    adicionarItemBar(tx, { comandaId, produtoId })
+    adicionarItemBar(tx, { comandaId, produtoId, precoCentavos })
   );
   if (resultado.ok) revalidar();
   return resultado;

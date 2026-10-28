@@ -10,6 +10,7 @@ const CAMPOS_PRODUTO_BAR = {
   nome: true,
   categoria: true,
   precoCentavos: true,
+  precoDinamico: true,
   ativo: true,
   fotoAtualizadaEm: true,
 } as const;
@@ -57,6 +58,7 @@ export async function listarProdutosParaLancar() {
       nome: p.nome,
       categoria: p.categoria,
       precoCentavos: p.precoCentavos,
+      precoDinamico: p.precoDinamico,
       fotoUrl: urlFotoProduto(p.id, p.fotoAtualizadaEm),
       vendidos: vendidos.get(p.id) ?? 0,
     }))

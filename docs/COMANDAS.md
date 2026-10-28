@@ -42,6 +42,14 @@ Caminho alternativo, com o pedido primeiro e a pessoa depois (decidido em 2026-1
 
 O pedido fica só no navegador até ser lançado. Day use e reserva continuam sendo lançados dentro da comanda.
 
+### Preço dinâmico (decidido em 2026-10-28)
+
+Para produto com muitas variações de preço (ex.: picolé), em vez de cadastrar uma variante por valor, o admin marca "Preço dinâmico" no cadastro (`ProdutoBar.precoDinamico`). O produto fica sem preço fixo (`precoCentavos = 0`) e aparece na grade como "Preço livre".
+
+- Ao tocar no card, abre uma janela vazia pedindo o valor da unidade (de R$ 0,01 a R$ 100,00). Vale na comanda, na tela "Pedido" e na venda avulsa.
+- O valor é congelado no item como qualquer outro preço. O mesmo produto com valores diferentes fica em linhas separadas (picolé de R$ 5 e picolé de R$ 8); o "+" da linha lança mais um com o mesmo valor e o "−" do card tira do último lançado.
+- O servidor exige o valor só nos produtos de preço dinâmico; nos outros, ignora qualquer preço enviado e usa o do cadastro.
+
 ### Day use e reserva na comanda
 
 - **Day use:** na comanda, o operador toca em "Day use". Abre a busca de cliente (por nome ou telefone, já preenchida com o nome da comanda); se não achar, faz o cadastro rápido com nome, sobrenome e, se a pessoa quiser, telefone. O sistema cria o passe do dia (`PasseDayUse`, com limite diário e mensal ativo) e adiciona um item com o preço do passe (R$ 0 se coberto pelo mensal, já marcado como pago).

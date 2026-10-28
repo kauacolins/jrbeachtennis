@@ -24,6 +24,15 @@ import type { ComandaResumo } from "@/features/comandas/actions/listar-comandas"
 import type { ProdutoParaLancar } from "@/features/produtos/actions/listar-produtos";
 
 type Destino = { comandaId: string } | { novoNome: string };
+
+// Chave do carrinho: produto + preço, pra que picolés de valores diferentes
+// (preço dinâmico) fiquem em linhas separadas. Produto de preço fixo usa só
+// o id.
+type ItemCarrinho = { produtoId: string; precoCentavos?: number; quantidade: number };
+
+function chaveCarrinho(produtoId: string, precoCentavos?: number) {
+  return precoCentavos === undefined ? produtoId : `${produtoId}|${precoCentavos}`;
+}
 type Etapa = "produtos" | "revisao" | "comanda";
 
 // Pedido em três etapas: (1) toca nos produtos da grade, cada toque soma 1;
@@ -42,21 +51,34 @@ export function PedidoBalcao({
 }) {
   const router = useRouter();
   const [etapa, setEtapa] = useState<Etapa>("produtos");
-  const [carrinho, setCarrinho] = useState<Record<string, number>>({});
+  const [carrinho, setCarrinho] = useState<Record<string, ItemCarrinho>>({});
   const [buscaComanda, setBuscaComanda] = useState("");
   const [vendaAvulsaAberto, setVendaAvulsaAberto] = useState(false);
   const [pendente, startTransition] = useTransition();
 
   const porId = useMemo(() => new Map(produtos.map((p) => [p.id, p])), [produtos]);
   // Ordem de inserção do objeto = ordem em que o operador tocou.
-  const itens = Object.entries(carrinho).flatMap(([produtoId, quantidade]) => {
+  const itens = Object.entries(carrinho).flatMap(([chave, { produtoId, precoCentavos, quantidade }]) => {
     const produto = porId.get(produtoId);
-    return produto ? [{ produto, quantidade }] : [];
+    if (!produto) return [];
+    return [{ chave, produto, quantidade, precoCentavos, preco: precoCentavos ?? produto.precoCentavos }];
   });
-  const total = itens.reduce((soma, i) => soma + i.quantidade * i.produto.precoCentavos, 0);
+  // Badge da grade: soma por produto, juntando os preços diferentes.
+  const quantidades = useMemo(() => {
+    const mapa: Record<string, number> = {};
+    for (const { produtoId, quantidade } of Object.values(carrinho)) {
+      mapa[produtoId] = (mapa[produtoId] ?? 0) + quantidade;
+    }
+    return mapa;
+  }, [carrinho]);
+  const total = itens.reduce((soma, i) => soma + i.quantidade * i.preco, 0);
   const qtdTotal = itens.reduce((soma, i) => soma + i.quantidade, 0);
   const resumo = `${qtdTotal} ${qtdTotal === 1 ? "item" : "itens"} · ${formatarPreco(total)}`;
-  const itensParaLancar = itens.map((i) => ({ produtoId: i.produto.id, quantidade: i.quantidade }));
+  const itensParaLancar = itens.map((i) => ({
+    produtoId: i.produto.id,
+    quantidade: i.quantidade,
+    precoCentavos: i.precoCentavos,
+  }));
 
   const termoComanda = normalizarNomeComanda(buscaComanda);
   const comandasFiltradas = useMemo(
@@ -74,14 +96,27 @@ export function PedidoBalcao({
     window.scrollTo({ top: 0 });
   }
 
-  function alterar(produtoId: string, delta: number) {
+  function alterar(chave: string, delta: number, novo?: Omit<ItemCarrinho, "quantidade">) {
     setCarrinho((atual) => {
-      const quantidade = Math.min(99, (atual[produtoId] ?? 0) + delta);
-      if (quantidade > 0) return { ...atual, [produtoId]: quantidade };
+      const item = atual[chave] ?? (novo && { ...novo, quantidade: 0 });
+      if (!item) return atual;
+      const quantidade = Math.min(99, item.quantidade + delta);
+      if (quantidade > 0) return { ...atual, [chave]: { ...item, quantidade } };
       const resto = { ...atual };
-      delete resto[produtoId];
+      delete resto[chave];
       return resto;
     });
+  }
+
+  function adicionarProduto(produtoId: string, precoCentavos?: number) {
+    alterar(chaveCarrinho(produtoId, precoCentavos), 1, { produtoId, precoCentavos });
+  }
+
+  // "−" do card: tira do último lançado daquele produto (no preço dinâmico
+  // pode haver mais de uma linha).
+  function diminuirProduto(produtoId: string) {
+    const chave = Object.keys(carrinho).findLast((c) => carrinho[c].produtoId === produtoId);
+    if (chave) alterar(chave, -1);
   }
 
   function adicionar(destino: Destino) {
@@ -135,12 +170,12 @@ export function PedidoBalcao({
         </TituloEtapa>
         <GradeProdutos
           produtos={produtos}
-          quantidades={carrinho}
+          quantidades={quantidades}
           textoQuantidade="no pedido"
           sempreMostrarBusca
           categoriasProduto={categoriasProduto}
-          onLancar={(produto) => alterar(produto.id, 1)}
-          onDiminuir={(produto) => alterar(produto.id, -1)}
+          onLancar={(produto, precoCentavos) => adicionarProduto(produto.id, precoCentavos)}
+          onDiminuir={(produto) => diminuirProduto(produto.id)}
         />
       </section>
 
@@ -160,13 +195,13 @@ export function PedidoBalcao({
             </p>
           ) : (
             <ul className="flex flex-col divide-y">
-              {itens.map(({ produto, quantidade }) => (
-                <li key={produto.id} className="flex items-center gap-2 py-2 text-sm">
+              {itens.map(({ chave, produto, quantidade, preco }) => (
+                <li key={chave} className="flex items-center gap-2 py-2 text-sm">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{produto.nome}</p>
                     <p className="text-xs text-muted-foreground tabular-nums">
-                      {quantidade > 1 && `${quantidade} × ${formatarPreco(produto.precoCentavos)} · `}
-                      {formatarPreco(quantidade * produto.precoCentavos)}
+                      {quantidade > 1 && `${quantidade} × ${formatarPreco(preco)} · `}
+                      {formatarPreco(quantidade * preco)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -174,7 +209,7 @@ export function PedidoBalcao({
                       variant="outline"
                       size="icon"
                       aria-label={`Tirar um ${produto.nome}`}
-                      onClick={() => alterar(produto.id, -1)}
+                      onClick={() => alterar(chave, -1)}
                     >
                       <Minus aria-hidden />
                     </Button>
@@ -183,7 +218,7 @@ export function PedidoBalcao({
                       variant="outline"
                       size="icon"
                       aria-label={`Mais um ${produto.nome}`}
-                      onClick={() => alterar(produto.id, 1)}
+                      onClick={() => alterar(chave, 1)}
                     >
                       <Plus aria-hidden />
                     </Button>

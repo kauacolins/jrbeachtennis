@@ -1,3 +1,6 @@
+/** Teto do valor digitado num produto de preço dinâmico (R$ 100). */
+export const PRECO_DINAMICO_MAXIMO_CENTAVOS = 10_000;
+
 /** Nome normalizado pra comparar duplicidade de comanda ("  joão " == "João"). */
 export function normalizarNomeComanda(nome: string) {
   return nome.trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");

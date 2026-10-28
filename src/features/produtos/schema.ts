@@ -5,6 +5,8 @@ export const produtoBarSchema = z.object({
   nome: z.string().trim().min(2, "Informe o nome.").max(60),
   categoria: z.string().trim().max(30).optional().or(z.literal("")),
   precoCentavos: z.number().int().min(0, "Preço inválido."),
+  // Preço digitado no lançamento (ex.: picolé); aí precoCentavos é ignorado.
+  precoDinamico: z.boolean(),
   ativo: z.boolean(),
 });
 

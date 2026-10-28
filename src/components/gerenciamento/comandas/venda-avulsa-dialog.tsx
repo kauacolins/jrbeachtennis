@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { SeletorMetodo } from "@/components/gerenciamento/balcao/seletor-metodo";
 import { formatarPreco } from "@/lib/format";
 import { venderAvulso } from "@/features/comandas/actions/vender-avulso";
+import type { ItemPedidoInput } from "@/features/comandas/schema";
 import type { MetodoPagamento } from "@/app/generated/prisma/enums";
 
 // RF39: sem abrir comanda com nome, recebe e fecha na hora — pro cliente de
@@ -28,7 +29,7 @@ export function VendaAvulsaDialog({
 }: {
   aberto: boolean;
   onOpenChange: (aberto: boolean) => void;
-  itens: { produtoId: string; quantidade: number }[];
+  itens: ItemPedidoInput[];
   resumo: string;
   totalCentavos: number;
   onVendida: () => void;
