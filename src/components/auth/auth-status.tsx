@@ -85,8 +85,8 @@ export function AuthStatus() {
 }
 
 // Versão enxuta pra landing page: nada de "Olá, {nome}"/"Sair" ali, só um
-// botão "Entrar". A equipe normalmente entra por /admin (login separado),
-// mas se já estiver logada e passar pela home, o botão tem que levar pro
+// botão "Entrar" (login unificado em /entrar pra equipe e cliente). Se já
+// estiver logada e passar pela home, o botão tem que levar pro
 // /gerenciamento — nunca pra área do cliente comum.
 export function AuthEntrarButton() {
   const session = useSession();

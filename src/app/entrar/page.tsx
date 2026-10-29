@@ -53,9 +53,6 @@ export default async function EntrarPage({
         nomeInicial={contato && !contato.contaExiste ? contato.nome : ""}
         telefoneInicial={contato && !contato.contaExiste ? contato.telefone : ""}
       />
-      <Link href="/admin" className="text-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 underline">
-        Área Administrativa
-      </Link>
     </div>
   );
 }

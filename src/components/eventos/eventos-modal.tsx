@@ -41,7 +41,6 @@ function infoTipo(chave: string) {
   return {
     label: torneio ? "Torneio" : "Aviso",
     icone: torneio ? Trophy : Megaphone,
-    cta: torneio ? "Garantir vaga" : "Ver detalhes",
   };
 }
 
@@ -51,6 +50,8 @@ function infoTipo(chave: string) {
 // atenção que uma lista simples. "Visto" é guardado por item no localStorage, não por
 // sessão — um evento novo sempre aparece de novo, mesmo que o visitante já
 // tenha fechado o modal de outro evento antes.
+// Aviso não tem página de detalhe própria (texto completo já vem no feed e é
+// mostrado aqui mesmo); só torneio navega, pra tela de inscrição.
 export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
   const pathname = usePathname();
   const [pendentes, setPendentes] = useState<EventoFeedItem[]>([]);
@@ -110,34 +111,51 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
             {pendentes.map((item) => {
               const tipo = infoTipo(item.chave);
               const Icone = tipo.icone;
+              const conteudoMidia = item.imagemUrl ? (
+                <div className="relative aspect-[4/5] w-full">
+                  <Image
+                    src={item.imagemUrl}
+                    alt={item.titulo}
+                    fill
+                    sizes="(min-width: 640px) 384px, 100vw"
+                    unoptimized
+                    className="object-cover"
+                  />
+                  <Badge
+                    variant={tipo.label === "Torneio" ? "default" : "secondary"}
+                    className="absolute top-3 left-3"
+                  >
+                    {tipo.label}
+                  </Badge>
+                </div>
+              ) : (
+                // Sem foto: em vez do pôster vazio 4:5, uma faixa curta com
+                // ícone + badge — dá mais espaço e destaque pro texto abaixo.
+                <div className="flex items-center gap-3 bg-gradient-to-br from-primary/15 to-primary/5 px-4 py-5">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background/80 text-primary">
+                    <Icone className="size-5" aria-hidden />
+                  </span>
+                  <Badge variant={tipo.label === "Torneio" ? "default" : "secondary"}>
+                    {tipo.label}
+                  </Badge>
+                </div>
+              );
+
               return (
                 <CarouselItem key={item.chave} className="pl-0">
-                  <Link
-                    href={item.href}
-                    onClick={() => fechar(false)}
-                    className="relative block aspect-[4/5] w-full overflow-hidden bg-muted outline-none"
-                  >
-                    {item.imagemUrl ? (
-                      <Image
-                        src={item.imagemUrl}
-                        alt={item.titulo}
-                        fill
-                        sizes="(min-width: 640px) 384px, 100vw"
-                        unoptimized
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/15 to-primary/5">
-                        <Icone className="size-12 text-primary/40" />
-                      </div>
-                    )}
-                    <Badge
-                      variant={tipo.label === "Torneio" ? "default" : "secondary"}
-                      className="absolute top-3 left-3"
+                  {item.href ? (
+                    <Link
+                      href={item.href}
+                      onClick={() => fechar(false)}
+                      className="relative block w-full overflow-hidden bg-muted outline-none"
                     >
-                      {tipo.label}
-                    </Badge>
-                  </Link>
+                      {conteudoMidia}
+                    </Link>
+                  ) : (
+                    <div className="relative block w-full overflow-hidden bg-muted">
+                      {conteudoMidia}
+                    </div>
+                  )}
 
                   <div className="flex flex-col gap-3 p-4">
                     <div className="flex flex-col gap-1">
@@ -148,15 +166,34 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
                         <p className="text-sm text-muted-foreground">{item.resumo}</p>
                       )}
                     </div>
-                    <Button
-                      size="lg"
-                      className="h-11 w-full"
-                      render={<Link href={item.href} />}
-                      nativeButton={false}
-                      onClick={() => fechar(false)}
-                    >
-                      {tipo.cta}
-                    </Button>
+
+                    {item.descricao && (
+                      <p className="max-h-40 overflow-y-auto text-sm whitespace-pre-wrap text-foreground/80">
+                        {item.descricao}
+                      </p>
+                    )}
+
+                    {item.href ? (
+                      <Button
+                        size="lg"
+                        className="h-11 w-full"
+                        render={<Link href={item.href} />}
+                        nativeButton={false}
+                        onClick={() => fechar(false)}
+                      >
+                        Garantir vaga
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="lg"
+                        variant="outline"
+                        className="h-11 w-full"
+                        onClick={() => fechar(false)}
+                      >
+                        Entendi
+                      </Button>
+                    )}
                   </div>
                 </CarouselItem>
               );

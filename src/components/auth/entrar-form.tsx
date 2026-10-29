@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { GoogleIcon } from "@/components/auth/google-icon";
-import { signIn, signOut, signUp, useSession } from "@/lib/auth-client";
+import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { vincularReservaAoUsuario } from "@/features/reservas/actions/vincular-reserva-usuario";
 import { sessaoEhDaEquipe } from "@/features/auth/actions/acesso-equipe";
 import { formatarTelefone } from "@/lib/format";
@@ -55,7 +55,6 @@ export function EntrarForm({
   const [telefone, setTelefone] = useState(telefoneInicial);
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
-  const [contaDaEquipe, setContaDaEquipe] = useState(false);
   const [enviando, startTransition] = useTransition();
   const vinculoFeito = useRef(false);
 
@@ -66,12 +65,10 @@ export function EntrarForm({
     vinculoFeito.current = true;
 
     startTransition(async () => {
-      // Login separado: conta da equipe não entra pelo login de cliente
-      // (inclusive via Google), tem que usar /admin.
+      // Login unificado: conta da equipe (ADMIN/OPERATOR) cai direto no
+      // gerenciamento, sem precisar de login separado.
       if (await sessaoEhDaEquipe()) {
-        await signOut();
-        vinculoFeito.current = false;
-        setContaDaEquipe(true);
+        router.replace(redirectPara.startsWith("/gerenciamento") ? redirectPara : "/gerenciamento");
         return;
       }
 
@@ -91,7 +88,6 @@ export function EntrarForm({
   function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setErro(null);
-    setContaDaEquipe(false);
 
     startTransition(async () => {
       // `telefone` é um additionalField configurado no servidor (lib/auth.ts);
@@ -140,7 +136,7 @@ export function EntrarForm({
             ? modo === "entrar"
               ? "Esse telefone já tem conta. Entre para acompanhar a reserva que você acabou de fazer."
               : "Crie sua conta para acompanhar a reserva que você acabou de fazer — já deixamos nome e telefone preenchidos."
-            : "Acompanhe suas reservas na Arena JR."}
+            : "Acesse sua área na Arena JR."}
         </p>
       </div>
 
@@ -209,7 +205,17 @@ export function EntrarForm({
         )}
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="senha">Senha</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="senha">Senha</Label>
+            {modo === "entrar" && (
+              <Link
+                href="/esqueci-senha"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Esqueceu sua senha?
+              </Link>
+            )}
+          </div>
           <Input
             id="senha"
             type="password"
@@ -221,19 +227,6 @@ export function EntrarForm({
             className="h-11"
           />
         </div>
-
-        {contaDaEquipe && (
-          <Alert variant="destructive">
-            <AlertCircle aria-hidden />
-            <AlertDescription aria-live="polite">
-              Essa é uma conta da equipe. Entre pelo{" "}
-              <Link href="/admin" className="font-medium underline underline-offset-4">
-                acesso da equipe
-              </Link>
-              .
-            </AlertDescription>
-          </Alert>
-        )}
 
         {erro && (
           <Alert variant="destructive">

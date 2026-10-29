@@ -19,7 +19,7 @@ export default async function GerenciamentoLayout({
   children: React.ReactNode;
 }) {
   const admin = await exigirAdmin();
-  if (!admin) redirect("/admin");
+  if (!admin) redirect("/entrar?redirect=/gerenciamento");
   const contagens = await obterContagensMenu();
 
   return (

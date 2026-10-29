@@ -13,8 +13,8 @@ function iniciais(nome: string) {
   return (primeira + ultima).toUpperCase();
 }
 
-// "Sair" do gerenciamento: volta pro login da equipe (/admin) — não pra
-// área do cliente. Com `nome`, mostra avatar (iniciais) + saudação.
+// "Sair" do gerenciamento: volta pro login unificado (/entrar) — não pra
+// home. Com `nome`, mostra avatar (iniciais) + saudação.
 export function SairEquipe({ nome, className }: { nome?: string; className?: string }) {
   const router = useRouter();
 
@@ -35,7 +35,7 @@ export function SairEquipe({ nome, className }: { nome?: string; className?: str
         className={cn("h-11", className)}
         onClick={async () => {
           await signOut();
-          router.push("/admin");
+          router.push("/entrar");
           router.refresh();
         }}
       >

@@ -16,9 +16,8 @@ export function middleware(request: NextRequest) {
 
   const sessionCookie = getSessionCookie(request);
   if (!sessionCookie) {
-    // Equipe tem login próprio (/admin), separado do de cliente (/entrar).
-    const login = pathname.startsWith("/gerenciamento") ? "/admin" : "/entrar";
-    const url = new URL(login, request.url);
+    // Login unificado em /entrar: equipe e cliente usam o mesmo formulário.
+    const url = new URL("/entrar", request.url);
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }
