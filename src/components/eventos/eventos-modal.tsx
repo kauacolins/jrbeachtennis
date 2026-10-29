@@ -6,7 +6,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Megaphone, Trophy, XIcon } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -131,8 +138,8 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
               ) : (
                 // Sem foto: em vez do pôster vazio 4:5, uma faixa curta com
                 // ícone + badge — dá mais espaço e destaque pro texto abaixo.
-                <div className="flex items-center gap-3 bg-gradient-to-br from-primary/15 to-primary/5 px-4 py-5">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background/80 text-primary">
+                <div className="flex items-center gap-3 bg-primary/10 px-4 py-5">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                     <Icone className="size-5" aria-hidden />
                   </span>
                   <Badge variant={tipo.label === "Torneio" ? "default" : "secondary"}>
@@ -168,7 +175,7 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
                     </div>
 
                     {item.descricao && (
-                      <p className="max-h-40 overflow-y-auto text-sm whitespace-pre-wrap text-foreground/80">
+                      <p className="no-scrollbar max-h-40 overflow-y-auto text-sm whitespace-pre-wrap text-muted-foreground">
                         {item.descricao}
                       </p>
                     )}
@@ -199,11 +206,23 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
               );
             })}
           </CarouselContent>
+
+          {/* Swipe já resolve no touch; estas setas são só pra quem usa
+              mouse — por isso escondidas abaixo de sm. Precisam ficar dentro
+              das bordas do slide (left-2/right-2 em vez do padrão
+              -left-12/-right-12), senão o overflow-hidden do DialogContent
+              corta elas. */}
+          {pendentes.length > 1 && (
+            <>
+              <CarouselPrevious className="left-2 hidden size-8 border-none bg-background/90 shadow-sm backdrop-blur-sm hover:bg-background sm:flex" />
+              <CarouselNext className="right-2 hidden size-8 border-none bg-background/90 shadow-sm backdrop-blur-sm hover:bg-background sm:flex" />
+            </>
+          )}
         </Carousel>
 
         {pendentes.length > 1 && (
           <div
-            className="flex justify-center gap-1.5 pb-4"
+            className="flex justify-center gap-1 pb-4"
             role="tablist"
             aria-label="Novidades"
           >
@@ -215,11 +234,16 @@ export function EventosModal({ eventos }: { eventos: EventoFeedItem[] }) {
                 aria-selected={indice === atual}
                 aria-label={`Ver ${item.titulo}`}
                 onClick={() => api?.scrollTo(indice)}
-                className={cn(
-                  "size-2 rounded-full transition-colors",
-                  indice === atual ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                )}
-              />
+                className="group flex size-6 items-center justify-center"
+              >
+                <span
+                  className={cn(
+                    "size-2 rounded-full transition-colors",
+                    indice === atual ? "bg-primary" : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50"
+                  )}
+                  aria-hidden
+                />
+              </button>
             ))}
           </div>
         )}

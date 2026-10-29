@@ -9,12 +9,21 @@ const ROTAS_PROTEGIDAS = ["/minhas-reservas", "/minhas-inscricoes", "/perfil", "
 // validação de verdade continua em getSessaoAtual() dentro da página.
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const sessionCookie = getSessionCookie(request);
+
+  // Quem já está logado não precisa ver a landing page — manda direto pra
+  // área dele. Todo mundo cai em /minhas-reservas; se a conta for da
+  // equipe, a própria página manda pra /gerenciamento (saber o papel
+  // precisa do banco, então essa parte fica lá, não aqui).
+  if (pathname === "/" && sessionCookie) {
+    return NextResponse.redirect(new URL("/minhas-reservas", request.url));
+  }
+
   const protegida = ROTAS_PROTEGIDAS.some(
     (rota) => pathname === rota || pathname.startsWith(`${rota}/`)
   );
   if (!protegida) return NextResponse.next();
 
-  const sessionCookie = getSessionCookie(request);
   if (!sessionCookie) {
     // Login unificado em /entrar: equipe e cliente usam o mesmo formulário.
     const url = new URL("/entrar", request.url);
@@ -27,6 +36,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/minhas-reservas/:path*",
     "/minhas-inscricoes/:path*",
     "/perfil/:path*",

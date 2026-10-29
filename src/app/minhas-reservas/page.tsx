@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReservaCard } from "@/components/reservas/reserva-card";
 import { QuickSearchCards } from "@/components/reservas/quick-search-cards";
 import { getSessaoAtual } from "@/lib/get-session";
+import { sessaoEhDaEquipe } from "@/features/auth/actions/acesso-equipe";
 import { listarReservasUsuario } from "@/features/reservas/actions/listar-reservas-usuario";
 import { listarModalidades } from "@/features/modalidades/actions/listar-modalidades";
 
@@ -16,6 +17,12 @@ export default async function MinhasReservasPage() {
   const sessao = await getSessaoAtual();
   if (!sessao?.user) {
     redirect("/entrar?redirect=/minhas-reservas");
+  }
+
+  // Quem cai aqui logado pela landing page (ver middleware) mas é da
+  // equipe não usa essa área de cliente — manda pro gerenciamento.
+  if (await sessaoEhDaEquipe()) {
+    redirect("/gerenciamento");
   }
 
   const [reservas, modalidades] = await Promise.all([

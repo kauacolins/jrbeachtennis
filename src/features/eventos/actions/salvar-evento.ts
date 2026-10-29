@@ -22,7 +22,17 @@ export async function salvarEvento(
   if (!parsed.success) {
     return { ok: false, erro: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
-  const { eventoId, titulo, resumo, descricao, data: dataISO, hora, ativo } = parsed.data;
+  const {
+    eventoId,
+    titulo,
+    resumo,
+    descricao,
+    data: dataISO,
+    hora,
+    exibicaoInicio,
+    exibicaoFim,
+    ativo,
+  } = parsed.data;
 
   let dadosImagem = {};
   if (imagem === null) {
@@ -46,6 +56,8 @@ export async function salvarEvento(
     resumo: resumo || null,
     descricao: descricao || null,
     data: dataISO ? fromZonedTime(`${dataISO}T${hora || "00:00"}:00`, TIME_ZONE) : null,
+    exibicaoInicio: exibicaoInicio ? fromZonedTime(`${exibicaoInicio}T00:00:00`, TIME_ZONE) : null,
+    exibicaoFim: exibicaoFim ? fromZonedTime(`${exibicaoFim}T23:59:59`, TIME_ZONE) : null,
     ativo,
     ...dadosImagem,
   };

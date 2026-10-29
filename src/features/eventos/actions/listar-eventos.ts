@@ -11,6 +11,8 @@ const CAMPOS_EVENTO = {
   resumo: true,
   descricao: true,
   data: true,
+  exibicaoInicio: true,
+  exibicaoFim: true,
   ativo: true,
   imagemAtualizadaEm: true,
 } as const;

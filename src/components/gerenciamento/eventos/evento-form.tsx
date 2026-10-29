@@ -91,6 +91,8 @@ export function EventoForm({
           descricao: valores.descricao,
           data: valores.data,
           hora: valores.hora,
+          exibicaoInicio: valores.exibicaoInicio,
+          exibicaoFim: valores.exibicaoFim,
           ativo: valores.ativo,
         },
         novaImagem
@@ -244,6 +246,29 @@ export function EventoForm({
               onChange={(e) => setValores((v) => ({ ...v, hora: e.target.value }))}
             />
           </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label>Período de exibição no site (opcional)</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <SeletorData
+              valor={valores.exibicaoInicio}
+              onAlterar={(data) => setValores((v) => ({ ...v, exibicaoInicio: data }))}
+              placeholder="A partir de quando"
+              ariaLabel="Início da exibição"
+              className="w-full"
+            />
+            <SeletorData
+              valor={valores.exibicaoFim}
+              onAlterar={(data) => setValores((v) => ({ ...v, exibicaoFim: data }))}
+              placeholder="Até quando"
+              ariaLabel="Fim da exibição"
+              className="w-full"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Deixe em branco pra aparecer desde já e continuar até você desativar.
+          </p>
         </div>
 
         <label className="flex items-center gap-2 text-sm">

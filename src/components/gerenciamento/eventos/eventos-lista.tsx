@@ -101,11 +101,22 @@ export function EventosLista({ eventos, sugestoes }: { eventos: EventoAdmin[]; s
                         : "—"}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      {evento.ativo ? (
-                        <Badge variant="secondary">Ativo</Badge>
-                      ) : (
-                        <Badge variant="outline">Inativo</Badge>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {evento.ativo ? (
+                          <Badge variant="secondary">Ativo</Badge>
+                        ) : (
+                          <Badge variant="outline">Inativo</Badge>
+                        )}
+                        {(evento.exibicaoInicio || evento.exibicaoFim) && (
+                          <span className="text-xs text-muted-foreground">
+                            {evento.exibicaoInicio && evento.exibicaoFim
+                              ? `${formatarDataCurta(evento.exibicaoInicio)} – ${formatarDataCurta(evento.exibicaoFim)}`
+                              : evento.exibicaoInicio
+                                ? `a partir de ${formatarDataCurta(evento.exibicaoInicio)}`
+                                : `até ${formatarDataCurta(evento.exibicaoFim!)}`}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

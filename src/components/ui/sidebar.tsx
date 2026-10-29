@@ -154,6 +154,7 @@ function Sidebar({
   variant = "sidebar",
   collapsible = "offcanvas",
   className,
+  mobileOverlayClassName,
   style,
   children,
   dir,
@@ -162,6 +163,10 @@ function Sidebar({
   side?: "left" | "right"
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
+  // Normalmente o overlay do Sheet cobre a tela toda (inset-0); aqui dá pra
+  // encolher ele (ex.: "top-16!") quando tem um header fixo por cima que
+  // precisa continuar nítido e clicável com a gaveta aberta.
+  mobileOverlayClassName?: string
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
@@ -189,6 +194,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
+          overlayClassName={mobileOverlayClassName}
           className={cn(
             "w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden",
             className

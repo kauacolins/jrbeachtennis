@@ -19,9 +19,16 @@ export type EventoFeedItem = {
 // automaticamente sem precisar de um Evento duplicado pra cada um. Aviso não
 // tem página de detalhe própria — o texto todo já vem aqui pro modal mostrar.
 export async function listarEventosAtivos(): Promise<EventoFeedItem[]> {
+  const agora = new Date();
   const [eventos, torneios] = await Promise.all([
     prisma.evento.findMany({
-      where: { ativo: true },
+      where: {
+        ativo: true,
+        AND: [
+          { OR: [{ exibicaoInicio: null }, { exibicaoInicio: { lte: agora } }] },
+          { OR: [{ exibicaoFim: null }, { exibicaoFim: { gte: agora } }] },
+        ],
+      },
       orderBy: [{ ordem: "asc" }, { createdAt: "desc" }],
       select: { id: true, titulo: true, resumo: true, descricao: true, imagemAtualizadaEm: true },
     }),

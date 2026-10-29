@@ -236,9 +236,13 @@ export function GerenciamentoSidebar({
 
   return (
     // Abaixo do header fixo, que tem 64px no celular e 56px a partir de md.
+    // No celular, o overlay do Sheet também para em top-16 (em vez do
+    // inset-0 padrão) — senão ficava borrando o header por cima, que devia
+    // continuar nítido e clicável enquanto a gaveta está aberta.
     <Sidebar
       collapsible="icon"
       className="top-16! h-[calc(100svh-4rem)]! md:top-14! md:h-[calc(100svh-3.5rem)]!"
+      mobileOverlayClassName="top-16! md:top-14!"
     >
       {/* No celular a gaveta abre abaixo do header fixo, que já mostra a
           logo e o botão do menu — repetir aqui duplicava a logo. */}

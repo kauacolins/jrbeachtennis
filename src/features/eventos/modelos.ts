@@ -20,6 +20,8 @@ export interface ValoresEvento {
   descricao: string;
   data: string;
   hora: string;
+  exibicaoInicio: string;
+  exibicaoFim: string;
   ativo: boolean;
 }
 
@@ -29,6 +31,8 @@ export const VALORES_EVENTO_VAZIOS: ValoresEvento = {
   descricao: "",
   data: "",
   hora: "",
+  exibicaoInicio: "",
+  exibicaoFim: "",
   ativo: true,
 };
 
@@ -39,6 +43,8 @@ export function valoresDoEvento(evento: EventoAdmin): ValoresEvento {
     descricao: evento.descricao ?? "",
     data: evento.data ? dataParaISO(evento.data) : "",
     hora: evento.data ? formatarHora(evento.data) : "",
+    exibicaoInicio: evento.exibicaoInicio ? dataParaISO(evento.exibicaoInicio) : "",
+    exibicaoFim: evento.exibicaoFim ? dataParaISO(evento.exibicaoFim) : "",
     ativo: evento.ativo,
   };
 }
