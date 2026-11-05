@@ -26,7 +26,7 @@ import { normalizarBusca } from "@/lib/busca";
 const LABEL_PAPEL: Record<(typeof PAPEIS_EQUIPE)[number], string> = {
   ADMIN: "Admin",
   OPERATOR: "Operador",
-  INTRUCTOR: "Instrutor",
+  INSTRUTOR: "Instrutor",
 };
 
 const FILTRO_TODOS = "TODOS" as const;

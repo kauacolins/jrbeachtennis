@@ -303,7 +303,7 @@ ALTER TABLE "Reserva" ADD CONSTRAINT sem_sobreposicao
 | 4 | Política de cancelamento e reembolso | Reembolso parcial por prazo, créditos na conta |
 | 5 | Preço dinâmico | Preço por faixa de horário e dia (horário nobre, fim de semana), feriados |
 | 6 | Vários estabelecimentos (multi-tenant) | Modelo Estabelecimento acima de Quadra; slug por cliente; planos de assinatura |
-| 7 | Perfis extras | Recepcionista com permissões limitadas; professor com aulas |
+| 7 | Perfis extras | Recepcionista com permissões limitadas; professor com aulas. **Instrutores com alunos e mensalidade: fase 1 feita, ver `docs/INSTRUTORES.md`** |
 | 8 | Aulas e torneios | Reserva com várias vagas e inscrição individual |
 | 9 | Dividir a conta | Convidar jogadores e cada um paga a sua parte |
 | 10 | Lista de espera | Avisar quando um horário ocupado for liberado |

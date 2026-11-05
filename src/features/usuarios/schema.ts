@@ -3,7 +3,7 @@ import { Role } from "@/app/generated/prisma/enums";
 
 // CRUD de usuários de equipe (admin/operador/instrutor) — cliente não entra
 // aqui, essa conta nasce pelo cadastro público em /entrar.
-export const PAPEIS_EQUIPE = [Role.ADMIN, Role.OPERATOR, Role.INTRUCTOR] as const;
+export const PAPEIS_EQUIPE = [Role.ADMIN, Role.OPERATOR, Role.INSTRUTOR] as const;
 
 const papelEquipeSchema = z.enum(PAPEIS_EQUIPE);
 

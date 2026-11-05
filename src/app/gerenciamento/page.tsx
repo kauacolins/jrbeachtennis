@@ -9,6 +9,7 @@ import { TIME_ZONE } from "@/lib/constants";
 import { obterAgendaDia } from "@/features/gerenciamento/actions/obter-agenda-dia";
 import { listarComandasAbertas, listarHistoricoComandas } from "@/features/comandas/actions/listar-comandas";
 import { listarPlanos } from "@/features/planos/actions/planos";
+import { contarPendenciasAulas } from "@/features/instrutores/actions/listar-instrutores";
 import { listarInscricoesPendentes } from "@/features/torneios/actions/listar-inscritos";
 import { WidgetReservas } from "@/components/gerenciamento/dashboard/widget-reservas";
 import { WidgetVendasRapidas } from "@/components/gerenciamento/dashboard/widget-vendas-rapidas";
@@ -48,12 +49,13 @@ export default async function InicioPage({
   const agora = new Date();
   const hojeISO = dataParaISO(agora);
 
-  const [agenda, comandasAbertas, historicoHoje, mensaisVencendo, inscricoesPendentes] = await Promise.all([
+  const [agenda, comandasAbertas, historicoHoje, mensaisVencendo, inscricoesPendentes, aulas] = await Promise.all([
     obterAgendaDia(hojeISO),
     listarComandasAbertas(),
     listarHistoricoComandas(hojeISO),
     listarPlanos("vencendo"),
     listarInscricoesPendentes(),
+    contarPendenciasAulas(),
   ]);
 
   const reservasNaoPagas = agenda.quadras.reduce(
@@ -126,6 +128,8 @@ export default async function InicioPage({
           reservasNaoPagas={reservasNaoPagas}
           comandasAbertasDeOntem={comandasAbertasDeOutroDia}
           inscricoesPendentes={inscricoesPendentes.length}
+          aulasVencendo={aulas.vencendo}
+          aulasEmAberto={aulas.emAberto}
         />
         <WidgetReservas agendaInicial={agenda} className="md:order-1" />
         <WidgetAvisos className="md:order-4" />

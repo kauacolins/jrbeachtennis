@@ -29,7 +29,7 @@ import type { UsuarioAdmin } from "@/features/usuarios/actions/listar-usuarios";
 const LABEL_PAPEL: Record<(typeof PAPEIS_EQUIPE)[number], string> = {
   ADMIN: "Admin",
   OPERATOR: "Operador",
-  INTRUCTOR: "Instrutor",
+  INSTRUTOR: "Instrutor",
 };
 
 interface UsuarioFormValues {

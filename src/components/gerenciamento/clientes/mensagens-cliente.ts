@@ -20,7 +20,7 @@ export interface ContextoMensagem {
 
 const DIAS_AVISO_MENSAL = 7;
 
-function primeiroNome(nome: string) {
+export function primeiroNome(nome: string) {
   return nome.trim().split(/\s+/)[0] ?? "";
 }
 

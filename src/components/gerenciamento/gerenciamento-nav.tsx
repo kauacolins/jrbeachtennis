@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   ChevronRight,
+  GraduationCap,
   LandPlot,
   LayoutDashboard,
   Megaphone,
@@ -77,6 +78,7 @@ const GRUPOS: { titulo?: string; links: LinkNav[] }[] = [
     links: [
       { href: "/gerenciamento/clientes", label: "Clientes", icon: Users },
       { href: "/gerenciamento/planos", label: "Mensalistas", icon: UserRound },
+      { href: "/gerenciamento/instrutores", label: "Instrutores", icon: GraduationCap },
     ],
   },
   {
