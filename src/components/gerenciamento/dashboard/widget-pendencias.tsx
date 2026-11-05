@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarClock, Receipt, Ticket, UserRound, type LucideIcon } from "lucide-react";
+import { CalendarClock, GraduationCap, Receipt, Ticket, UserRound, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -22,18 +22,23 @@ interface Pendencia {
 // de uma decisão do admin, cada linha com contagem e um atalho direto pra
 // resolver. O Switch separa o que é urgente hoje (reserva de hoje sem
 // pagamento, comanda que ficou aberta de outro dia) do que é recorrente
-// (mensalista vencendo, inscrição de torneio sem pagamento).
+// (mensalista vencendo, mensalidade de aula vencendo ou em aberto,
+// inscrição de torneio sem pagamento).
 export function WidgetPendencias({
   mensaisVencendo,
   reservasNaoPagas,
   comandasAbertasDeOntem,
   inscricoesPendentes,
+  aulasVencendo = 0,
+  aulasEmAberto = 0,
   className,
 }: {
   mensaisVencendo: number;
   reservasNaoPagas: number;
   comandasAbertasDeOntem: number;
   inscricoesPendentes: number;
+  aulasVencendo?: number;
+  aulasEmAberto?: number;
   className?: string;
 }) {
   const [soDeHoje, setSoDeHoje] = useState(false);
@@ -61,6 +66,22 @@ export function WidgetPendencias({
       quantidade: mensaisVencendo,
       href: "/gerenciamento/planos?filtro=vencendo",
       icone: UserRound,
+      deOutroDia: true,
+    },
+    {
+      chave: "aulas-aberto",
+      label: "Aulas com mensalidade em aberto",
+      quantidade: aulasEmAberto,
+      href: "/gerenciamento/instrutores",
+      icone: GraduationCap,
+      deOutroDia: true,
+    },
+    {
+      chave: "aulas-vencendo",
+      label: "Aulas vencendo",
+      quantidade: aulasVencendo,
+      href: "/gerenciamento/instrutores",
+      icone: GraduationCap,
       deOutroDia: true,
     },
     {

@@ -6,20 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { linkWhatsapp } from "@/lib/whatsapp";
-import { modelosMensagemCliente } from "@/components/gerenciamento/clientes/mensagens-cliente";
+import {
+  modelosMensagemCliente,
+  type ModeloMensagem,
+} from "@/components/gerenciamento/clientes/mensagens-cliente";
 
 // Atalho de WhatsApp no card da lista de clientes: abre os modelos
 // genéricos (sem consulta ao consumo) e cada um já vai pro wa.me com o
 // texto pronto. Sem telefone, o botão fica desabilitado com o motivo.
+// `modelos` troca os genéricos por outros (ex.: os do aluno, em Instrutores).
 export function MensagemClienteMenu({
   nome,
   telefone,
-  siteUrl,
+  siteUrl = "",
+  modelos: modelosProntos,
   className,
 }: {
   nome: string;
   telefone: string | null;
-  siteUrl: string;
+  siteUrl?: string;
+  modelos?: ModeloMensagem[];
   className?: string;
 }) {
   if (!telefone) {
@@ -31,7 +37,7 @@ export function MensagemClienteMenu({
     );
   }
 
-  const modelos = modelosMensagemCliente(nome, siteUrl);
+  const modelos = modelosProntos ?? modelosMensagemCliente(nome, siteUrl);
 
   return (
     <Popover>

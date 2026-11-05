@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   ChevronLeft,
   CupSoda,
+  GraduationCap,
   Mail,
   MessageCircle,
   Pencil,
@@ -34,6 +35,7 @@ const ICONE_TIPO: Record<TipoConsumo, LucideIcon> = {
   RESERVA: CalendarCheck,
   DAY_USE: Sun,
   MENSAL: Sun,
+  AULA: GraduationCap,
   BAR: CupSoda,
   TORNEIO: Trophy,
 };

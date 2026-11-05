@@ -2,7 +2,7 @@ import { listarUsuarios } from "@/features/usuarios/actions/listar-usuarios";
 import { exigirAdmin } from "@/lib/require-admin";
 import { UsuarioLista } from "@/components/gerenciamento/equipe/usuario-lista";
 
-// CRUD das contas de equipe (ADMIN/OPERATOR/INTRUCTOR) — cliente não entra
+// CRUD das contas de equipe (ADMIN/OPERATOR/INSTRUTOR) — cliente não entra
 // aqui, só nasce pelo cadastro público em /entrar.
 export default async function EquipePage() {
   const [usuarios, admin] = await Promise.all([listarUsuarios(), exigirAdmin()]);

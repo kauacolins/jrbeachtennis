@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { exigirAdmin } from "@/lib/require-admin";
 import { Role, StatusComanda, TipoItemComanda } from "@/app/generated/prisma/enums";
 
-export type TipoConsumo = "RESERVA" | "DAY_USE" | "MENSAL" | "BAR" | "TORNEIO";
+export type TipoConsumo = "RESERVA" | "DAY_USE" | "MENSAL" | "AULA" | "BAR" | "TORNEIO";
 
 export interface ConsumoCliente {
   id: string;
@@ -29,6 +29,8 @@ export interface ConsumoCliente {
 //   dele (Reserva.clienteId);
 // - day use e mensal do cadastro de balcão (Cliente), ligado pela conta ou
 //   pelo mesmo telefone;
+// - mensalidades de aula com os instrutores (docs/INSTRUTORES.md), do
+//   mesmo cadastro de balcão;
 // - inscrições em torneio que ele fez (quem paga);
 // - itens de bar das comandas onde entrou alguma reserva ou passe dele —
 //   comanda é só pelo nome, então essa é a única ligação confiável.
@@ -56,7 +58,7 @@ export async function obterCliente(id: string) {
   });
   const clienteIds = cadastrosBalcao.map((c) => c.id);
 
-  const [reservas, passes, assinaturas, inscricoes, comandas] = await Promise.all([
+  const [reservas, passes, assinaturas, mensalidades, inscricoes, comandas] = await Promise.all([
     prisma.reserva.findMany({
       where: { OR: [{ userId: id }, { clienteId: { in: clienteIds } }] },
       select: {
@@ -94,6 +96,19 @@ export async function obterCliente(id: string) {
         pago: true,
         canceladaEm: true,
         produto: { select: { nome: true } },
+      },
+    }),
+    prisma.mensalidade.findMany({
+      where: { aluno: { clienteId: { in: clienteIds } } },
+      select: {
+        id: true,
+        inicio: true,
+        fim: true,
+        valorCentavos: true,
+        pago: true,
+        canceladaEm: true,
+        planoAula: { select: { nome: true } },
+        aluno: { select: { instrutor: { select: { nome: true } } } },
       },
     }),
     prisma.inscricao.findMany({
@@ -174,6 +189,19 @@ export async function obterCliente(id: string) {
       valorCentavos: a.valorCentavos,
       pago: a.pago,
       cancelado: a.canceladaEm !== null,
+      status: null,
+      comandaId: null,
+    })),
+    ...mensalidades.map((m) => ({
+      id: `mensalidade-${m.id}`,
+      tipo: "AULA" as const,
+      titulo: `Aulas com ${m.aluno.instrutor.nome}`,
+      detalhe: m.planoAula.nome,
+      data: m.inicio,
+      dataISO: null,
+      valorCentavos: m.valorCentavos,
+      pago: m.pago,
+      cancelado: m.canceladaEm !== null,
       status: null,
       comandaId: null,
     })),

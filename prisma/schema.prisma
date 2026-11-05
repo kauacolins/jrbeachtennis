@@ -15,7 +15,7 @@ datasource db {
 enum Role {
   CLIENT
   OPERATOR
-  INTRUCTOR
+  INSTRUTOR
   ADMIN
 }
 
@@ -122,6 +122,7 @@ model User {
   accounts             Account[]
   inscricoesCriadas    Inscricao[]
   inscricoesComoAtleta AtletaInscrito[]
+  instrutor            Instrutor?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 }
@@ -193,6 +194,7 @@ model Cliente {
   passes      PasseDayUse[]
   assinaturas Assinatura[]
   reservas    Reserva[]
+  aulas       Aluno[]
   createdAt   DateTime      @default(now())
 
   @@index([nome])
@@ -453,4 +455,80 @@ model Evento {
   ativo              Boolean   @default(true)
   ordem              Int       @default(0)
   createdAt          DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Instrutores e alunos (docs/INSTRUTORES.md). Mesma forma do plano mensal
+// (Produto MENSAL + Assinatura), só que o preço é de cada instrutor e a
+// mensalidade pode nascer em aberto (o aluno paga depois).
+
+// Instrutor da arena. Pode existir sem conta; o userId liga a uma conta de
+// equipe com papel INSTRUTOR (login do instrutor fica pra fase 2).
+model Instrutor {
+  id        String      @id @default(cuid())
+  nome      String
+  telefone  String? // só dígitos
+  userId    String?     @unique
+  user      User?       @relation(fields: [userId], references: [id])
+  ativo     Boolean     @default(true)
+  planos    PlanoAula[]
+  alunos    Aluno[]
+  createdAt DateTime    @default(now())
+
+  @@index([nome])
+}
+
+// Preço de aula do instrutor ("2x por semana", R$ 200, 30 dias).
+model PlanoAula {
+  id            String        @id @default(cuid())
+  instrutorId   String
+  instrutor     Instrutor     @relation(fields: [instrutorId], references: [id])
+  nome          String
+  precoCentavos Int
+  duracaoDias   Int           @default(30)
+  ativo         Boolean       @default(true)
+  alunos        Aluno[]
+  mensalidades  Mensalidade[]
+  createdAt     DateTime      @default(now())
+
+  @@index([instrutorId])
+}
+
+// Matrícula: um cliente é aluno de um instrutor. Uma linha por par; sair e
+// voltar reativa a mesma linha.
+model Aluno {
+  id           String        @id @default(cuid())
+  instrutorId  String
+  instrutor    Instrutor     @relation(fields: [instrutorId], references: [id])
+  clienteId    String
+  cliente      Cliente       @relation(fields: [clienteId], references: [id])
+  planoAulaId  String // plano atual; a mensalidade congela o valor
+  planoAula    PlanoAula     @relation(fields: [planoAulaId], references: [id])
+  horario      String? // texto livre: "ter e qui 19h"
+  observacao   String?
+  ativo        Boolean       @default(true)
+  mensalidades Mensalidade[]
+  createdAt    DateTime      @default(now())
+
+  @@unique([instrutorId, clienteId])
+  @@index([clienteId])
+}
+
+// Um período de aula. Em dia = pago, não cancelada e inicio <= agora < fim.
+model Mensalidade {
+  id            String           @id @default(cuid())
+  alunoId       String
+  aluno         Aluno            @relation(fields: [alunoId], references: [id])
+  planoAulaId   String
+  planoAula     PlanoAula        @relation(fields: [planoAulaId], references: [id])
+  inicio        DateTime // UTC
+  fim           DateTime // inicio + duracaoDias
+  valorCentavos Int // congelado
+  pago          Boolean          @default(false)
+  pagoEm        DateTime?
+  metodo        MetodoPagamento?
+  canceladaEm   DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@index([alunoId, fim])
 }
