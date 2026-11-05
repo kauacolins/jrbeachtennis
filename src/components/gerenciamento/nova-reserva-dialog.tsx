@@ -23,6 +23,7 @@ import { SeletorDuracao } from "@/components/reservas/seletor-duracao";
 import { BuscarCliente } from "@/components/gerenciamento/balcao/buscar-cliente";
 import { formatarDataExtensaISO } from "@/lib/datas";
 import { formatarTelefone } from "@/lib/format";
+import { DURACAO_MINIMA_MIN } from "@/lib/constants";
 import { listarHorariosDisponiveis, type Slot } from "@/features/reservas/actions/listar-horarios-disponiveis";
 import { criarReservaAdmin } from "@/features/reservas/actions/criar-reserva-admin";
 import type { ClienteBalcao } from "@/features/clientes/actions/buscar-clientes";
@@ -59,7 +60,7 @@ export function NovaReservaDialog({
   const [slots, setSlots] = useState<Slot[]>([]);
   const [carregandoSlots, setCarregandoSlots] = useState(false);
   const [slotSelecionado, setSlotSelecionado] = useState<Slot | null>(null);
-  const [duracao, setDuracao] = useState(1);
+  const [duracao, setDuracao] = useState(DURACAO_MINIMA_MIN);
   const [cliente, setCliente] = useState<ClienteBalcao | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, startTransition] = useTransition();
@@ -72,7 +73,7 @@ export function NovaReservaDialog({
     if (!aberto) return;
     setQuadraId(quadrasAtivas[0]?.id ?? "");
     setSlotSelecionado(null);
-    setDuracao(1);
+    setDuracao(DURACAO_MINIMA_MIN);
     setCliente(null);
     setErro(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,7 +116,7 @@ export function NovaReservaDialog({
 
   function selecionarSlot(slot: Slot) {
     setSlotSelecionado(slot);
-    setDuracao(1);
+    setDuracao(DURACAO_MINIMA_MIN);
   }
 
   // Não é um <form>: o cadastro rápido do BuscarCliente já é um form, e
@@ -137,7 +138,7 @@ export function NovaReservaDialog({
         quadraId: quadra.id,
         modalidadeId,
         inicioISO: slotSelecionado.inicio,
-        duracaoHoras: duracao,
+        duracaoMinutos: duracao,
         clienteId: cliente.id,
       });
 
@@ -154,7 +155,7 @@ export function NovaReservaDialog({
         tipo: "reserva",
         id: resultado.reservaId,
         inicioMin,
-        fimMin: inicioMin + duracao * 60,
+        fimMin: inicioMin + duracao,
         titulo: cliente.nome,
         subtitulo: cliente.telefone ? formatarTelefone(cliente.telefone) : "",
         status: "CONFIRMADA",
@@ -244,13 +245,13 @@ export function NovaReservaDialog({
                 ) : null}
               </div>
 
-              {slotSelecionado && slotSelecionado.duracaoMaximaHoras > 1 && (
+              {slotSelecionado && slotSelecionado.duracaoMaximaMinutos > DURACAO_MINIMA_MIN && (
                 <div>
                   <p className="mb-1.5 text-xs font-medium text-muted-foreground">
                     Duração
                   </p>
                   <SeletorDuracao
-                    duracaoMaxima={slotSelecionado.duracaoMaximaHoras}
+                    duracaoMaxima={slotSelecionado.duracaoMaximaMinutos}
                     valor={duracao}
                     onChange={setDuracao}
                   />

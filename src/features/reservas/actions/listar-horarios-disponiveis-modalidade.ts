@@ -39,9 +39,9 @@ export async function listarHorariosDisponiveisPorModalidade(
       if (!atual || PRIORIDADE_STATUS[slot.status] > PRIORIDADE_STATUS[atual.status]) {
         porHora.set(slot.horaLabel, { ...slot });
       } else if (slot.status === atual.status) {
-        atual.duracaoMaximaHoras = Math.max(
-          atual.duracaoMaximaHoras,
-          slot.duracaoMaximaHoras
+        atual.duracaoMaximaMinutos = Math.max(
+          atual.duracaoMaximaMinutos,
+          slot.duracaoMaximaMinutos
         );
       }
     }

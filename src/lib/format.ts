@@ -9,6 +9,19 @@ export function formatarPreco(centavos: number): string {
   }).format(centavos / 100);
 }
 
+/** 60 -> "1h", 90 -> "1h30", 30 -> "30min". */
+export function formatarDuracao(minutos: number): string {
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  if (horas === 0) return `${resto}min`;
+  return resto ? `${horas}h${String(resto).padStart(2, "0")}` : `${horas}h`;
+}
+
+/** Preço proporcional ao tempo: R$ 60/hora -> 1h30 = R$ 90. */
+export function precoPorDuracao(precoHoraCentavos: number, minutos: number): number {
+  return Math.round((precoHoraCentavos * minutos) / 60);
+}
+
 export function formatarHora(data: Date | string): string {
   return formatInTimeZone(data, TIME_ZONE, "HH:mm");
 }

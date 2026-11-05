@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { formatInTimeZone } from "date-fns-tz";
 import { prisma } from "@/lib/prisma";
-import { JANELA_MAXIMA_DIAS, TIME_ZONE } from "@/lib/constants";
+import { JANELA_MAXIMA_DIAS, PASSO_RESERVA_MIN, TIME_ZONE } from "@/lib/constants";
+import { precoPorDuracao } from "@/lib/format";
 import { diaSemanaDaData } from "@/lib/datas";
 import { exigirAdmin } from "@/lib/require-admin";
 import { criarReservaAdminSchema, type CriarReservaAdminInput } from "../schema";
@@ -38,7 +39,7 @@ export async function criarReservaAdmin(
     };
   }
 
-  const { quadraId, modalidadeId, inicioISO, duracaoHoras, clienteId } = parsed.data;
+  const { quadraId, modalidadeId, inicioISO, duracaoMinutos, clienteId } = parsed.data;
 
   const inicio = new Date(inicioISO);
   if (Number.isNaN(inicio.getTime())) {
@@ -61,16 +62,19 @@ export async function criarReservaAdmin(
   }
 
   const horaLocal = formatInTimeZone(inicio, TIME_ZONE, "HH:mm");
-  if (!horaLocal.endsWith(":00")) {
-    return { ok: false, erro: "A reserva precisa começar em uma hora cheia." };
+  if (inicio.getTime() % 60_000 !== 0 || minutosDoDia(horaLocal) % PASSO_RESERVA_MIN !== 0) {
+    return {
+      ok: false,
+      erro: "A reserva precisa começar em hora cheia ou meia hora (ex.: 19:00 ou 19:30).",
+    };
   }
 
-  const fim = new Date(inicio.getTime() + duracaoHoras * 60 * 60_000);
+  const fim = new Date(inicio.getTime() + duracaoMinutos * 60_000);
   const dataLocal = formatInTimeZone(inicio, TIME_ZONE, "yyyy-MM-dd");
   const diaSemana = diaSemanaDaData(dataLocal);
 
   const horaInicioMin = minutosDoDia(horaLocal);
-  const horaFimMin = horaInicioMin + duracaoHoras * 60;
+  const horaFimMin = horaInicioMin + duracaoMinutos;
 
   const resultado = await prisma.$transaction(async (tx): Promise<CriarReservaAdminResultado> => {
     const cliente = await tx.cliente.findUnique({
@@ -121,7 +125,7 @@ export async function criarReservaAdmin(
       };
     }
 
-    const valorCentavos = quadra.precoHoraCentavos * duracaoHoras;
+    const valorCentavos = precoPorDuracao(quadra.precoHoraCentavos, duracaoMinutos);
 
     const reserva = await tx.reserva.create({
       data: {

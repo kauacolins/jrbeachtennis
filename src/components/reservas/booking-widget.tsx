@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatarHora, formatarPreco } from "@/lib/format";
+import { formatarHora, formatarPreco, precoPorDuracao } from "@/lib/format";
+import { DURACAO_MINIMA_MIN } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -49,7 +50,7 @@ export function BookingWidget({
         ) ?? null
       : null
   );
-  const [duracao, setDuracao] = useState(1);
+  const [duracao, setDuracao] = useState(DURACAO_MINIMA_MIN);
   const [sheetAberto, setSheetAberto] = useState(false);
   const [reserva, setReserva] = useState<ReservaConfirmada | null>(null);
 
@@ -76,7 +77,7 @@ export function BookingWidget({
 
   function selecionarSlot(slot: Slot) {
     setSlotSelecionado(slot);
-    setDuracao(1);
+    setDuracao(DURACAO_MINIMA_MIN);
   }
 
   function fecharSucesso() {
@@ -86,7 +87,7 @@ export function BookingWidget({
 
   const fimPrevistoISO = slotSelecionado
     ? new Date(
-        new Date(slotSelecionado.inicio).getTime() + duracao * 60 * 60_000
+        new Date(slotSelecionado.inicio).getTime() + duracao * 60_000
       ).toISOString()
     : "";
 
@@ -125,13 +126,13 @@ export function BookingWidget({
           )}
         </div>
 
-        {slotSelecionado && slotSelecionado.duracaoMaximaHoras > 1 && (
+        {slotSelecionado && slotSelecionado.duracaoMaximaMinutos > DURACAO_MINIMA_MIN && (
           <div>
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">
               Duração
             </p>
             <SeletorDuracao
-              duracaoMaxima={slotSelecionado.duracaoMaximaHoras}
+              duracaoMaxima={slotSelecionado.duracaoMaximaMinutos}
               valor={duracao}
               onChange={setDuracao}
             />
@@ -147,7 +148,7 @@ export function BookingWidget({
                   {formatarHora(fimPrevistoISO)}
                 </p>
                 <p className="text-muted-foreground">
-                  {formatarPreco(modalidade.precoHoraCentavos * duracao)}
+                  {formatarPreco(precoPorDuracao(modalidade.precoHoraCentavos, duracao))}
                 </p>
               </div>
               <Button className="h-11 px-6" onClick={() => setSheetAberto(true)}>
@@ -162,8 +163,8 @@ export function BookingWidget({
               modalidadeNome={modalidade.nome}
               inicioISO={slotSelecionado.inicio}
               fimISO={fimPrevistoISO}
-              valorCentavos={modalidade.precoHoraCentavos * duracao}
-              duracaoHoras={duracao}
+              valorCentavos={precoPorDuracao(modalidade.precoHoraCentavos, duracao)}
+              duracaoMinutos={duracao}
               onConfirmado={(resultado) => {
                 setReserva(resultado);
                 setSheetAberto(false);

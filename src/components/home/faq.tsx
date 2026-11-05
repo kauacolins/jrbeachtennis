@@ -9,7 +9,7 @@ const PERGUNTAS = [
   {
     pergunta: "Como eu reservo um horário?",
     resposta:
-      "Escolha a quadra e a modalidade, veja os horários livres na agenda do dia e toque no horário que quiser. Duração de 1h a 3h, sempre em blocos de hora cheia.",
+      "Escolha a quadra e a modalidade, veja os horários livres na agenda do dia e toque no horário que quiser. Duração de 1h a 3h, em blocos de meia hora (1h, 1h30, 2h...), começando em hora cheia ou meia hora.",
   },
   {
     pergunta: "Como eu pago?",

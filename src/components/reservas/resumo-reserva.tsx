@@ -70,7 +70,7 @@ export function ResumoReserva({
   inicioISO,
   fimISO,
   valorCentavos,
-  duracaoHoras,
+  duracaoMinutos,
   onConfirmado,
   onConflito,
 }: {
@@ -81,7 +81,7 @@ export function ResumoReserva({
   inicioISO: string;
   fimISO: string;
   valorCentavos: number;
-  duracaoHoras: number;
+  duracaoMinutos: number;
   onConfirmado: (reserva: ReservaConfirmada) => void;
   onConflito: () => void;
 }) {
@@ -128,7 +128,7 @@ export function ResumoReserva({
       const resultado = await criarReservaPorModalidade({
         modalidadeId,
         inicioISO,
-        duracaoHoras,
+        duracaoMinutos,
         nomeContato: nome,
         telefoneContato: telefone,
       });

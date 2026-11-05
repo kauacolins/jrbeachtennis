@@ -2,7 +2,12 @@
 
 import { fromZonedTime } from "date-fns-tz";
 import { prisma } from "@/lib/prisma";
-import { DURACAO_MAXIMA_HORAS, TIME_ZONE } from "@/lib/constants";
+import {
+  DURACAO_MAXIMA_MIN,
+  DURACAO_MINIMA_MIN,
+  PASSO_RESERVA_MIN,
+  TIME_ZONE,
+} from "@/lib/constants";
 import { diaSemanaDaData } from "@/lib/datas";
 
 export type StatusSlot = "livre" | "ocupado" | "passado";
@@ -11,7 +16,7 @@ export interface Slot {
   inicio: string; // ISO UTC
   horaLabel: string; // "19:00" em America/Sao_Paulo
   status: StatusSlot;
-  duracaoMaximaHoras: number; // 0 quando não livre
+  duracaoMaximaMinutos: number; // 0 quando não livre
 }
 
 // RF06/RNF04: slots = funcionamento da quadra − reservas ativas − horário já passado.
@@ -43,47 +48,64 @@ export async function listarHorariosDisponiveis(
   });
 
   const agora = new Date();
-  const slots: Slot[] = [];
 
+  // Grade em blocos de meia hora (PASSO_RESERVA_MIN). Cada bloco sabe se
+  // está livre; o slot que aparece pro cliente é um início onde cabe pelo
+  // menos a duração mínima (1h) só com blocos livres.
+  const blocos: { inicio: Date; min: number; livre: boolean; passado: boolean }[] = [];
   for (
     let min = horario.abreMin;
-    min + 60 <= horario.fechaMin;
-    min += 60
+    min + PASSO_RESERVA_MIN <= horario.fechaMin;
+    min += PASSO_RESERVA_MIN
   ) {
-    const horas = String(Math.floor(min / 60)).padStart(2, "0");
-    const minutos = String(min % 60).padStart(2, "0");
-    const inicioSlot = fromZonedTime(
-      `${dataISO}T${horas}:${minutos}:00`,
+    const inicioBloco = fromZonedTime(
+      `${dataISO}T${horaLabelDe(min)}:00`,
       TIME_ZONE
     );
-    const fimSlot = new Date(inicioSlot.getTime() + 60 * 60_000);
-
-    let status: StatusSlot = "livre";
-    if (inicioSlot.getTime() <= agora.getTime()) {
-      status = "passado";
-    } else if (
-      reservas.some((r) => r.inicio < fimSlot && r.fim > inicioSlot)
-    ) {
-      status = "ocupado";
-    }
-
-    slots.push({
-      inicio: inicioSlot.toISOString(),
-      horaLabel: `${horas}:${minutos}`,
-      status,
-      duracaoMaximaHoras: 0,
+    const fimBloco = new Date(inicioBloco.getTime() + PASSO_RESERVA_MIN * 60_000);
+    blocos.push({
+      inicio: inicioBloco,
+      min,
+      passado: inicioBloco.getTime() <= agora.getTime(),
+      livre: !reservas.some((r) => r.inicio < fimBloco && r.fim > inicioBloco),
     });
   }
 
-  for (let i = 0; i < slots.length; i++) {
-    if (slots[i].status !== "livre") continue;
+  const slots: Slot[] = [];
+  for (let i = 0; i < blocos.length; i++) {
+    const bloco = blocos[i];
+    if (bloco.min + DURACAO_MINIMA_MIN > horario.fechaMin) break;
+
     let duracao = 0;
-    for (let j = i; j < slots.length && duracao < DURACAO_MAXIMA_HORAS; j++) {
-      if (slots[j].status !== "livre") break;
-      duracao++;
+    for (
+      let j = i;
+      j < blocos.length && blocos[j].livre && duracao < DURACAO_MAXIMA_MIN;
+      j++
+    ) {
+      duracao += PASSO_RESERVA_MIN;
     }
-    slots[i].duracaoMaximaHoras = duracao;
+
+    // Meia hora livre espremida entre duas reservas não dá pra reservar
+    // (mínimo 1h), então aparece como ocupada.
+    const status: StatusSlot = bloco.passado
+      ? "passado"
+      : duracao >= DURACAO_MINIMA_MIN
+        ? "livre"
+        : "ocupado";
+
+    slots.push({
+      inicio: bloco.inicio.toISOString(),
+      horaLabel: horaLabelDe(bloco.min),
+      status,
+      duracaoMaximaMinutos: status === "livre" ? duracao : 0,
+    });
   }
 
   return slots;
+}
+
+function horaLabelDe(min: number) {
+  const horas = String(Math.floor(min / 60)).padStart(2, "0");
+  const minutos = String(min % 60).padStart(2, "0");
+  return `${horas}:${minutos}`;
 }

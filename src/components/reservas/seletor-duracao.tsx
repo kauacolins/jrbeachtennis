@@ -1,6 +1,8 @@
 "use client";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { DURACAO_MINIMA_MIN, PASSO_RESERVA_MIN } from "@/lib/constants";
+import { formatarDuracao } from "@/lib/format";
 
 export function SeletorDuracao({
   duracaoMaxima,
@@ -11,7 +13,11 @@ export function SeletorDuracao({
   valor: number;
   onChange: (duracao: number) => void;
 }) {
-  const opcoes = Array.from({ length: duracaoMaxima }, (_, i) => i + 1);
+  // duracaoMaxima em minutos: 1h, 1h30, 2h... até o que cabe livre.
+  const opcoes: number[] = [];
+  for (let m = DURACAO_MINIMA_MIN; m <= duracaoMaxima; m += PASSO_RESERVA_MIN) {
+    opcoes.push(m);
+  }
 
   return (
     <ToggleGroup
@@ -24,9 +30,9 @@ export function SeletorDuracao({
       variant="outline"
       size="lg"
     >
-      {opcoes.map((horas) => (
-        <ToggleGroupItem key={horas} value={String(horas)}>
-          {horas}h
+      {opcoes.map((minutos) => (
+        <ToggleGroupItem key={minutos} value={String(minutos)}>
+          {formatarDuracao(minutos)}
         </ToggleGroupItem>
       ))}
     </ToggleGroup>

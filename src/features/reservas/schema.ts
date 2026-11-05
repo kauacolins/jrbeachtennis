@@ -1,11 +1,20 @@
 import { z } from "zod";
-import { DURACAO_MAXIMA_HORAS, DURACAO_MINIMA_HORAS } from "@/lib/constants";
+import {
+  DURACAO_MAXIMA_MIN,
+  DURACAO_MINIMA_MIN,
+  PASSO_RESERVA_MIN,
+} from "@/lib/constants";
 
 export const criarReservaSchema = z.object({
   quadraId: z.string().min(1),
   modalidadeId: z.string().min(1),
   inicioISO: z.string().datetime(),
-  duracaoHoras: z.number().int().min(DURACAO_MINIMA_HORAS).max(DURACAO_MAXIMA_HORAS),
+  duracaoMinutos: z
+    .number()
+    .int()
+    .min(DURACAO_MINIMA_MIN)
+    .max(DURACAO_MAXIMA_MIN)
+    .multipleOf(PASSO_RESERVA_MIN, "A duração precisa ser em blocos de meia hora."),
   nomeContato: z.string().trim().min(2, "Informe seu nome.").max(80),
   telefoneContato: z
     .string()

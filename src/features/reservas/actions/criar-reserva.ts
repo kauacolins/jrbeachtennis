@@ -8,8 +8,10 @@ import {
   LIMITE_RESERVAS_ABERTAS,
   PIX_NA_RESERVA_ATIVO,
   PRAZO_PAGAMENTO_PIX_MIN,
+  PASSO_RESERVA_MIN,
   TIME_ZONE,
 } from "@/lib/constants";
+import { precoPorDuracao } from "@/lib/format";
 import { diaSemanaDaData } from "@/lib/datas";
 import { getSessaoAtual } from "@/lib/get-session";
 import { pagamentoPixHabilitado } from "@/lib/mercadopago";
@@ -53,7 +55,7 @@ export async function criarReserva(
     };
   }
 
-  const { quadraId, modalidadeId, inicioISO, duracaoHoras, nomeContato, telefoneContato } =
+  const { quadraId, modalidadeId, inicioISO, duracaoMinutos, nomeContato, telefoneContato } =
     parsed.data;
 
   const inicio = new Date(inicioISO);
@@ -77,16 +79,19 @@ export async function criarReserva(
   }
 
   const horaLocal = formatInTimeZone(inicio, TIME_ZONE, "HH:mm");
-  if (!horaLocal.endsWith(":00")) {
-    return { ok: false, erro: "A reserva precisa começar em uma hora cheia." };
+  if (inicio.getTime() % 60_000 !== 0 || minutosDoDia(horaLocal) % PASSO_RESERVA_MIN !== 0) {
+    return {
+      ok: false,
+      erro: "A reserva precisa começar em hora cheia ou meia hora (ex.: 19:00 ou 19:30).",
+    };
   }
 
-  const fim = new Date(inicio.getTime() + duracaoHoras * 60 * 60_000);
+  const fim = new Date(inicio.getTime() + duracaoMinutos * 60_000);
   const dataLocal = formatInTimeZone(inicio, TIME_ZONE, "yyyy-MM-dd");
   const diaSemana = diaSemanaDaData(dataLocal);
 
   const horaInicioMin = minutosDoDia(horaLocal);
-  const horaFimMin = horaInicioMin + duracaoHoras * 60;
+  const horaFimMin = horaInicioMin + duracaoMinutos;
 
   const sessao = await getSessaoAtual();
   const userId = sessao?.user?.id;
@@ -155,7 +160,7 @@ export async function criarReserva(
       };
     }
 
-    const valorCentavos = quadra.precoHoraCentavos * duracaoHoras;
+    const valorCentavos = precoPorDuracao(quadra.precoHoraCentavos, duracaoMinutos);
 
     const reserva = await tx.reserva.create({
       data: {

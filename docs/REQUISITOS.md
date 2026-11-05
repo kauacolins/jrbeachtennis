@@ -10,7 +10,7 @@ Site para reservar horários em quadras de beach tennis, futebol, vôlei e outra
 
 - Um único estabelecimento (um dono, várias quadras).
 - Várias modalidades. Uma quadra pode ter mais de uma modalidade.
-- Reserva de quadra por hora (blocos de 60 min).
+- Reserva de quadra por tempo, em blocos de 30 min (mínimo 1 h).
 - Day use (entrada livre o dia todo) e plano mensal.
 - Login com e-mail e senha ou com Google.
 - Reserva de quadra: pagamento via Pix (Mercado Pago) direto no fluxo, sem redirecionar pra fora do site. Reserva nasce PENDENTE_PAGAMENTO com 15 min pra pagar (ver RN9); sem Mercado Pago configurado no ambiente, cai de volta pro fluxo antigo (CONFIRMADA direto). Reserva manual do admin (RF14) continua sem Pix. **Por enquanto desligado (`PIX_NA_RESERVA_ATIVO = false`): a reserva nasce CONFIRMADA e o pagamento é no local.**
@@ -74,11 +74,11 @@ Os valores abaixo são padrões e devem ficar configuráveis.
 1. **Sem conflito:** uma reserva só é criada se o intervalo [início, fim) não sobrepõe outra reserva ativa nem um bloqueio da mesma quadra. A checagem roda no servidor, em transação. Vale para a quadra inteira: se ela serve beach tennis e vôlei, uma reserva de vôlei ocupa o horário para as duas.
 2. **Modalidade válida:** a modalidade da reserva precisa ser uma das modalidades da quadra.
 3. **Dentro do funcionamento:** início e fim dentro do horário de funcionamento da quadra naquele dia da semana.
-4. **Blocos de 1 hora:** duração múltipla de 60 min (mínimo 1 h, máximo 3 h). Início sempre em hora cheia.
+4. **Blocos de meia hora:** duração múltipla de 30 min (mínimo 1 h, máximo 3 h: 1h, 1h30, 2h, 2h30, 3h). Início em hora cheia ou meia hora (:00 ou :30). Preço proporcional: preço/hora × minutos ÷ 60 (R$ 60/hora → 1h30 = R$ 90). Meia hora livre entre duas reservas não aparece como livre, porque não cabe o mínimo.
 5. **Antecedência:** não dá para reservar horário que já passou; janela de até 30 dias à frente.
 6. **Limite por cliente:** no máximo 2 reservas em aberto (PENDENTE_PAGAMENTO ou CONFIRMADA que ainda não terminaram) por cliente, contadas pela conta ou pelo telefone de contato. Reserva manual do admin não entra no limite.
 7. **Cancelamento pelo cliente:** até 24 h antes do início. Depois disso, só o admin cancela.
-8. **Preço congelado:** o valor da reserva (preço/hora × horas) e o do passe são salvos na criação; mudar o preço depois não altera o que já foi vendido.
+8. **Preço congelado:** o valor da reserva (preço/hora × duração, proporcional por meia hora) e o do passe são salvos na criação; mudar o preço depois não altera o que já foi vendido.
 9. **Status da reserva:** com pagamento via Pix configurado, nasce PENDENTE_PAGAMENTO e tem 15 min para o Pix cair — não caindo a tempo, vira CANCELADA sozinha e libera o horário (sem job/cron: cada leitura relevante expira as pendentes vencidas antes de checar conflito, ver `expirarReservasPendentes`). Sem Mercado Pago configurado no ambiente, nasce CONFIRMADA direto, como antes. A partir de CONFIRMADA pode virar CANCELADA, CONCLUIDA ou NAO_COMPARECEU. Cancelada libera o horário. Reserva manual do admin (RF14) sempre nasce CONFIRMADA, sem Pix — pagamento combinado no local, como day use/mensal.
 10. **Day use:** um passe por pessoa por data. Se houver limite diário, a compra é bloqueada quando lota. Com plano mensal ativo na data, o passe custa R$ 0 e fica ligado ao plano.
 11. **Plano mensal:** vale de `inicio` até `inicio + 30 dias`. Ativo = pago e dentro da validade.
